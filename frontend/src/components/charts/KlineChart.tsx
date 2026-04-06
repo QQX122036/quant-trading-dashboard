@@ -15,7 +15,7 @@ import {
   SeriesMarkerPosition,
   SeriesMarkerShape,
 } from 'lightweight-charts';
-import { fetchDailyBar, type DailyBar } from '../../hooks/useApi';
+import { fetchDailyBar, type DailyBar, isSuccessCode } from '../../hooks/useApi';
 import { calculateMACD } from './IndicatorChart';
 
 interface Signal {
@@ -49,8 +49,10 @@ const MA10_COLOR = '#F59E0B';
 const MA20_COLOR = '#8B5CF6';
 
 function barToCandle(bar: DailyBar): CandlestickData<Time> {
+  // 处理ISO 8601格式（2024-01-02T00:00:00）或普通格式（2024-01-02 00:00:00）
+  const dateStr = bar.trade_date.split('T')[0].split(' ')[0];
   return {
-    time: bar.trade_date as Time,
+    time: dateStr as Time,
     open: bar.open,
     high: bar.high,
     low: bar.low,
@@ -158,11 +160,13 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
   async function loadData() {
     const sym = props.symbol || '600519';
     const exch = props.exchange || 'SSE';
+    const ts_code = `${sym}.${exch}`;
+    
     setLoading(true);
     setError(null);
     try {
-      const res = await fetchDailyBar(sym, exch);
-      if (res.code === '0' && res.data?.bars) {
+      const res = await fetchDailyBar(ts_code, undefined, undefined, 100);
+      if (isSuccessCode(res.code) && res.data?.bars) {
         setBars(res.data.bars);
         props.onBarsLoaded?.(res.data.bars);
       } else {
@@ -181,7 +185,7 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
     const closes = data.map((b) => b.close);
     const times = data.map((b) => b.trade_date as Time);
 
-    // K线数据
+    // K 线数据
     candleSeries.setData(data.map(barToCandle));
 
     // MA
@@ -197,6 +201,85 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
     candleSeries.setMarkers(signals);
 
     chart.timeScale().fitContent();
+  }
+
+  // ── Zoom controls ─────────────────────────────────────────
+
+  function zoomIn() {
+    if (!chart) return;
+    const ts = chart.timeScale();
+    const visibleRange = ts.getVisibleRange();
+    if (!visibleRange) return;
+    
+    console.log('zoomIn before:', visibleRange);
+    
+    // 放大：减少可见范围（看到更少但更详细的数据）
+    const from = new Date(visibleRange.from as string).getTime();
+    const to = new Date(visibleRange.to as string).getTime();
+    const currentWidth = Math.abs(to - from);
+    
+    // 最小宽度限制（至少1天）
+    const minWidth = 24 * 60 * 60 * 1000; // 1天
+    if (currentWidth <= minWidth) {
+      console.log('zoomIn: 已达到最小缩放级别');
+      return;
+    }
+    
+    const center = (from + to) / 2;
+    const newWidth = currentWidth * 0.7; // 缩小到 70%
+    
+    // 确保新的开始日期小于结束日期
+    const newFrom = center - newWidth / 2;
+    const newTo = center + newWidth / 2;
+    
+    // 转换回字符串日期格式
+    const newFromStr = new Date(newFrom).toISOString().split('T')[0];
+    let newToStr = new Date(newTo).toISOString().split('T')[0];
+    
+    // 确保开始日期小于结束日期
+    if (newFromStr >= newToStr) {
+      console.log('zoomIn: 开始日期大于等于结束日期，调整');
+      const newToDate = new Date(newFromStr);
+      newToDate.setDate(newToDate.getDate() + 1);
+      newToStr = newToDate.toISOString().split('T')[0];
+    }
+    
+    console.log('zoomIn after:', { from: newFromStr, to: newToStr });
+    
+    ts.setVisibleRange({
+      from: newFromStr as Time,
+      to: newToStr as Time,
+    });
+  }
+
+  function zoomOut() {
+    if (!chart) return;
+    const ts = chart.timeScale();
+    const visibleRange = ts.getVisibleRange();
+    if (!visibleRange) return;
+    
+    console.log('zoomOut before:', visibleRange);
+    
+    // 缩小：增加可见范围（看到更多历史数据）
+    const from = new Date(visibleRange.from as string).getTime();
+    const to = new Date(visibleRange.to as string).getTime();
+    const center = (from + to) / 2;
+    const currentWidth = Math.abs(to - from);
+    const newWidth = currentWidth * 1.4; // 扩大到 140%
+    
+    const newFrom = center - newWidth / 2;
+    const newTo = center + newWidth / 2;
+    
+    // 转换回字符串日期格式
+    const newFromStr = new Date(newFrom).toISOString().split('T')[0];
+    const newToStr = new Date(newTo).toISOString().split('T')[0];
+    
+    console.log('zoomOut after:', { from: newFromStr, to: newToStr });
+    
+    ts.setVisibleRange({
+      from: newFromStr as Time,
+      to: newToStr as Time,
+    });
   }
 
   onMount(() => {
@@ -233,6 +316,21 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
         borderColor: 'rgba(255, 255, 255, 0.1)',
         timeVisible: true,
         secondsVisible: false,
+        minBarSpacing: 2,  // 最小 K 线间距，允许缩小
+      },
+      handleScroll: {
+        mouseWheel: true,  // 启用鼠标滚轮缩放
+        pressedMouseMove: true,  // 启用鼠标拖动
+        horzTouchDrag: true,  // 启用水平触摸拖动
+        vertTouchDrag: false,  // 禁用垂直触摸拖动
+      },
+      handleScale: {
+        mouseWheel: true,  // 启用鼠标滚轮缩放
+        pinch: true,  // 启用手势缩放
+        axisPressedMouseMove: {
+          time: true,  // 允许在时间轴上拖动
+          price: true,  // 允许在价格轴上拖动
+        },
       },
     });
 
@@ -380,28 +478,12 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
       updateVisibleRange();
     }
 
-    // 鼠标滚轮缩放
-    function handleWheel(e: WheelEvent) {
-      if (!chart) return;
-      e.preventDefault();
-      const timeScale = chart.timeScale();
-      const range = timeScale.getVisibleRange();
-      if (!range) return;
 
-      const mid = ((range.from as number) + (range.to as number)) / 2;
-      const factor = e.deltaY > 0 ? 1.15 : 0.85; // 向下滚=放大，向上滚=缩小
-      const half = ((range.to as number) - (range.from as number)) * factor / 2;
-      timeScale.setVisibleRange({ from: (mid - half) as Time, to: (mid + half) as Time });
-      updateVisibleRange();
-    }
-
-    containerRef.addEventListener('wheel', handleWheel, { passive: false });
     window.addEventListener('keydown', handleKeyDown);
 
     onCleanup(() => {
       resizeObserver.disconnect();
       window.removeEventListener('keydown', handleKeyDown);
-      containerRef?.removeEventListener('wheel', handleWheel);
       window.removeEventListener('custom-indicator-add', handleCustomIndicatorAdd);
       window.removeEventListener('custom-indicator-remove', handleCustomIndicatorRemove);
       chart?.remove();
@@ -437,6 +519,15 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
     loadData();
   }
 
+  // 当symbol或exchange变化时重新加载数据
+  createEffect(() => {
+    props.symbol;
+    props.exchange;
+    if (!props.bars) {
+      loadData();
+    }
+  });
+
   return (
     <div class="relative w-full h-full">
       {/* Loading/Error overlay */}
@@ -457,6 +548,24 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
         <span class="text-xs text-gray-400 bg-black/40 px-2 py-1 rounded">
           显示 {visibleCount()} / {totalCount()} 条
         </span>
+
+        {/* 缩放按钮 */}
+        <div class="flex gap-1">
+          <button
+            class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
+            onClick={zoomOut}
+            title="缩小（查看更多数据）"
+          >
+            ➖ 缩小
+          </button>
+          <button
+            class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
+            onClick={zoomIn}
+            title="放大（查看更少数据）"
+          >
+            ➕ 放大
+          </button>
+        </div>
 
         {/* 左右平移按钮 */}
         <div class="flex gap-1">

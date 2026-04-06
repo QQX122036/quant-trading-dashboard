@@ -1,4 +1,4 @@
-import { Component, onMount, onCleanup, createSignal } from 'solid-js';
+import { Component, onMount, onCleanup, createSignal, createEffect } from 'solid-js';
 import { createChart, IChartApi, Time } from 'lightweight-charts';
 import { fetchDailyBar, type KLineBar } from '../../hooks/useApi';
 
@@ -209,7 +209,7 @@ export const IndicatorChart: Component<IndicatorChartProps> = (props) => {
     } else if (props.symbol && props.exchange) {
       setLoading(true);
       try {
-        const res = await fetchDailyBar(`${props.symbol}.${props.exchange}`);
+        const res = await fetchDailyBar(`${props.symbol}.${props.exchange}`, undefined, undefined, 100);
         if (res.code === '0' && res.data?.bars) {
           bars = res.data.bars as unknown as KLineBar[];
         }
@@ -222,13 +222,46 @@ export const IndicatorChart: Component<IndicatorChartProps> = (props) => {
 
     if (bars.length === 0) return;
 
-    // Remove existing series
-    chart.remove();
+    // Clear existing series - use a safer approach by recreating the chart
+    if (containerRef) {
+      chart.remove();
+      chart = createChart(containerRef, {
+        layout: {
+          background: { color: '#0A0E17' },
+          textColor: '#9CA3AF',
+        },
+        grid: {
+          vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
+          horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
+        },
+        rightPriceScale: {
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+        },
+        timeScale: {
+          visible: true,
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+          timeVisible: true,
+          secondsVisible: false,
+        },
+        crosshair: {
+          vertLine: {
+            color: 'rgba(255, 255, 255, 0.3)',
+            style: 2,
+            labelBackgroundColor: '#3B82F6',
+          },
+          horzLine: {
+            color: 'rgba(255, 255, 255, 0.3)',
+            style: 2,
+            labelBackgroundColor: '#3B82F6',
+          },
+        },
+      });
+    }
 
     const closes: number[] = bars.map((b) => b.close);
     const highs: number[] = bars.map((b) => b.high);
     const lows: number[] = bars.map((b) => b.low);
-    const times: Time[] = bars.map((b) => b.datetime as Time);
+    const times: Time[] = bars.map((b) => b.trade_date as Time);
 
     if (props.type === 'MACD') {
       const { dif, dea, histogram } = calculateMACD(closes);
@@ -483,7 +516,7 @@ export const IndicatorChart: Component<IndicatorChartProps> = (props) => {
   };
 
   // Watch for prop changes
-  createSignal(() => {
+  createEffect(() => {
     props.bars;
     props.symbol;
     props.exchange;

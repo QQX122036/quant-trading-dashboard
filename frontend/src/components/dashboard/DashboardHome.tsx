@@ -76,7 +76,7 @@ export const DashboardHome: Component = () => {
   async function loadAccounts() {
     try {
       const res = await fetchAccounts();
-      if (res.code === '0' && res.data?.accounts) {
+      if ((res.code === '0' || res.code === 0) && res.data?.accounts) {
         for (const acc of res.data.accounts) {
           state.accounts.items[acc.vt_accountid] = acc;
         }
@@ -87,7 +87,7 @@ export const DashboardHome: Component = () => {
   async function loadPositions() {
     try {
       const res = await fetchPositions();
-      if (res.code === '0' && res.data?.positions) {
+      if ((res.code === '0' || res.code === 0) && res.data?.positions) {
         for (const pos of res.data.positions) {
           state.positions.items[pos.vt_positionid] = pos;
         }

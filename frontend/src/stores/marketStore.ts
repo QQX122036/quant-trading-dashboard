@@ -106,8 +106,9 @@ export const marketActions = {
 
     try {
       const res = await api.fetchIndexBars(ts_code, startDate, endDate);
-      if (res.code === '0' && res.data && res.data.items.length > 0) {
-        const bars = res.data.items.sort((a, b) => a.trade_date.localeCompare(b.trade_date));
+      if ((res.code === '0' || res.code === 0) && res.data && res.data.items && res.data.items.length > 0) {
+        // 按日期降序排序（最新的在前）
+        const bars = res.data.items.sort((a, b) => b.trade_date.localeCompare(a.trade_date));
         const { price, change, changePercent } = calcChangeFromBars(bars);
         setMarketState(
           'indices',
@@ -140,7 +141,7 @@ export const marketActions = {
   async loadSectorRanking() {
     try {
       const res = await api.fetchSectorRanking(undefined);
-      if (res.code === '0' && res.data) {
+      if ((res.code === '0' || res.code === 0) && res.data) {
         setMarketState('sectors', res.data.items);
       }
     } catch (e) {
@@ -152,7 +153,7 @@ export const marketActions = {
   async loadHotStocks() {
     try {
       const res = await api.fetchHotStocks(undefined);
-      if (res.code === '0' && res.data) {
+      if ((res.code === '0' || res.code === 0) && res.data) {
         setMarketState('hotStocks', res.data.items);
       }
     } catch (e) {
@@ -164,7 +165,7 @@ export const marketActions = {
   async loadMarketBreadth() {
     try {
       const res = await api.fetchMarketBreadth();
-      if (res.code === '0' && res.data) {
+      if ((res.code === '0' || res.code === 0) && res.data) {
         setMarketState('marketBreadth', res.data);
         setMarketState('sentiment', api.calcSentiment(res.data.up_ratio));
       }
@@ -176,14 +177,19 @@ export const marketActions = {
   /** 加载全部市场概览数据 */
   async loadAll() {
     setMarketState('loading', true);
-    await Promise.allSettled([
-      marketActions.loadAllIndices(),
-      marketActions.loadSectorRanking(),
-      marketActions.loadHotStocks(),
-      marketActions.loadMarketBreadth(),
-    ]);
-    setMarketState('loading', false);
-    setMarketState('lastUpdate', new Date().toLocaleTimeString('zh-CN'));
+    try {
+      await Promise.allSettled([
+        marketActions.loadAllIndices(),
+        marketActions.loadSectorRanking(),
+        marketActions.loadHotStocks(),
+        marketActions.loadMarketBreadth(),
+      ]);
+    } catch (e) {
+      console.error('[MarketStore] Failed to load all data:', e);
+    } finally {
+      setMarketState('loading', false);
+      setMarketState('lastUpdate', new Date().toLocaleTimeString('zh-CN'));
+    }
   },
 
   /** 刷新单类数据（定时调用） */

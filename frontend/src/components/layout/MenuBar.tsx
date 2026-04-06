@@ -4,7 +4,7 @@ import { state, actions } from '../../stores';
 import { GlobalDialog } from '../dialogs/GlobalDialog';
 import { ContractManager } from '../dialogs/ContractManager';
 import { ConnectDialog } from '../dialogs/ConnectDialog';
-import { useI18n, Locale } from '../../i18n';
+import { useI18n } from '../../i18n';
 
 interface MenuChildItem {
   label: string;
@@ -68,7 +68,7 @@ export const MenuBar: Component = () => {
 
   const handleMenuClick = (item: MenuChildItem) => {
     if (item.route) {
-      navigate(item.route);  // ✅ Use SolidJS Router's navigate
+      navigate(item.route);  // 使用SolidJS Router的navigate
     }
     if (item.action) {
       item.action();
@@ -79,19 +79,23 @@ export const MenuBar: Component = () => {
   const closeMenu = () => setActiveMenu(null);
 
   const renderMenuItems = (children: MenuChildItem[]) => {
-    return children.map((item) => {
-      if (item.divider) {
-        return <div class="border-t border-white/10 my-1" />;
-      }
-      return (
-        <button
-          class="w-full px-4 py-1.5 text-sm text-left hover:bg-white/10"
-          onClick={() => handleMenuClick(item)}
-        >
-          {item.label}
-        </button>
-      );
-    });
+    return (
+      <For each={children}>
+        {(item) => {
+          if (item.divider) {
+            return <div class="border-t border-white/10 my-1" />;
+          }
+          return (
+            <button
+              class="w-full px-4 py-1.5 text-sm text-left hover:bg-white/10"
+              onClick={() => handleMenuClick(item)}
+            >
+              {item.label}
+            </button>
+          );
+        }}
+      </For>
+    );
   };
 
   return (
@@ -118,7 +122,7 @@ export const MenuBar: Component = () => {
               </button>
 
               <Show when={activeMenu() === menu.label && menu.children}>
-                <div class="absolute top-full left-0 mt-1 min-w-40 bg-[#1f2937] border border-white/10 rounded shadow-lg py-1">
+                <div class="absolute top-full left-0 mt-1 min-w-40 bg-[#1f2937] border border-white/10 rounded shadow-lg py-1 z-50">
                   {renderMenuItems(menu.children!)}
                 </div>
               </Show>

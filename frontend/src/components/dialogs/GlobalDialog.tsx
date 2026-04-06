@@ -1,6 +1,5 @@
 import { Component, createSignal } from 'solid-js';
 import { state, actions } from '../../stores';
-import { saveSettings } from '../../hooks/useApi';
 
 // SIM参数默认值
 const DEFAULT_SIM = {
@@ -13,6 +12,29 @@ const DEFAULT_RISK = {
   maxPosition: 5,
   maxDailyLoss: 10000,
 };
+
+// 本地存储键名
+const SETTINGS_KEY = 'app_settings';
+
+// 从本地存储加载设置
+function loadSettings() {
+  try {
+    const saved = localStorage.getItem(SETTINGS_KEY);
+    return saved ? JSON.parse(saved) : {};
+  } catch {
+    return {};
+  }
+}
+
+// 保存设置到本地存储
+function saveSettingsLocal(settings: Record<string, unknown>) {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export const GlobalDialog: Component = () => {
   const [simSlippage, setSimSlippage] = createSignal(DEFAULT_SIM.slippage);
@@ -32,19 +54,26 @@ export const GlobalDialog: Component = () => {
     setSaving(true);
     setMsg('');
     try {
-      await saveSettings({
-        theme: theme(),
-        default_gateway: state.connection.gateways ? Object.keys(state.connection.gateways)[0] || 'DUCKDB_SIM' : 'DUCKDB_SIM',
-      } as any);
-      // 同步更新 DOM theme attribute
+    const settings = {
+      theme: theme(),
+      simSlippage: simSlippage(),
+      simCommission: simCommission(),
+      maxPosition: maxPosition(),
+      maxDailyLoss: maxDailyLoss(),
+    };
+    
+    if (saveSettingsLocal(settings)) {
       document.documentElement.setAttribute('data-theme', theme());
       setMsg('✅ 设置已保存');
       setTimeout(close, 800);
-    } catch (e) {
-      setMsg('❌ 保存失败: ' + (e as Error).message);
-    } finally {
-      setSaving(false);
+    } else {
+      setMsg('❌ 保存失败');
     }
+  } catch (e) {
+    setMsg('❌ 保存失败: ' + (e as Error).message);
+  } finally {
+    setSaving(false);
+  }
   }
 
   return (

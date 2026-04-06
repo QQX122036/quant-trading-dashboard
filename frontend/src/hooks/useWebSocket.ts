@@ -8,7 +8,7 @@ import type { WsMessage, WsStatus } from '../types/ws';
 type WsHandler = (msg: WsMessage) => void;
 
 // Use env var or empty string (Vite dev server proxy handles /ws → backend)
-const WS_URL = (import.meta.env.VITE_WS_URL as string | undefined) ?? '';
+const WS_URL = (import.meta.env.VITE_WS_URL as string | undefined) ?? '/ws';
 const RECONNECT_DELAY = 3000;
 const MAX_RECONNECT = 10;
 const PING_INTERVAL = 20000;

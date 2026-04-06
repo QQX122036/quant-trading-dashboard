@@ -53,7 +53,7 @@ export type SentimentType = 'bullish' | 'bearish' | 'neutral';
 // ── REST API types ─────────────────────────────────────────
 
 export interface ApiResponse<T> {
-  code: string;
+  code: string | number;
   message: string;
   data?: T;
 }

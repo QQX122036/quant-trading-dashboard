@@ -7,6 +7,36 @@ import type { OrderData, TradeData, PositionData, AccountData, ContractData, Quo
 // Use env var or empty string (Vite dev server proxy handles /api → backend)
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '';
 
+// ── Helper Functions ───────────────────────────────────────
+
+/**
+ * 检查API响应的code是否表示成功
+ * 支持字符串'0'和数字0
+ */
+export function isSuccessCode(code: string | number | undefined): boolean {
+  return code === '0' || code === 0;
+}
+
+// ── Auth Token Management ─────────────────────────────────────
+
+const TOKEN_KEY = 'auth_token';
+
+export function getAuthToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setAuthToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearAuthToken(): void {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+export function isAuthenticated(): boolean {
+  return !!getAuthToken();
+}
+
 // ── Core fetch ─────────────────────────────────────────────
 
 export async function apiFetch<T>(
@@ -14,8 +44,19 @@ export async function apiFetch<T>(
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   const url = path.startsWith('http') ? path : `${BASE_URL}${path}`;
+  const token = getAuthToken();
+  const headers = new Headers({
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  });
+  
+  // 添加Authorization header（如果token存在）
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
+    headers,
     ...options,
   });
   if (!res.ok) {
@@ -25,7 +66,48 @@ export async function apiFetch<T>(
     }));
     throw err;
   }
-  return res.json() as Promise<ApiResponse<T>>;
+  const data = await res.json();
+  // 如果返回的数据已经是ApiResponse格式，直接返回
+  if (data.code !== undefined) {
+    return data as ApiResponse<T>;
+  }
+  // 如果返回的是直接的数据对象，包装成ApiResponse格式
+  return {
+    code: '0',
+    message: 'success',
+    data: data as T
+  };
+}
+
+// ── Auth ─────────────────────────────────────────────────
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  token_type: string;
+  user_id: string;
+}
+
+export async function login(username: string, password: string): Promise<ApiResponse<LoginResponse>> {
+  const res = await apiFetch<LoginResponse>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ username, password }),
+  });
+  
+  // 如果登录成功，保存token
+  if (isSuccessCode(res.code) && res.data?.access_token) {
+    setAuthToken(res.data.access_token);
+  }
+  
+  return res;
+}
+
+export async function logout(): Promise<void> {
+  clearAuthToken();
 }
 
 // ── Health ─────────────────────────────────────────────────
@@ -109,7 +191,7 @@ export async function fetchPositions(gateway?: string) {
 // ── Accounts ──────────────────────────────────────────────
 
 export async function fetchAccounts(gateway?: string) {
-  const url = gateway ? `/api/accounts?gateway=${encodeURIComponent(gateway)}` : '/api/accounts';
+  const url = gateway ? `/api/data/accounts?gateway=${encodeURIComponent(gateway)}` : '/api/data/accounts';
   return apiFetch<{ accounts: AccountData[] }>(url);
 }
 
@@ -187,9 +269,16 @@ export async function fetchDailyBar(
     ...(adjust && { adjust }),
     ...(adjust_type && { adjust_type }),
   });
-  const res = await apiFetch<{ total: number; items: DailyBar[] }>(`/api/data/daily-bar?${params}`);
-  if (res.code === '0' && res.data) {
-    return { code: '0', message: 'success', data: { bars: res.data.items || [] } };
+  const res = await apiFetch<DailyBar[] | { items: DailyBar[] }>(`/api/data/daily-bar?${params}`);
+  // 兼容后端返回的数据结构
+  if (isSuccessCode(res.code)) {
+    if (Array.isArray(res.data)) {
+      return { code: '0', message: 'success', data: { bars: res.data } };
+    }
+    if (res.data && 'items' in res.data) {
+      return { code: '0', message: 'success', data: { bars: res.data.items } };
+    }
+    return { code: '0', message: 'success', data: { bars: [] } };
   }
   return res as unknown as ApiResponse<{ bars: DailyBar[] }>;
 }
@@ -201,7 +290,20 @@ export async function fetchIndexBars(
   limit?: number
 ): Promise<ApiResponse<{ ts_code: string; total: number; items: IndexBarItem[] }>> {
   const params = new URLSearchParams({ ts_code, ...(start_date && { start_date }), ...(end_date && { end_date }), ...(limit && { limit: String(limit) }) });
-  return apiFetch<{ ts_code: string; total: number; items: IndexBarItem[] }>(`/api/data/index?${params}`);
+  const res = await apiFetch<{ ts_code: string; total: number; items: IndexBarItem[] }>(`/api/data/index?${params}`);
+  // 兼容后端返回的数据结构
+  if (res.code === '0' && Array.isArray(res.data)) {
+    return {
+      code: '0',
+      message: res.message,
+      data: {
+        ts_code,
+        total: res.data.length,
+        items: res.data
+      }
+    };
+  }
+  return res;
 }
 
 export const MAJOR_INDICES = [
@@ -343,6 +445,13 @@ export interface BacktestRunReq {
   symbols: string[];
   start_date: string;
   end_date: string;
+  factor_weights?: {
+    valuation?: number;
+    momentum?: number;
+    quality?: number;
+    sentiment?: number;
+  };
+  stock_count?: number;
 }
 
 export interface BacktestTasksResponse {
@@ -354,9 +463,17 @@ export async function fetchBacktestTasks(): Promise<ApiResponse<BacktestTasksRes
 }
 
 export async function runBacktest(req: BacktestRunReq): Promise<ApiResponse<{ task_id: string }>> {
-  return apiFetch<{ task_id: string }>('/api/backtest', {
+  // 转换请求格式以匹配后端API
+  const backendReq = {
+    ts_codes: req.symbols.length > 0 ? req.symbols : undefined,
+    start_date: req.start_date,
+    end_date: req.end_date,
+    factor_weights: req.factor_weights,
+    stock_count: req.stock_count || 20,
+  };
+  return apiFetch<{ task_id: string }>('/api/backtest/multi-factor', {
     method: 'POST',
-    body: JSON.stringify(req),
+    body: JSON.stringify(backendReq),
   });
 }
 

@@ -78,7 +78,9 @@ const MA_COLORS = ['#3B82F6', '#F59E0B', '#8B5CF6', '#10B981', '#EC4899'];
 // ── Helpers ──────────────────────────────────────────────────
 
 function barToCandle(bar: DailyBar): CandlestickData<Time> {
-  return { time: bar.trade_date as Time, open: bar.open, high: bar.high, low: bar.low, close: bar.close };
+  // 处理 ISO 8601 格式（2024-01-02T00:00:00）或普通格式（2024-01-02 00:00:00）
+  const dateStr = bar.trade_date.split('T')[0].split(' ')[0];
+  return { time: dateStr as Time, open: bar.open, high: bar.high, low: bar.low, close: bar.close };
 }
 
 function calcMA(closes: number[], times: Time[], period: number): LineData<Time>[] {
@@ -116,7 +118,9 @@ function normalizeToStart(bars: DailyBar[], closeKey = 'close'): LineData<Time>[
   const startPrice = bars[0][closeKey as keyof DailyBar] as number;
   return bars.map((bar) => {
     const price = bar[closeKey as keyof DailyBar] as number;
-    return { time: bar.trade_date as Time, value: Number(((price / startPrice) * 100).toFixed(2)) };
+    // 处理 ISO 8601 格式（2024-01-02T00:00:00）或普通格式（2024-01-02 00:00:00）
+    const dateStr = bar.trade_date.split('T')[0].split(' ')[0];
+    return { time: dateStr as Time, value: Number(((price / startPrice) * 100).toFixed(2)) };
   });
 }
 
@@ -240,7 +244,7 @@ export const EnhancedKlineChart: Component<EnhancedKlineChartProps> = (props) =>
     setLoading(true);
     setError(null);
     try {
-      const res = await fetchDailyBar(tsCode);
+      const res = await fetchDailyBar(tsCode, undefined, undefined, 100);
       if (res.code === '0' && res.data?.bars) {
         const rawBars = res.data.bars;
         setBars(rawBars);
@@ -261,7 +265,7 @@ export const EnhancedKlineChart: Component<EnhancedKlineChartProps> = (props) =>
 
   async function loadIndexBars() {
     try {
-      const res = await fetchDailyBar('000001.SH');
+      const res = await fetchDailyBar('000001.SH', undefined, undefined, 100);
       if (res.code === '0' && res.data?.bars) {
         setIndexBars(res.data.bars);
       }
@@ -270,7 +274,7 @@ export const EnhancedKlineChart: Component<EnhancedKlineChartProps> = (props) =>
 
   async function loadComparedStock(tsCode: string) {
     try {
-      const res = await fetchDailyBar(tsCode);
+      const res = await fetchDailyBar(tsCode, undefined, undefined, 100);
       if (res.code === '0' && res.data?.bars) {
         const rawBars = res.data.bars;
         const adjBars = adjustBars(rawBars, adjustType());
@@ -321,8 +325,30 @@ export const EnhancedKlineChart: Component<EnhancedKlineChartProps> = (props) =>
         vertLine: { width: 1, color: 'rgba(255, 255, 255, 0.3)', style: 2, labelBackgroundColor: '#3B82F6' },
         horzLine: { width: 1, color: 'rgba(255, 255, 255, 0.3)', style: 2, labelBackgroundColor: '#3B82F6' },
       },
-      rightPriceScale: { borderColor: 'rgba(255, 255, 255, 0.1)' },
-      timeScale: { borderColor: 'rgba(255, 255, 255, 0.1)', timeVisible: true, secondsVisible: false },
+      rightPriceScale: {
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        autoScale: true,  // 启用自动缩放
+      },
+      timeScale: {
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        timeVisible: true,
+        secondsVisible: false,
+        minBarSpacing: 0.5,  // 最小 K 线间距，允许缩小到更紧凑
+      },
+      handleScroll: {
+        mouseWheel: true,  // 启用鼠标滚轮缩放
+        pressedMouseMove: true,  // 启用鼠标拖动
+        horzTouchDrag: true,  // 启用水平触摸拖动
+        vertTouchDrag: false,  // 禁用垂直触摸拖动
+      },
+      handleScale: {
+        mouseWheel: true,  // 启用鼠标滚轮缩放
+        pinch: true,  // 启用手势缩放
+        axisPressedMouseMove: {
+          time: true,  // 允许在时间轴上拖动缩放
+          price: true,  // 允许在价格轴上拖动缩放
+        },
+      },
     });
 
     candleSeries = chart.addCandlestickSeries({
@@ -668,6 +694,46 @@ export const EnhancedKlineChart: Component<EnhancedKlineChartProps> = (props) =>
     updateChipData(adjBars);
   }
 
+  // ── Zoom controls ─────────────────────────────────────────
+
+  function zoomIn() {
+    if (!chart) return;
+    const ts = chart.timeScale();
+    const visibleRange = ts.getVisibleRange();
+    if (!visibleRange) return;
+    
+    // 放大：减少可见范围（看到更少但更详细的数据）
+    const from = visibleRange.from as number;
+    const to = visibleRange.to as number;
+    const center = (from + to) / 2;
+    const currentWidth = to - from;
+    const newHalfWidth = (currentWidth * 0.7) / 2; // 缩小到 70%
+    
+    ts.setVisibleRange({
+      from: (center - newHalfWidth) as Time,
+      to: (center + newHalfWidth) as Time,
+    });
+  }
+
+  function zoomOut() {
+    if (!chart) return;
+    const ts = chart.timeScale();
+    const visibleRange = ts.getVisibleRange();
+    if (!visibleRange) return;
+    
+    // 缩小：增加可见范围（看到更多历史数据）
+    const from = visibleRange.from as number;
+    const to = visibleRange.to as number;
+    const center = (from + to) / 2;
+    const currentWidth = to - from;
+    const newHalfWidth = (currentWidth * 1.4) / 2; // 扩大到 140%
+    
+    ts.setVisibleRange({
+      from: (center - newHalfWidth) as Time,
+      to: (center + newHalfWidth) as Time,
+    });
+  }
+
   // ── Delete drawing ─────────────────────────────────────────
 
   function deleteDrawing(id: string) {
@@ -764,6 +830,26 @@ export const EnhancedKlineChart: Component<EnhancedKlineChartProps> = (props) =>
             title="突破预警线"
           >
             🔔 预警线
+          </button>
+        </div>
+
+        <div class="w-px h-4 bg-white/20" />
+
+        {/* Zoom controls */}
+        <div class="flex gap-1">
+          <button
+            class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
+            onClick={zoomOut}
+            title="缩小（查看更多数据）"
+          >
+            ➖ 缩小
+          </button>
+          <button
+            class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
+            onClick={zoomIn}
+            title="放大（查看更少数据）"
+          >
+            ➕ 放大
           </button>
         </div>
 
