@@ -1,0 +1,379 @@
+@import "tailwindcss";
+
+/* ── Touch optimization ─────────────────────────────────── */
+* {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Touch targets minimum 44px */
+button, a, [role="button"], .btn {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* ── Fintech Dark Theme ──────────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --bg-primary:    #0a0a0f;
+  --bg-secondary: #121218;
+  --bg-card:       #121218;
+  --bg-tertiary:   #1a1a24;
+  --bg-hover:      #1e1e2a;
+  --bg-active:     #1e2942;
+  --bg-selected:   #1e2942;
+
+  /* Text */
+  --text-primary:   #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted:     #64748b;
+
+  /* Borders */
+  --border-color: #1e1e2e;
+  --border-subtle: #252535;
+  --border-focus: #6366f1;
+
+  /* A股 涨/跌 */
+  --color-up:        #ef4444;
+  --color-down:      #22c55e;
+  --color-flat:      #64748b;
+
+  /* Bid/Ask */
+  --color-bid:      #fca5a5;
+  --color-ask:      #93c5fd;
+
+  /* PnL */
+  --color-pnl-pos:  #ef4444;
+  --color-pnl-neg:  #22c55e;
+
+  /* Accent */
+  --color-accent:   #6366f1;
+  --color-accent-hover: #818cf8;
+
+  /* Cursor / highlight */
+  --color-cursor:   #fff5a2;
+
+  /* Status */
+  --status-submitting: #94a3b8;
+  --status-notrade:   #6366f1;
+  --status-partial:   #f59e0b;
+  --status-alltraded: #22c55e;
+  --status-cancelled: #64748b;
+  --status-rejected:  #ef4444;
+
+  /* MA colors */
+  --ma5:  #3b82f6;
+  --ma10: #f59e0b;
+  --ma20: #8b5cf6;
+  --ma30: #ec4899;
+
+  /* Chart backgrounds */
+  --chart-bg: #0a0a0f;
+  --chart-grid: rgba(255, 255, 255, 0.04);
+}
+
+/* ── Glassmorphism utility classes ─────────────────────── */
+.glass {
+  background: rgba(18, 18, 24, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
+}
+
+.glass-card {
+  background: rgba(18, 18, 24, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.glass-dialog {
+  background: rgba(10, 10, 15, 0.92);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Global resets ───────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  scroll-behavior: smooth;
+}
+
+/* ── Scrollbars ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ── Tabular numbers ─────────────────────────────────────── */
+.tabular-nums { font-variant-numeric: tabular-nums; }
+
+/* ── Dark mode overrides ─────────────────────────────────── */
+.dark {
+  color-scheme: dark;
+}
+
+/* ── Main Layout ─────────────────────────────────────────── */
+.main-layout {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "header"
+    "main"
+    "bottom";
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+@media (min-width: 769px) {
+  .main-layout {
+    grid-template-columns: 300px 1fr;
+    grid-template-areas:
+      "header header"
+      "sidebar main"
+      "bottom bottom";
+  }
+}
+
+.layout-header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 44px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.layout-main {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (min-width: 769px) {
+  .layout-main {
+    flex-direction: row;
+  }
+}
+
+.layout-sidebar {
+  display: none;
+  width: 300px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+@media (min-width: 769px) {
+  .layout-sidebar {
+    display: block;
+  }
+}
+
+.layout-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.layout-bottom {
+  grid-area: bottom;
+  display: flex;
+  flex-direction: column;
+  height: 180px;
+  min-height: 150px;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+
+/* ── Tab Bar ──────────────────────────────────────────────── */
+.tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 8px;
+  height: 36px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  background: transparent;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.tab-btn-active {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+}
+
+/* ── Dialog ───────────────────────────────────────────────── */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+
+.dialog-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  min-width: 90vw;
+  max-width: 600px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+@media (min-width: 600px) {
+  .dialog-panel {
+    min-width: 400px;
+  }
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dialog-body {
+  padding: 16px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* ── Form ─────────────────────────────────────────────────── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.form-input {
+  width: 100%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
+}
+.btn-primary:hover {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+.btn-secondary:hover {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.btn-danger {
+  background: transparent;
+  color: #ef4444;
+  border-color: #ef4444;
+}
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+/* ── Price colors (A股红涨绿跌) ──────────────────────────── */
+.price-up   { color: var(--color-up) !important; }
+.price-down  { color: var(--color-down) !important; }
+.price-flat  { color: var(--color-flat) !important; }
+
+/* ── Font utilities ──────────────────────────────────────── */
+.font-mono   { font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace; }
+.font-sans   { font-family: 'Inter', system-ui, sans-serif; }
+
+/* ── Mobile utilities ────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hidden-md { display: none !important; }
+  .w-full-md { width: 100% !important; }
+}
