@@ -36,4 +36,27 @@ window.addEventListener('unhandledrejection', (event) => {
   console.error('[Global Error Handler] Unhandled promise rejection:', event.reason);
 });
 
+// ============================================================
+// Web Vitals 监控初始化
+// ============================================================
+import { useWebVitals } from './hooks/useWebVitals';
+
+let webVitalsReported = false;
+function initWebVitals() {
+  if (webVitalsReported) return;
+  webVitalsReported = true;
+  try {
+    useWebVitals();
+  } catch (e) {
+    console.warn('[WebVitals] Init failed:', e);
+  }
+}
+
+// 延迟到 DOM 渲染完成后初始化，确保 FCP/LCP 测量准确
+if (document.readyState === 'complete') {
+  initWebVitals();
+} else {
+  window.addEventListener('load', initWebVitals, { once: true });
+}
+
 render(() => <App />, root!);
