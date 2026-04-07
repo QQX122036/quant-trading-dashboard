@@ -12,7 +12,7 @@ interface BacktestProgressProps {
   onComplete?: (result: unknown) => void;
 }
 
-const ESTIMATES: Record<string, number> = {
+const _ESTIMATES: Record<string, number> = {
   momentum: 30,
   'dual-ma': 20,
   boll: 25,
@@ -25,7 +25,7 @@ export const BacktestProgress: Component<BacktestProgressProps> = (props) => {
   const navigate = useNavigate();
 
   const [status, setStatus] = createSignal<'pending' | 'running' | 'completed' | 'failed'>('pending');
-  const [progress, setProgress] = createSignal(0);
+  const [_progress, setProgress] = createSignal(0);
   const [message, setMessage] = createSignal('等待启动...');
   const [eta, setEta] = createSignal<number | null>(null);
   const [elapsed, setElapsed] = createSignal(0);
@@ -34,7 +34,7 @@ export const BacktestProgress: Component<BacktestProgressProps> = (props) => {
   let pollTimer: ReturnType<typeof setTimeout> | null = null;
   let tickerTimer: ReturnType<typeof setInterval> | null = null;
 
-  const updateChart = (pct: number, msg: string) => {
+  const _updateChart = (pct: number, _msg: string) => {
     if (!chart) return;
     chart.setOption({
       series: [

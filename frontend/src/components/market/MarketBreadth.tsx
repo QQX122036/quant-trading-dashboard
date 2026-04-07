@@ -69,12 +69,20 @@ export const MarketBreadth: Component<MarketBreadthProps> = (props) => {
         </div>
 
         <Show when={props.data?.date}>
-          <div class="mt-2 text-xs text-gray-600">数据日期: {props.data?.date}</div>
+          <div class="mt-2 pt-2 border-t border-white/5 text-xs text-gray-600">
+            <span>数据日期: {props.data?.date}</span>
+            <span class="mx-2">·</span>
+            <span>实时更新</span>
+          </div>
         </Show>
       </Show>
 
       <Show when={!props.loading && !props.data}>
-        <div class="text-sm text-gray-500 py-2">暂无数据</div>
+        <div class="flex flex-col items-center justify-center gap-2 py-4 text-center">
+          <div class="text-2xl opacity-30">📈</div>
+          <div class="text-sm text-gray-400">暂无涨跌家数数据</div>
+          <div class="text-xs text-gray-600">数据来源: A股市场 · 请检查数据采集状态</div>
+        </div>
       </Show>
     </div>
   );

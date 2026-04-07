@@ -370,8 +370,6 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
       }
 
       const closes = chartBars.map((b) => b.close);
-      const highs  = chartBars.map((b) => b.high);
-      const lows   = chartBars.map((b) => b.low);
       const times: Time[] = chartBars.map((b) => b.trade_date as Time);
 
       if (ind.type === 'MACD') {

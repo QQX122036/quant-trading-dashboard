@@ -4,32 +4,18 @@
  */
 import { Component, createSignal, For, Show, onMount, onCleanup, createEffect } from 'solid-js';
 import * as echarts from 'echarts';
-import { YieldChart } from '../charts/YieldChart';
-import { apiActions, apiState, setApiState } from '../../stores/apiStore';
+import { apiState } from '../../stores/apiStore';
 import { BacktestConfig } from './BacktestConfig';
 import { BacktestProgress } from './BacktestProgress';
-import { useNavigate } from '@solidjs/router';
 
-interface Strategy {
-  id: string;
-  name: string;
-  description: string;
-}
 
-const STRATEGIES: Strategy[] = [
-  { id: 'momentum', name: '动量策略', description: '追涨杀跌，基于近期收益率惯性' },
-  { id: 'dual-ma', name: '双均线策略', description: 'MA5 上穿 MA20 买入，下穿卖出' },
-  { id: 'boll', name: '布林带策略', description: '价格下破下轨买入，上穿上轨卖出' },
-  { id: 'r-breaker', name: 'R-Breaker', description: '日内突破型策略' },
-];
 
 type ViewMode = 'config' | 'progress' | 'result';
 
 export const BacktestAnalysis: Component = () => {
-  const navigate = useNavigate();
 
   const [viewMode, setViewMode] = createSignal<ViewMode>('config');
-  const [taskId, setTaskId] = createSignal<string>('');
+  const [taskId, _setTaskId] = createSignal<string>('');
 
   // Equity / Drawdown chart
   let equityRef: HTMLDivElement | undefined;
@@ -285,7 +271,7 @@ export const BacktestAnalysis: Component = () => {
         itemStyle: { borderWidth: 2, borderColor: '#111827', borderRadius: 2 },
         emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' } },
       }],
-    };
+    } as unknown as echarts.EChartsOption;
   };
 
   onMount(() => {
@@ -331,19 +317,12 @@ export const BacktestAnalysis: Component = () => {
     }
   });
 
-  const handleRunStarted = (newTaskId: string) => {
-    setTaskId(newTaskId);
-    setViewMode('progress');
-  };
 
   const handleComplete = () => {
     setViewMode('result');
   };
 
   const perf = () => apiState.backtestResult;
-  const running = () => apiState.backtestRunning;
-  const progress = () => apiState.backtestProgress;
-  const error = () => apiState.backtestError;
 
   const perfCards = () => {
     const p = perf();
@@ -399,7 +378,7 @@ export const BacktestAnalysis: Component = () => {
         {/* Left Panel — Config */}
         <Show when={viewMode() === 'config'}>
           <div class="w-80 shrink-0 overflow-y-auto">
-            <BacktestConfig onRun={(cfg) => {
+            <BacktestConfig onRun={() => {
               // Task ID would come from the API response, handled via apiActions
             }} />
           </div>

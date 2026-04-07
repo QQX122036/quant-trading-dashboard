@@ -6,7 +6,7 @@
  * - POST /api/ai/advisor { question }
  * - 回复显示: 文字 + 表格 + 图表
  */
-import { Component, createSignal, createMemo, onMount, For, Show, createEffect } from 'solid-js';
+import { Component, createSignal, For, Show, createEffect } from 'solid-js';
 import { askAIAdvisor, type AdvisorResponse } from './api';
 
 interface Message {

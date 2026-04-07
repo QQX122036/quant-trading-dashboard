@@ -37,7 +37,7 @@ function generateMockFutures(): FuturesContract[] {
 }
 
 // 跨期价差模拟数据（近月-远月）
-function generateSpreadData(symbol: string): { dates: string[]; spread: number[] } {
+function generateSpreadData(_symbol: string): { dates: string[]; spread: number[] } {
   const dates: string[] = [];
   const spread: number[] = [];
   const now = new Date('2026-04-05');

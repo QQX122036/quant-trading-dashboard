@@ -9,9 +9,9 @@
 import { Component, createSignal, createMemo, onMount, onCleanup, For, Show } from 'solid-js';
 import * as echarts from 'echarts';
 import { fetchNewsSentiment, fetchAnnouncements, type NewsItem, type SentimentSummary, type AnnouncementItem } from './api';
+import { getWsInstance } from '../../hooks/useWebSocket';
 
 const CARD = 'bg-[#1f2937]/80 rounded-lg border border-white/10';
-const ACCENT = 'text-blue-400';
 
 function SentimentGaugeChart(props: { index: number }) {
   let ref!: HTMLDivElement;
@@ -200,8 +200,6 @@ export const NewsSentiment: Component = () => {
   const [toastVisible, setToastVisible] = createSignal(false);
   const [toastTimer, setToastTimer] = createSignal<ReturnType<typeof setTimeout> | null>(null);
 
-  let wsRef: { unsubscribe: (topic: string) => void } | null = null;
-
   const ANN_TYPES = ['', '业绩预告', '年报', '分红', '并购', '股权变动', '其他'];
 
   function showToast(newsItem: NewsItem) {
@@ -215,8 +213,6 @@ export const NewsSentiment: Component = () => {
   // WebSocket 实时推送
   function setupWS() {
     try {
-      // 动态导入避免循环依赖
-      const { getWsInstance } = require('../../hooks/useWebSocket');
       const ws = getWsInstance();
       if (ws.status() !== 'connected') {
         ws.connect();
@@ -239,8 +235,8 @@ export const NewsSentiment: Component = () => {
         }
       };
 
-      ws.addHandler('news.sentiment', handler as never);
-      onCleanup(() => ws.removeHandler('news.sentiment', handler as never));
+      ws.addHandler('news.sentiment' as any, handler as never);
+      onCleanup(() => ws.removeHandler('news.sentiment' as any, handler as never));
     } catch {
       // WebSocket 不可用，静默降级
     }
@@ -249,7 +245,7 @@ export const NewsSentiment: Component = () => {
   async function loadData() {
     setLoading(true);
     try {
-      const [sentRes, newsRes] = await Promise.allSettled([
+      const [sentRes, _newsRes] = await Promise.allSettled([
         fetchNewsSentiment(tsCode()),
         fetchNewsSentiment(tsCode()),
       ]);

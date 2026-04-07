@@ -127,7 +127,7 @@ export function createWebSocket() {
   function subscribe(req: { symbols?: string[]; exchanges?: string[] }) {
     const payload = {
       type: 'sub',
-      channels: req.symbols?.map(s => 'quote') ?? ['quote'],
+      channels: req.symbols?.map(_s => 'quote') ?? ['quote'],
       filters: {
         symbol: req.symbols,
         exchange: req.exchanges,
@@ -141,7 +141,7 @@ export function createWebSocket() {
   function unsubscribe(req: { symbols?: string[]; exchanges?: string[] }) {
     const payload = {
       type: 'unsub',
-      channels: req.symbols?.map(s => 'quote') ?? ['quote'],
+      channels: req.symbols?.map(_s => 'quote') ?? ['quote'],
       filters: {
         symbol: req.symbols,
         exchange: req.exchanges,
@@ -186,10 +186,16 @@ import type { TickData, OrderData, TradeData, PositionData, AccountData, LogData
 export function useMarketWS() {
   const ws = getWsInstance();
 
+  // 自动连接
   createEffect(() => {
     if (ws.status() === 'disconnected') {
       ws.connect();
     }
+  });
+
+  // 同步 WS 状态到 store
+  createEffect(() => {
+    actions.connection.setWsStatus(ws.status());
   });
 
   // 注册所有数据处理器

@@ -76,7 +76,7 @@ export const DashboardHome: Component = () => {
   async function loadAccounts() {
     try {
       const res = await fetchAccounts();
-      if ((res.code === '0' || res.code === 0) && res.data?.accounts) {
+      if ((res.code === '0' || res.code === '0') && res.data?.accounts) {
         for (const acc of res.data.accounts) {
           state.accounts.items[acc.vt_accountid] = acc;
         }
@@ -87,7 +87,7 @@ export const DashboardHome: Component = () => {
   async function loadPositions() {
     try {
       const res = await fetchPositions();
-      if ((res.code === '0' || res.code === 0) && res.data?.positions) {
+      if ((res.code === '0' || res.code === '0') && res.data?.positions) {
         for (const pos of res.data.positions) {
           state.positions.items[pos.vt_positionid] = pos;
         }
@@ -118,6 +118,17 @@ export const DashboardHome: Component = () => {
 
         {/* 中央: 大盘指数 */}
         <div class="flex items-center gap-3">
+          <Show when={indices().length === 0}>
+            <For each={[1, 2, 3]}>
+              {() => (
+                <div class="text-center animate-pulse">
+                  <div class="h-3 bg-white/10 rounded w-12 mb-1" />
+                  <div class="h-5 bg-white/10 rounded w-16 mb-1" />
+                  <div class="h-3 bg-white/10 rounded w-10" />
+                </div>
+              )}
+            </For>
+          </Show>
           <For each={indices().slice(0, 5)}>
             {(idx) => (
               <div class="text-center">
@@ -136,8 +147,8 @@ export const DashboardHome: Component = () => {
         {/* 右侧: WS状态 + 时间 */}
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-1.5">
-            <div class={`w-2 h-2 rounded-full ${wsStatus() === 'connected' ? 'bg-green-400 animate-pulse' : wsStatus() === 'reconnecting' ? 'bg-yellow-400 animate-pulse' : 'bg-red-400'}`} />
-            <span class="text-xs text-gray-400">
+            <div class={`w-2 h-2 rounded-full transition-colors ${wsStatus() === 'connected' ? 'bg-green-400 animate-pulse' : wsStatus() === 'reconnecting' ? 'bg-yellow-400 animate-pulse' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]'}`} />
+            <span class={`text-xs transition-colors ${wsStatus() === 'connected' ? 'text-gray-400' : wsStatus() === 'reconnecting' ? 'text-yellow-400' : 'text-red-400 font-medium'}`}>
               {wsStatus() === 'connected' ? '已连接' : wsStatus() === 'reconnecting' ? '重连中' : '未连接'}
             </span>
           </div>

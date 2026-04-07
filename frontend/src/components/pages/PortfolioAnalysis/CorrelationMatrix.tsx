@@ -4,7 +4,7 @@
  */
 import { Component, createSignal, onMount, onCleanup, createEffect } from 'solid-js';
 import * as echarts from 'echarts';
-import { marketActions, marketState } from '../../../stores/marketStore';
+import { marketState } from '../../../stores/marketStore';
 
 interface CorrelationData {
   stocks: string[];
@@ -86,8 +86,8 @@ export const CorrelationMatrix: Component<CorrelationMatrixProps> = (props) => {
     // 模拟数据路径
     const symbols = props.symbols ?? extractSymbols(props.positions);
     // 从 marketState 注入的持仓信息中取真实数据（兜底）
-    const positions = props.positions ?? (marketState.positions ?? []);
-    const realSymbols = props.symbols ?? (positions.length > 0 ? positions.map((p) => p.symbol) : symbols);
+    const positions = props.positions ?? [];
+    const realSymbols = props.symbols ?? (positions.length > 0 ? positions.map((p: { symbol: string }) => p.symbol) : symbols);
     const result = generateMockCorrelation(realSymbols.length > 0 ? realSymbols : symbols);
     setData(result);
   };
@@ -207,7 +207,7 @@ export const CorrelationMatrix: Component<CorrelationMatrixProps> = (props) => {
           },
         },
       }],
-    };
+    } as unknown as echarts.EChartsOption;
   };
 
   // ── 生命周期 ────────────────────────────────────────────────

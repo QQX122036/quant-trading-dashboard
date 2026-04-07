@@ -2,7 +2,7 @@
  * BacktestConfig.tsx — 策略参数配置界面
  * 策略选择、参数滑块、日期范围、初始资金配置
  */
-import { Component, createSignal, For, Show } from 'solid-js';
+import { Component, createSignal, For } from 'solid-js';
 import { apiActions } from '../../stores/apiStore';
 
 const STRATEGIES = [

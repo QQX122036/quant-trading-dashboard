@@ -1,4 +1,5 @@
 // News & Sentiment API — 追加到 useApi.ts
+import { apiFetch, type ApiResponse } from '../../hooks/useApi';
 
 export interface NewsItem {
   id: string;
@@ -41,6 +42,7 @@ export interface AdvisorResponse {
 }
 
 // GET /api/news/sentiment?ts_code=600519.SH
+// Returns: { summary: SentimentSummary, news: NewsItem[] }
 export async function fetchNewsSentiment(
   ts_code?: string
 ): Promise<ApiResponse<{ summary: SentimentSummary; news: NewsItem[] }>> {

@@ -17,7 +17,7 @@ export const IndexCard: Component<IndexCardProps> = (props) => {
   const hasData = () => !props.loading && props.price > 0 && !props.error;
 
   return (
-    <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4 hover:border-white/20 transition-colors">
+    <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4 hover:border-white/20 hover:bg-[#1a2332]/80 transition-all duration-200 hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5 cursor-default">
       <div class="flex items-center justify-between mb-2">
         <span class="text-sm text-gray-400">{props.displayName}</span>
         <span class={`text-xs px-2 py-0.5 rounded ${
@@ -40,8 +40,8 @@ export const IndexCard: Component<IndexCardProps> = (props) => {
         <div class="text-gray-500 text-sm py-2">{props.error}</div>
       ) : hasData() ? (
         <>
-          <div class="text-2xl font-bold tabular-nums mb-1 text-white">
-            {props.price.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+          <div class="text-2xl font-bold tabular-nums mb-1 text-white tracking-tight">
+            {props.price.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div class={`text-sm tabular-nums font-medium ${isUp() ? 'text-[#EF4444]' : 'text-[#22C55E]'}`}>
             {isUp() ? '+' : ''}{props.change.toFixed(2)}

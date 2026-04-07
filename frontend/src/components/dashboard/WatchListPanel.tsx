@@ -6,7 +6,7 @@
  * - WebSocket 实时更新 (subscribe "tick.{ts_code}")
  */
 import { Component, createSignal, createMemo, For, onMount, onCleanup } from 'solid-js';
-import { state, actions } from '../../stores';
+import { actions } from '../../stores';
 import { getWsInstance } from '../../hooks/useWebSocket';
 import type { WsMessage } from '../../types/ws';
 
@@ -104,8 +104,8 @@ export const WatchListPanel: Component<{
     const key = sortKey();
     const dir = sortDir();
     return [...all].sort((a, b) => {
-      const av = (a as Record<string, unknown>)[key] as number;
-      const bv = (b as Record<string, unknown>)[key] as number;
+      const av = (a as unknown as Record<string, unknown>)[key] as number;
+      const bv = (b as unknown as Record<string, unknown>)[key] as number;
       return dir === 'asc' ? av - bv : bv - av;
     });
   });

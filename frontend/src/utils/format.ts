@@ -2,7 +2,7 @@
 
 export function formatPrice(v: number, decimals = 2): string {
   if (!v && v !== 0) return '-';
-  return v.toFixed(decimals);
+  return v.toLocaleString('zh-CN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
 
 export function formatVolume(v: number): string {

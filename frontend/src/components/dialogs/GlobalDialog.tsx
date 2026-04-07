@@ -1,5 +1,5 @@
 import { Component, createSignal } from 'solid-js';
-import { state, actions } from '../../stores';
+import { actions } from '../../stores';
 
 // SIM参数默认值
 const DEFAULT_SIM = {
@@ -16,15 +16,7 @@ const DEFAULT_RISK = {
 // 本地存储键名
 const SETTINGS_KEY = 'app_settings';
 
-// 从本地存储加载设置
-function loadSettings() {
-  try {
-    const saved = localStorage.getItem(SETTINGS_KEY);
-    return saved ? JSON.parse(saved) : {};
-  } catch {
-    return {};
-  }
-}
+
 
 // 保存设置到本地存储
 function saveSettingsLocal(settings: Record<string, unknown>) {

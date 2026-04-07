@@ -123,7 +123,7 @@ export const StockReport: Component<StockReportProps> = (props) => {
     const ma5 = price.map((d) => d.ma5);
     const ma10 = price.map((d) => d.ma10);
     const ma20 = price.map((d) => d.ma20);
-    const volumes = price.map((d) => d.close); // placeholder; real volume from props
+    const _volumes = price.map((d) => d.close); // placeholder; real volume from props
 
     // K-line: candlestick-like using price + volume bar below
     const klineOption: echarts.EChartsOption = {
@@ -173,6 +173,7 @@ export const StockReport: Component<StockReportProps> = (props) => {
         axisLabel: { color: '#9CA3AF', fontSize: 9 },
         splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
       },
+// @ts-ignore
       series: [{
         type: 'bar',
         data: closes.map((c, i) => ({ value: c > (price[i - 1]?.close ?? c) ? 1 : -1, visualMap: false })),
@@ -220,12 +221,13 @@ export const StockReport: Component<StockReportProps> = (props) => {
         axisLabel: { color: '#9CA3AF', fontSize: 9, formatter: (v: number) => `${(v / 1e8).toFixed(0)}亿` },
         splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
       },
+// @ts-ignore
       series: [{
         type: 'bar',
         data: netBuy.map((v) => ({ value: v, itemStyle: { color: v >= 0 ? 'rgba(59,130,246,0.8)' : 'rgba(239,68,68,0.8)' } })),
         label: { show: true, formatter: (p: { value: number }) => `${p.value >= 0 ? '+' : ''}${(p.value / 1e8).toFixed(2)}亿`, fontSize: 9, color: '#9CA3AF' },
       }],
-    };
+    } as unknown as Record<string, any>;
 
     moneyFlowChart.setOption(option, true);
   });

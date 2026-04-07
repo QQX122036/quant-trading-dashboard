@@ -22,7 +22,7 @@ export const HotSectors: Component<HotSectorsProps> = (props) => {
   const isHot = (upCount: number, total: number) => upCount / Math.max(1, total) > 0.7;
 
   return (
-    <div class="w-96 bg-[#111827]/80 rounded-lg border border-white/10 p-4 flex flex-col">
+    <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4 flex flex-col hover:border-white/20 transition-colors">
       <h3 class="font-bold mb-4">行业板块</h3>
 
       <Show when={props.loading}>
@@ -36,7 +36,11 @@ export const HotSectors: Component<HotSectorsProps> = (props) => {
       </Show>
 
       <Show when={!props.loading && props.sectors.length === 0}>
-        <div class="text-sm text-gray-500 py-8 text-center">暂无板块数据</div>
+        <div class="flex flex-col items-center justify-center gap-2 py-8 text-center">
+          <div class="text-2xl opacity-30">🏭</div>
+          <div class="text-sm text-gray-400">暂无板块数据</div>
+          <div class="text-xs text-gray-600">请检查数据采集状态</div>
+        </div>
       </Show>
 
       <Show when={!props.loading && props.sectors.length > 0}>
@@ -45,9 +49,9 @@ export const HotSectors: Component<HotSectorsProps> = (props) => {
           <div>
             <div class="text-xs text-gray-400 mb-2">涨幅榜</div>
             <div class="space-y-1">
-              <For each={topGainers()} fallback={<div class="text-xs text-gray-600 py-1">—</div>}>
+              <For each={topGainers()} fallback={<div class="text-xs text-gray-600 py-1.5 border-b border-white/5">—</div>}>
                 {(sector, index) => (
-                  <div class="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
+                  <div class="flex items-center justify-between py-1.5 px-2 -mx-2 rounded hover:bg-white/5 transition-colors border-b border-white/5 last:border-0">
                     <div class="flex items-center gap-2">
                       <span class="text-xs text-gray-500 w-4">{index() + 1}</span>
                       <span class="text-sm" title={`上涨{sector.up_count}家，下跌${sector.down_count}家`}>
@@ -70,9 +74,9 @@ export const HotSectors: Component<HotSectorsProps> = (props) => {
           <div>
             <div class="text-xs text-gray-400 mb-2">跌幅榜</div>
             <div class="space-y-1">
-              <For each={topLosers()} fallback={<div class="text-xs text-gray-600 py-1">—</div>}>
+              <For each={topLosers()} fallback={<div class="text-xs text-gray-600 py-1.5 border-b border-white/5">—</div>}>
                 {(sector, index) => (
-                  <div class="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
+                  <div class="flex items-center justify-between py-1.5 px-2 -mx-2 rounded hover:bg-white/5 transition-colors border-b border-white/5 last:border-0">
                     <div class="flex items-center gap-2">
                       <span class="text-xs text-gray-500 w-4">{index() + 1}</span>
                       <span class="text-sm" title={`上涨${sector.up_count}家，下跌${sector.down_count}家`}>

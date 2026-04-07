@@ -46,7 +46,7 @@ function createGaugeOption(
   normalRange: [number, number],
   accentColor: string
 ): echarts.EChartsOption {
-  const pct = ((value - min) / (max - min)) * 100;
+  const _pct = ((value - min) / (max - min)) * 100;
   const inRange = value >= normalRange[0] && value <= normalRange[1];
   const color = inRange ? accentColor : '#EF4444';
 
@@ -164,12 +164,12 @@ const GreekCard: Component<{
 export const GreeksPanel: Component = () => {
   const [greeks, setGreeks] = createSignal<GreeksData>(generateMockGreeks());
   const [position, setPosition] = createSignal('Long Call'); // 多头买入看涨期权
-  const [theoPnl, setTheoPnl] = createSignal(1250.50);
-  const [deltaPnl, setDeltaPnl] = createSignal(830.20);
-  const [gammaPnl, setGammaPnl] = createSignal(210.30);
-  const [vegaPnl, setVegaPnl] = createSignal(150.80);
-  const [thetaPnl, setThetaPnl] = createSignal(-65.40);
-  const [rhoPnl, setRhoPnl] = createSignal(25.60);
+  const [theoPnl, _setTheoPnl] = createSignal(1250.50);
+  const [deltaPnl, _setDeltaPnl] = createSignal(830.20);
+  const [gammaPnl, _setGammaPnl] = createSignal(210.30);
+  const [vegaPnl, _setVegaPnl] = createSignal(150.80);
+  const [thetaPnl, _setThetaPnl] = createSignal(-65.40);
+  const [rhoPnl, _setRhoPnl] = createSignal(25.60);
 
   let thetaChartRef: HTMLDivElement | undefined;
   let thetaChart: echarts.ECharts | undefined;
@@ -227,7 +227,7 @@ export const GreeksPanel: Component = () => {
           data: [{ yAxis: 0, name: '价值=0' }],
         },
       }],
-    } as echarts.EChartsOption);
+    } as unknown as echarts.EChartsOption);
 
     const ro = new ResizeObserver(() => thetaChart?.resize());
     ro.observe(thetaChartRef);

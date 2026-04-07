@@ -5,7 +5,7 @@
 import { Component, createSignal, createMemo, onMount, onCleanup, Show, For } from 'solid-js';
 import * as echarts from 'echarts';
 import { fetchPositions, fetchAccounts } from '../../../hooks/useApi';
-import type { PositionData, AccountData } from '../../types/vnpy';
+import type { PositionData, AccountData } from '../../../types/vnpy';
 
 // ── Chart refs ─────────────────────────────────────────────
 type EChartsInstance = echarts.ECharts;
@@ -399,7 +399,7 @@ export const PortfolioOverview: Component = () => {
                       <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
                         <td class="py-2 font-mono text-xs text-gray-400">{pos.symbol}</td>
                         <td class="py-2 text-xs text-gray-300">—</td>
-                        <td class={`py-2 text-right text-xs font-medium ${pos.direction === '多' || pos.direction === 'long' ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
+                        <td class={`py-2 text-right text-xs font-medium ${(String(pos.direction) === '多' || String(pos.direction) === 'long') ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
                           {pos.direction}
                         </td>
                         <td class="py-2 text-right tabular-nums text-xs">{pos.volume.toLocaleString()}</td>

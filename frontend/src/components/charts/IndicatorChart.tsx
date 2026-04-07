@@ -1,6 +1,6 @@
 import { Component, onMount, onCleanup, createSignal, createEffect } from 'solid-js';
 import { createChart, IChartApi, Time } from 'lightweight-charts';
-import { fetchDailyBar, type KLineBar } from '../../hooks/useApi';
+import { fetchDailyBar, type DailyBar } from '../../hooks/useApi';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -8,7 +8,7 @@ export interface IndicatorChartProps {
   type: 'MACD' | 'RSI' | 'KDJ' | 'BOLL';
   symbol?: string;
   exchange?: string;
-  bars?: KLineBar[];
+  bars?: DailyBar[];
 }
 
 // ── Technical Indicator Calculations (from scratch) ──────────────────────────
@@ -202,7 +202,7 @@ export const IndicatorChart: Component<IndicatorChartProps> = (props) => {
   const loadData = async () => {
     if (!chart || !containerRef) return;
 
-    let bars: KLineBar[] = [];
+    let bars: DailyBar[] = [];
 
     if (props.bars && props.bars.length > 0) {
       bars = props.bars;
@@ -211,7 +211,7 @@ export const IndicatorChart: Component<IndicatorChartProps> = (props) => {
       try {
         const res = await fetchDailyBar(`${props.symbol}.${props.exchange}`, undefined, undefined, 100);
         if (res.code === '0' && res.data?.bars) {
-          bars = res.data.bars as unknown as KLineBar[];
+          bars = res.data.bars as unknown as DailyBar[];
         }
       } catch (e) {
         console.error('[IndicatorChart] Failed to fetch bars:', e);

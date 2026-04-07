@@ -1,4 +1,4 @@
-import { Component, createSignal } from 'solid-js';
+import { Component, createSignal, Show } from 'solid-js';
 import { PortfolioOverview } from './PortfolioOverview';
 import { CorrelationMatrix } from './CorrelationMatrix';
 import { RiskContribution } from './RiskContribution';
@@ -23,13 +23,13 @@ const TabButton: Component<{ label: string; tabKey: TabKey }> = (props) => (
 );
 
 const TabContent: Component = () => {
-  const tab = activeTab();
+  const tabVal = activeTab();
   return (
-    <div class="h-full">
-      {tab === 'overview' && <PortfolioOverview />}
-      {tab === 'correlation' && <CorrelationMatrix />}
-      {tab === 'risk' && <RiskContribution />}
-      {tab === 'simulator' && <PortfolioSimulator />}
+    <div class="h-full" data-tab={tabVal}>
+      <Show when={tabVal === 'overview'}><PortfolioOverview /></Show>
+      <Show when={tabVal === 'correlation'}><CorrelationMatrix /></Show>
+      <Show when={tabVal === 'risk'}><RiskContribution /></Show>
+      <Show when={tabVal === 'simulator'}><PortfolioSimulator /></Show>
     </div>
   );
 };

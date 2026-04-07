@@ -20,7 +20,7 @@ interface OptionRow {
 }
 
 // 模拟数据（真实数据来自AKShare期权API）
-function generateMockOptions(spotPrice: number, expiryLabel: string): OptionRow[] {
+function generateMockOptions(spotPrice: number, _expiryLabel: string): OptionRow[] {
   const rows: OptionRow[] = [];
   const ATMStrike = Math.round(spotPrice / 10) * 10;
   const strikes = Array.from({ length: 21 }, (_, i) => ATMStrike - 100 + i * 10);

@@ -3,9 +3,6 @@
  * 支持 MA/EMA/RSI/MACD/KDJ/BOLL，动态参数，颜色选择，实时渲染到K线图
  */
 import { Component, createSignal, For, Show, createEffect } from 'solid-js';
-import { state } from '../../stores';
-import { actions } from '../../stores';
-import { KlineChart } from '../charts/KlineChart';
 import type { DailyBar } from '../../hooks/useApi';
 import type { Time } from 'lightweight-charts';
 
@@ -83,14 +80,6 @@ function stdDev(values: number[], period: number): number[] {
   return result;
 }
 
-function calculateMACD(closes: number[]) {
-  const ema12 = ema(closes, 12);
-  const ema26 = ema(closes, 26);
-  const dif = ema12.map((v, i) => v - ema26[i]);
-  const dea = ema(dif, 9);
-  const histogram = dif.map((v, i) => v - dea[i]);
-  return { dif, dea, histogram };
-}
 
 function calculateRSI(closes: number[], period = 14): number[] {
   const rsi: number[] = [];
@@ -188,7 +177,7 @@ export const CustomIndicatorEditor: Component<CustomIndicatorEditorProps> = (pro
   const [selectedColor, setSelectedColor] = createSignal(DEFAULT_COLORS['MA']);
 
   // Preview chart instance (passed back to parent)
-  const [chartRef, setChartRef] = createSignal<any>(null);
+  const [_chartRef, _setChartRef] = createSignal<any>(null);
 
   // Sync params when type changes
   createEffect(() => {
@@ -227,7 +216,7 @@ export const CustomIndicatorEditor: Component<CustomIndicatorEditorProps> = (pro
       return null;
     }
     if (type === 'KDJ') {
-      const { k, d, j } = calculateKDJ(highs, lows, closes, p.period);
+      const { k, j: _j } = calculateKDJ(highs, lows, closes, p.period);
       // Return K as primary
       return times.map((t, i) => ({ time: t, value: k[i] })).filter((d) => !isNaN(d.value));
     }

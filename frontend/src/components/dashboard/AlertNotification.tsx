@@ -6,7 +6,6 @@
  * - AlertMonitor 组件集成
  */
 import { Component, createSignal, createMemo, For, onMount, onCleanup } from 'solid-js';
-import { state, actions } from '../../stores';
 import { getWsInstance } from '../../hooks/useWebSocket';
 import type { WsMessage } from '../../types/ws';
 import type { OrderData, TradeData, LogData } from '../../types/vnpy';
@@ -48,7 +47,7 @@ export const AlertNotification: Component = () => {
   const tradeHandler = (msg: WsMessage) => {
     if (msg.type === 'trade' && msg.data) {
       const t = msg.data as TradeData;
-      const isBuy = t.direction === '多' || t.direction === 'long';
+      const isBuy = t.direction === '多';
       addNotif(
         'trade',
         `成交 ${isBuy ? '买入' : '卖出'} ${t.symbol} × ${t.volume}`,
@@ -97,13 +96,6 @@ export const AlertNotification: Component = () => {
   };
 
   onMount(() => {
-    // 监听 WS 状态变化
-    const statusHandler = () => {
-      const s = ws.status();
-      if (s === 'connected') addNotif('system', 'WebSocket 已连接', undefined, 'green');
-      else if (s === 'disconnected') addNotif('system', 'WebSocket 连接断开', undefined, 'orange');
-    };
-
     ws.addHandler('error', systemHandler);
     ws.addHandler('trade', tradeHandler);
     ws.addHandler('order', orderHandler);

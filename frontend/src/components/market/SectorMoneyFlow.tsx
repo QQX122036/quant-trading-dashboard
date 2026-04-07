@@ -9,8 +9,9 @@ import { apiFetch } from '../../hooks/useApi';
 interface SectorFlowItem {
   sector_name: string;
   net_inflow: number;     // 净流入（亿元）
-  change_pct: number;    // 涨跌幅%
-  amount: number;         // 成交额（亿元）
+  inflow_rate: number;    // 流入比率%
+  change_pct?: number;    // 涨跌幅%（可选）
+  amount?: number;        // 成交额（亿元）（可选）
   up_count: number;
   down_count: number;
   leading_stocks?: Array<{ ts_code: string; name: string; net_inflow: number; change_pct: number }>;
@@ -60,7 +61,7 @@ export const SectorMoneyFlow: Component<SectorMoneyFlowProps> = (props) => {
 
   const formatNet = (v: number) => {
     const sign = v >= 0 ? '+' : '';
-    return `${sign}${v.toFixed(2)}亿`;
+    return `${sign}${(v ?? 0).toFixed(2)}亿`;
   };
 
   const netColor = (v: number) => (v >= 0 ? 'text-[#EF4444]' : 'text-[#22C55E]');
@@ -138,11 +139,11 @@ export const SectorMoneyFlow: Component<SectorMoneyFlowProps> = (props) => {
                       <td class={`py-2.5 px-3 text-right font-mono font-medium ${netColor(sector.net_inflow)}`}>
                         {formatNet(sector.net_inflow)}
                       </td>
-                      <td class={`py-2.5 px-3 text-right font-mono ${changeColor(sector.change_pct)}`}>
-                        {sector.change_pct >= 0 ? '+' : ''}{sector.change_pct.toFixed(2)}%
+                      <td class={`py-2.5 px-3 text-right font-mono ${changeColor(sector.change_pct ?? 0)}`}>
+                        {sector.change_pct != null ? ((sector.change_pct >= 0 ? '+' : '') + sector.change_pct.toFixed(2) + '%') : '—'}
                       </td>
                       <td class="py-2.5 px-3 text-right text-gray-400 font-mono">
-                        {sector.amount.toFixed(0)}亿
+                        {sector.amount != null ? sector.amount.toFixed(0) + '亿' : '—'}
                       </td>
                     </tr>
                     {/* 展开详情 */}
@@ -169,7 +170,7 @@ export const SectorMoneyFlow: Component<SectorMoneyFlowProps> = (props) => {
                                       {formatNet(stock.net_inflow)}
                                     </span>
                                     <span class={`text-right font-mono ${changeColor(stock.change_pct)}`}>
-                                      {stock.change_pct >= 0 ? '+' : ''}{stock.change_pct.toFixed(2)}%
+                                      {(stock.change_pct ?? 0) >= 0 ? '+' : ''}{(stock.change_pct ?? 0).toFixed(2)}%
                                     </span>
                                     <span class="text-right text-gray-600">—</span>
                                   </div>

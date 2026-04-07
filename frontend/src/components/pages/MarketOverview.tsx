@@ -42,9 +42,24 @@ export const MarketOverview: Component = () => {
       <div class="grid grid-cols-4 gap-4">
         {/* Index Cards */}
         <div class="col-span-2 grid grid-cols-2 gap-4">
-          <For each={marketState.indices}>
-            {(index) => <IndexCard {...index} />}
-          </For>
+          <Show when={marketState.indices.length === 0 && marketState.loading}>
+            <div class="col-span-2 grid grid-cols-2 gap-4">
+              <For each={[1, 2, 3, 4]}>
+                {() => (
+                  <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4 animate-pulse">
+                    <div class="h-4 bg-white/5 rounded w-1/2 mb-3" />
+                    <div class="h-8 bg-white/5 rounded w-3/4 mb-2" />
+                    <div class="h-4 bg-white/5 rounded w-1/2" />
+                  </div>
+                )}
+              </For>
+            </div>
+          </Show>
+          <Show when={marketState.indices.length > 0}>
+            <For each={marketState.indices}>
+              {(index) => <IndexCard {...index} />}
+            </For>
+          </Show>
         </div>
 
         {/* Right side: Breadth + Sentiment */}
@@ -75,8 +90,10 @@ export const MarketOverview: Component = () => {
           </div>
 
           <Show when={sortedHotStocks().length === 0 && !marketState.loading}>
-            <div class="flex-1 flex items-center justify-center">
-              <div class="text-sm text-gray-500">暂无热门股票数据</div>
+            <div class="flex-1 flex flex-col items-center justify-center gap-3 bg-white/5 rounded-lg border border-dashed border-white/10 py-12">
+              <div class="text-3xl opacity-30">📊</div>
+              <div class="text-sm text-gray-400">暂无热门股票</div>
+              <div class="text-xs text-gray-600">请检查数据采集状态</div>
             </div>
           </Show>
 

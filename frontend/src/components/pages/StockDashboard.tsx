@@ -5,23 +5,20 @@ import { TickMonitor } from '../monitors/TickMonitor';
 import { PositionMonitor } from '../monitors/PositionMonitor';
 import { AccountMonitor } from '../monitors/AccountMonitor';
 import { CustomIndicatorEditor } from '../dialogs/CustomIndicatorEditor';
-import type { DailyBar } from '../../hooks/useApi';
+import { apiFetch } from '../../hooks/useApi';
+import type { DailyBar, KLineBar } from '../../hooks/useApi';
 
 type Indicator = 'MACD' | 'RSI' | 'KDJ' | 'BOLL';
 
-// 简单的股票代码到名称的映射
-const stockNameMap: Record<string, string> = {
-  '600519': '贵州茅台',
-  '000001': '平安银行',
-  '300724': '捷佳伟创',
-  '000002': '万科A',
-  '000858': '五粮液',
-  '601318': '中国平安',
-  '600036': '招商银行',
-  '601888': '中国中免',
-  '600276': '恒瑞医药',
-  '601668': '中国建筑'
-};
+interface StockBasicItem {
+  ts_code: string;
+  name: string;
+  market: string;
+  industry: string;
+}
+
+// 缓存已查询过的股票名称，减少API调用
+const stockNameCache: Record<string, string> = {};
 
 export const StockDashboard: Component = () => {
   const [activeIndicator, setActiveIndicator] = createSignal<Indicator>('MACD');
@@ -31,22 +28,55 @@ export const StockDashboard: Component = () => {
   const [exchange, setExchange] = createSignal('SSE');
   const [stockName, setStockName] = createSignal('贵州茅台');
   const [searchValue, setSearchValue] = createSignal('600519');
+  const [searchLoading, setSearchLoading] = createSignal(false);
+  const [searchError, setSearchError] = createSignal('');
 
-  const handleSearch = () => {
-    const code = searchValue();
-    setSymbol(code);
-    // 根据股票代码自动设置交易所：6开头是上海，0开头是深圳
+  // 通过 API 获取股票名称（支持所有 A 股）
+  const fetchStockName = async (code: string): Promise<string> => {
+    if (stockNameCache[code]) return stockNameCache[code];
+    try {
+      const tsCode = code.startsWith('6') ? `${code}.SH` : `${code}.SZ`;
+      const res = await apiFetch<{ items: StockBasicItem[] }>(`/api/data/stock-basic?ts_code=${tsCode}&limit=1`);
+      if ((res.code === 0 || res.code === '0') && res.data?.items?.length) {
+        const name = res.data.items[0].name;
+        stockNameCache[code] = name;
+        return name;
+      }
+    } catch {}
+    return '未知股票';
+  };
+
+  const handleSearch = async () => {
+    const code = searchValue().trim();
+    if (!code) return;
+    setSearchLoading(true);
+    setSearchError('');
+
     const newExchange = code.startsWith('6') ? 'SSE' : 'SZSE';
+    setSymbol(code);
     setExchange(newExchange);
-    // 设置股票名称
-    setStockName(stockNameMap[code] || '未知股票');
-    // 清除klineBars，确保KlineChart重新从API加载数据
+
+    // 优先从缓存获取，否则调 API
+    const cachedName = stockNameCache[code];
+    if (cachedName) {
+      setStockName(cachedName);
+    } else {
+      const name = await fetchStockName(code);
+      setStockName(name);
+    }
+    setSearchLoading(false);
+    // 清除 klineBars，确保 KlineChart 重新从 API 加载数据
     setKlineBars([]);
   };
 
-  // 初始设置股票名称
+  // 初始加载默认股票名称
   createEffect(() => {
-    setStockName(stockNameMap[symbol()] || '未知股票');
+    const sym = symbol();
+    if (stockNameCache[sym]) {
+      setStockName(stockNameCache[sym]);
+    } else {
+      fetchStockName(sym).then(setStockName);
+    }
   });
 
   return (
@@ -73,16 +103,25 @@ export const StockDashboard: Component = () => {
                 <input
                   type="text"
                   value={searchValue()}
-                  onChange={(e) => setSearchValue(e.currentTarget.value)}
-                  class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 border border-white/20"
-                  placeholder="输入股票代码"
+                  onInput={(e) => { setSearchValue(e.currentTarget.value); setSearchError(''); }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 border border-white/20 w-24"
+                  placeholder="代码"
                 />
-                <button
-                  class="px-2 py-1 text-xs rounded bg-blue-600 hover:bg-blue-700 text-white"
-                  onClick={handleSearch}
-                >
-                  搜索
-                </button>
+                <Show when={searchLoading()}>
+                  <span class="text-xs text-gray-400 animate-spin">⟳</span>
+                </Show>
+                <Show when={!searchLoading() && searchValue()}>
+                  <button
+                    class="px-2 py-1 text-xs rounded bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={handleSearch}
+                  >
+                    搜索
+                  </button>
+                </Show>
+                <Show when={searchError()}>
+                  <span class="text-xs text-red-400">{searchError()}</span>
+                </Show>
               </div>
             </div>
             <div class="flex gap-2">
@@ -135,7 +174,7 @@ export const StockDashboard: Component = () => {
             <div class="h-[calc(100%-36px)] p-2">
               <IndicatorChart 
                 type={activeIndicator()} 
-                bars={klineBars()} 
+                bars={klineBars() as DailyBar[]} 
                 symbol={symbol()} 
                 exchange={exchange()} 
               />

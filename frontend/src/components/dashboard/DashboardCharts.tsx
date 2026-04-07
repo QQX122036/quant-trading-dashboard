@@ -3,7 +3,7 @@
  * - ECharts 折线图（近30日）
  * - 持仓收益分布饼图（按行业/按个股）
  */
-import { Component, createSignal, createEffect, onMount, onCleanup } from 'solid-js';
+import { Component, createSignal, onMount, onCleanup } from 'solid-js';
 import * as echarts from 'echarts';
 
 export const DashboardCharts: Component = () => {

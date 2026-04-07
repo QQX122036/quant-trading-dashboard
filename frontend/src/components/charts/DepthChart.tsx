@@ -65,7 +65,6 @@ export const DepthChart: Component<DepthChartProps> = (props) => {
   function buildChartOption(data: DepthData) {
     // 买单（红色，用负数表示在左侧）
     const bidPrices = data.bids.map((d) => d.price);
-    const bidVols = data.bids.map((d) => d.volume);
     // 累计量（从高到低累计）
     const bidCumVols: number[] = [];
     let bidSum = 0;
@@ -76,7 +75,6 @@ export const DepthChart: Component<DepthChartProps> = (props) => {
 
     // 卖单（蓝色，用正数表示在右侧）
     const askPrices = data.asks.map((d) => d.price);
-    const askVols = data.asks.map((d) => d.volume);
     const askCumVols: number[] = [];
     let askSum = 0;
     for (const a of data.asks) {

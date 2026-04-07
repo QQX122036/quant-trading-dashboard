@@ -16,7 +16,14 @@ interface I18nContextValue {
 const I18nContext = createContext<I18nContextValue>();
 
 export const I18nProvider: ParentComponent = (props) => {
-  const [locale, setLocale] = createSignal<Locale>('zh');
+  // 从 localStorage 恢复语言偏好，默认为中文
+  const savedLocale = (localStorage.getItem('locale') as Locale) || 'zh';
+  const [locale, setLocaleState] = createSignal<Locale>(savedLocale);
+
+  const setLocale = (newLocale: Locale) => {
+    setLocaleState(newLocale);
+    localStorage.setItem('locale', newLocale);
+  };
 
   const value = createMemo(() => ({
     locale,

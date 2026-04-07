@@ -35,7 +35,7 @@ interface RawMoneyFlow {
  * 由于字段无法一一对应，使用 amount / volume 估算平均价格，再按资金量级分配
  */
 function mapRawToMoneyFlow(raw: RawMoneyFlow, time: string): MoneyFlowItem {
-  const avgPrice = raw.volume > 0 ? raw.amount / raw.volume : raw.close;
+  const _avgPrice = raw.volume > 0 ? raw.amount / raw.volume : raw.close;
   const scale = raw.amount / 1e8; // 换算成亿元单位
 
   // 按资金量级分配比例（超大15%/大单20%/中单25%/小单40%）

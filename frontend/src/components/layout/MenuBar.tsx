@@ -189,10 +189,24 @@ const LangToggle: Component = () => {
 };
 
 const ConnectionStatus: Component = () => {
+  const wsStatus = () => state.connection.wsStatus;
+  const gatewayCount = () => Object.values(state.connection.gateways).filter(g => g.connected).length;
+
+  const statusConfig = () => {
+    switch (wsStatus()) {
+      case 'connected':
+        return { color: 'bg-green-500', text: `已连接(${gatewayCount()})`, textColor: 'text-green-400' };
+      case 'reconnecting':
+        return { color: 'bg-yellow-500 animate-pulse', text: '重连中...', textColor: 'text-yellow-400' };
+      default:
+        return { color: 'bg-red-500', text: '未连接', textColor: 'text-gray-400' };
+    }
+  };
+
   return (
-    <div class="flex items-center gap-2">
-      <div class="w-2 h-2 rounded-full bg-red-500" />
-      <span class="text-sm text-gray-400">未连接</span>
+    <div class="flex items-center gap-2" title={`WebSocket: ${wsStatus()}`}>
+      <div class={`w-2 h-2 rounded-full ${statusConfig().color}`} />
+      <span class={`text-sm ${statusConfig().textColor}`}>{statusConfig().text}</span>
     </div>
   );
 };

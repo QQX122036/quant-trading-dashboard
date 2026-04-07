@@ -1,11 +1,99 @@
 /**
  * useApi.ts — REST API Hook & fetch utilities
  * 封装所有后端 REST API 调用
+ * 
+ * 请求防抖: 300ms debounce
+ * 失败重试: 最多3次，间隔 1s/2s/3s
  */
 import type { OrderData, TradeData, PositionData, AccountData, ContractData, QuoteData } from '../types/vnpy';
 
 // Use env var or empty string (Vite dev server proxy handles /api → backend)
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '';
+
+// ── Debounce ─────────────────────────────────────────────
+// Pending request pool: key → { timer, promise, resolve, reject }
+const DEBOUNCE_MS = 300;
+
+interface PendingRequest<T> {
+  timer: ReturnType<typeof setTimeout>;
+  promise: Promise<ApiResponse<T>>;
+  resolve: (v: ApiResponse<T>) => void;
+  reject: (e: unknown) => void;
+}
+
+const pendingRequests = new Map<string, PendingRequest<unknown>>();
+
+/**
+ * 防抖请求：同一 key（path+method）在 300ms 窗口内只发一次
+ * 后续请求复用进行中的请求
+ */
+function debouncedFetch<T>(
+  key: string,
+  fn: () => Promise<ApiResponse<T>>
+): Promise<ApiResponse<T>> {
+  const existing = pendingRequests.get(key) as PendingRequest<T> | undefined;
+  if (existing) return existing.promise;
+
+  return new Promise<ApiResponse<T>>((resolve, reject) => {
+    const timer = setTimeout(async () => {
+      pendingRequests.delete(key);
+      try {
+        const result = await fn();
+        resolve(result);
+      } catch (e) {
+        reject(e);
+      }
+    }, DEBOUNCE_MS);
+
+    const pending: PendingRequest<T> = {
+      timer,
+      promise: new Promise<ApiResponse<T>>((res, rej) => {
+        // wrap resolve/reject so callers waiting on the timer get the result
+        const origResolve = resolve;
+        const origReject = reject;
+        pending.resolve = (v: ApiResponse<T>) => { origResolve(v); };
+        pending.reject = (e: unknown) => { origReject(e); };
+      }),
+      resolve,
+      reject,
+    };
+    pendingRequests.set(key, pending as PendingRequest<unknown>);
+  });
+}
+
+// ── Retry ────────────────────────────────────────────────
+const RETRY_DELAYS = [1000, 2000, 3000]; // ms
+const MAX_RETRIES = 3;
+
+async function withRetry<T>(
+  fn: () => Promise<ApiResponse<T>>,
+  onRetry?: (attempt: number, delay: number) => void
+): Promise<ApiResponse<T>> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const result = await fn();
+      // 429 or 5xx → retry
+      return result;
+    } catch (e: unknown) {
+      lastError = e;
+      const errObj = e as Record<string, unknown> | undefined;
+      const httpCode = String(errObj?.code ?? '');
+      const isRetryable =
+        httpCode.startsWith('HTTP_5') ||
+        httpCode === 'HTTP_429' ||
+        httpCode.startsWith('HTTP_50');
+      if (attempt < MAX_RETRIES && isRetryable) {
+        const delay = RETRY_DELAYS[attempt] ?? 3000;
+        onRetry?.(attempt + 1, delay);
+        await new Promise((res) => setTimeout(res, delay));
+        continue;
+      }
+      throw e;
+    }
+  }
+  throw lastError;
+}
 
 // ── Helper Functions ───────────────────────────────────────
 
@@ -37,9 +125,24 @@ export function isAuthenticated(): boolean {
   return !!getAuthToken();
 }
 
-// ── Core fetch ─────────────────────────────────────────────
+// ── Core fetch (debounced + retried) ──────────────────────
+
+function buildKey(path: string, options: RequestInit = {}): string {
+  return `${options.method ?? 'GET'}:${path}`;
+}
 
 export async function apiFetch<T>(
+  path: string,
+  options: RequestInit = {}
+): Promise<ApiResponse<T>> {
+  const key = buildKey(path, options);
+
+  return debouncedFetch<T>(key, () =>
+    withRetry<T>(() => _rawFetch<T>(path, options))
+  );
+}
+
+async function _rawFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
@@ -49,12 +152,12 @@ export async function apiFetch<T>(
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   });
-  
+
   // 添加Authorization header（如果token存在）
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
-  
+
   const res = await fetch(url, {
     headers,
     ...options,
@@ -191,7 +294,7 @@ export async function fetchPositions(gateway?: string) {
 // ── Accounts ──────────────────────────────────────────────
 
 export async function fetchAccounts(gateway?: string) {
-  const url = gateway ? `/api/data/accounts?gateway=${encodeURIComponent(gateway)}` : '/api/data/accounts';
+  const url = gateway ? `/api/position/accounts?gateway=${encodeURIComponent(gateway)}` : '/api/position/accounts';
   return apiFetch<{ accounts: AccountData[] }>(url);
 }
 
@@ -463,15 +566,13 @@ export async function fetchBacktestTasks(): Promise<ApiResponse<BacktestTasksRes
 }
 
 export async function runBacktest(req: BacktestRunReq): Promise<ApiResponse<{ task_id: string }>> {
-  // 转换请求格式以匹配后端API
+  // 后端 BacktestSubmitRequest 格式：ts_code(单只), start_date, end_date
   const backendReq = {
-    ts_codes: req.symbols.length > 0 ? req.symbols : undefined,
+    ts_code: req.symbols.length > 0 ? req.symbols[0] : undefined,
     start_date: req.start_date,
     end_date: req.end_date,
-    factor_weights: req.factor_weights,
-    stock_count: req.stock_count || 20,
   };
-  return apiFetch<{ task_id: string }>('/api/backtest/multi-factor', {
+  return apiFetch<{ task_id: string }>('/api/backtest', {
     method: 'POST',
     body: JSON.stringify(backendReq),
   });

@@ -1,6 +1,7 @@
 import { Component } from 'solid-js';
 import { PositionMonitor } from '../monitors/PositionMonitor';
 import { AccountMonitor } from '../monitors/AccountMonitor';
+import { EmptyState } from '../common/StateViews';
 
 export const PositionManagement: Component = () => {
   return (

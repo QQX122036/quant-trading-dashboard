@@ -3,7 +3,7 @@
  * 导入/导出CSV数据，查看采集进度
  */
 import { Component, createSignal, For, Show } from 'solid-js';
-import { importData, exportData, fetchCollectionProgress } from '../../hooks/useApi';
+import { importData, fetchCollectionProgress } from '../../hooks/useApi';
 import type { CollectionProgress } from '../../hooks/useApi';
 
 type Tab = 'import' | 'export' | 'progress';
@@ -118,19 +118,12 @@ export const DataManager: Component = () => {
     setExporting(true);
     setExportMsg('');
     try {
-      const res = await exportData(exportTable());
-      if (res.code === '0' && res.data?.download_url) {
-        // Trigger download
-        const link = document.createElement('a');
-        link.href = res.data.download_url;
-        link.download = res.data.filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setExportMsg(`✅ 导出成功: ${res.data.filename} (${res.data.row_count} 行)`);
-      } else {
-        setExportMsg(`❌ ${res.message || '导出失败'}`);
-      }
+      // 后端 /api/data/export?table=xxx&format=csv 返回 CSV 文件流
+      const table = exportTable();
+      const url = `/api/data/export?table=${encodeURIComponent(table)}&format=csv&limit=100000`;
+      // 直接打开下载窗口
+      window.open(url, '_blank');
+      setExportMsg(`✅ 已发起导出请求: ${table}`);
     } catch (e: unknown) {
       setExportMsg(`❌ 导出异常: ${String(e)}`);
     } finally {

@@ -96,7 +96,7 @@ export async function exportToPdf(
   const imgDisplayWidth = contentWidth;
   const imgDisplayHeight = Math.min((imgHeightPx / scale) * 0.264583 * ratio, contentHeight);
 
-  let yOffset = margin;
+  let _yOffset = margin;
 
   // Split into pages if image is tall
   let srcY = 0;
@@ -124,7 +124,7 @@ export async function exportToPdf(
     addWatermark(doc, watermark);
 
     const genTime = new Date().toLocaleString('zh-CN');
-    const pageNum = Math.floor(srcY / (srcH)) + 1;
+    const _pageNum = Math.floor(srcY / (srcH)) + 1;
     const totalPages = Math.ceil(imgHeightPx / srcH);
 
     // Header

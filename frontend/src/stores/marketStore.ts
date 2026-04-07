@@ -106,7 +106,7 @@ export const marketActions = {
 
     try {
       const res = await api.fetchIndexBars(ts_code, startDate, endDate);
-      if ((res.code === '0' || res.code === 0) && res.data && res.data.items && res.data.items.length > 0) {
+      if ((res.code === '0' || Number(res.code)===0) && res.data && res.data.items && res.data.items.length > 0) {
         // 按日期降序排序（最新的在前）
         const bars = res.data.items.sort((a, b) => b.trade_date.localeCompare(a.trade_date));
         const { price, change, changePercent } = calcChangeFromBars(bars);
@@ -131,9 +131,30 @@ export const marketActions = {
     }
   },
 
-  /** 加载所有主要指数 */
+  /**
+   * 加载所有主要指数（错开请求，避免同时发起6个请求导致 429）
+   * 每个指数间隔 100ms 发起，减少并发压力
+   */
   async loadAllIndices() {
-    await Promise.allSettled(api.MAJOR_INDICES.map((idx) => marketActions.loadIndex(idx.ts_code)));
+    const STAGGER_MS = 100;
+    const indices = api.MAJOR_INDICES;
+    // 先标记所有为 loading
+    for (const idx of indices) {
+      setMarketState(
+        'indices',
+        (i) => i.ts_code === idx.ts_code,
+        { loading: true, error: null }
+      );
+    }
+    // 逐个加载（串行 + 错时）
+    for (let i = 0; i < indices.length; i++) {
+      // 立即触发，不等上一个完成，只是错开初始时间
+      void marketActions.loadIndex(indices[i].ts_code);
+      if (i < indices.length - 1) {
+        await new Promise((res) => setTimeout(res, STAGGER_MS));
+      }
+    }
+    // 等待所有完成
     setMarketState('lastUpdate', new Date().toLocaleTimeString('zh-CN'));
   },
 
@@ -141,7 +162,7 @@ export const marketActions = {
   async loadSectorRanking() {
     try {
       const res = await api.fetchSectorRanking(undefined);
-      if ((res.code === '0' || res.code === 0) && res.data) {
+      if ((res.code === '0' || Number(res.code)===0) && res.data) {
         setMarketState('sectors', res.data.items);
       }
     } catch (e) {
@@ -153,7 +174,7 @@ export const marketActions = {
   async loadHotStocks() {
     try {
       const res = await api.fetchHotStocks(undefined);
-      if ((res.code === '0' || res.code === 0) && res.data) {
+      if ((res.code === '0' || Number(res.code)===0) && res.data) {
         setMarketState('hotStocks', res.data.items);
       }
     } catch (e) {
@@ -165,7 +186,7 @@ export const marketActions = {
   async loadMarketBreadth() {
     try {
       const res = await api.fetchMarketBreadth();
-      if ((res.code === '0' || res.code === 0) && res.data) {
+      if ((res.code === '0' || Number(res.code)===0) && res.data) {
         setMarketState('marketBreadth', res.data);
         setMarketState('sentiment', api.calcSentiment(res.data.up_ratio));
       }

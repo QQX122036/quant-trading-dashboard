@@ -38,6 +38,20 @@ export default defineConfig(({ mode }) => {
     build: {
       target: 'esnext',
       sourcemap: true,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('echarts')) return 'echarts';
+              if (id.includes('lightweight-charts')) return 'lightweight-charts';
+              if (id.includes('pdfmake') || id.includes('jspdf')) return 'pdf';
+              if (id.includes('@solidjs') || id.includes('solid-js')) return 'solid';
+              if (id.includes('echarts') || id.includes('zrender')) return 'echarts';
+            }
+          },
+        },
+      },
+      chunkSizeWarningLimit: 600,
     },
   };
 });

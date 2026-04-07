@@ -1,5 +1,6 @@
 import { Component, JSX } from 'solid-js';
 import { MenuBar } from './MenuBar';
+import { ErrorBoundary } from '../ErrorBoundary';
 
 interface MainLayoutProps {
   children: JSX.Element;
@@ -14,7 +15,9 @@ export const MainLayout: Component<MainLayoutProps> = (props) => {
       {/* Main Content Area */}
       <main class="flex-1 min-h-0">
         <div class="h-full w-full">
-          {props.children}
+          <ErrorBoundary>
+            {props.children}
+          </ErrorBoundary>
         </div>
       </main>
     </div>

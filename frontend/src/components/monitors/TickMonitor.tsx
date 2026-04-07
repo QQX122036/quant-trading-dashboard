@@ -62,7 +62,7 @@ export const TickMonitor: Component = () => {
   const [lastTick, setLastTick] = createSignal<TickBarData | null>(null);
 
   // 默认显示的股票列表
-  const WATCHLIST = Object.keys(NAME_MAP);
+  const _WATCHLIST = Object.keys(NAME_MAP);
 
   const ws = getWsInstance();
 

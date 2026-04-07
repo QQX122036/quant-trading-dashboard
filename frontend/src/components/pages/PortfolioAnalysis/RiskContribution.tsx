@@ -78,13 +78,13 @@ function portfolioVolatility(weights: number[], cov: number[][]): number {
 }
 
 /** VaR 计算 (95% 单尾, Z = 1.645) */
-function calcVaR(weights: number[], cov: number[][], confidence = 0.95): number {
+function calcVaR(weights: number[], cov: number[][], _confidence = 0.95): number {
   const zScore = 1.645;
   return portfolioVolatility(weights, cov) * zScore;
 }
 
 /** 边际 VaR: ∂VaR/∂w_i = (Σ × w)_i / σ_p × Z */
-function calcMarginalVaR(weights: number[], cov: number[][], confidence = 0.95): number[] {
+function calcMarginalVaR(weights: number[], cov: number[][], _confidence = 0.95): number[] {
   const zScore = 1.645;
   const n = weights.length;
   const vol = portfolioVolatility(weights, cov);
@@ -104,7 +104,7 @@ function calcMarginalVaR(weights: number[], cov: number[][], confidence = 0.95):
 
 /** 计算所有风险贡献数据 */
 function calcRiskContributions(positions: Position[]): RiskContributionItem[] {
-  const n = positions.length;
+  const _n = positions.length;
   const weights = positions.map((p) => p.weight);
   const cov = buildCovarianceMatrix(positions);
   const totalVaR = calcVaR(weights, cov);
@@ -247,7 +247,7 @@ export const RiskContribution: Component = () => {
           data: riskContributions,
           itemStyle: {
             color: (params: { dataIndex: number }) => STOCK_COLORS[params.dataIndex % STOCK_COLORS.length],
-            borderRadius: params.dataIndex === 0 ? [4, 0, 0, 4] : 0,
+            borderRadius: [4, 0, 0, 4],
           },
           barMaxWidth: 48,
         },
@@ -258,7 +258,7 @@ export const RiskContribution: Component = () => {
           data: weights,
           itemStyle: {
             color: 'rgba(255,255,255,0.06)',
-            borderRadius: params.dataIndex === items.length - 1 ? [0, 4, 4, 0] : 0,
+            borderRadius: 0,
           },
           barMaxWidth: 48,
         },

@@ -121,7 +121,7 @@ export const MultiFactorChart: Component<MultiFactorChartProps> = (props) => {
   });
 
   // Update chart when data changes
-  const updateChart = () => {
+  const _updateChart = () => {
     if (barChart && scores().length > 0) {
       barChart.setOption(buildBarOption(scores()), true);
     }

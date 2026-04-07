@@ -9,4 +9,31 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
   throw new Error('Root element not found.');
 }
 
+// ============================================================
+// Global Uncaught Error Handler
+// 捕获未被 ErrorBoundary 捕获的 JavaScript 错误
+// 注意：这不捕获异步错误（setTimeout/Promise）和事件处理器错误
+// those are handled by ErrorBoundary
+// ============================================================
+window.addEventListener('error', (event) => {
+  // 避免重复报告已被 ErrorBoundary 捕获的错误
+  if (event.defaultPrevented) return;
+
+  const error = event.error;
+  if (!error) return;
+
+  // 记录错误到控制台
+  console.error('[Global Error Handler] Uncaught error:', error.message, error.stack);
+
+  // 可以在这里添加错误上报服务，如 Sentry
+  // if (typeof window.Sentry !== 'undefined') {
+  //   window.Sentry.captureException(error, { extra: { colno: event.colno, lineno: event.lineno } });
+  // }
+});
+
+// 捕获未处理的 Promise  rejections
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('[Global Error Handler] Unhandled promise rejection:', event.reason);
+});
+
 render(() => <App />, root!);

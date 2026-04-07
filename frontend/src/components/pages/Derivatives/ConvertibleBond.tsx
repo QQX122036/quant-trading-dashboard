@@ -22,11 +22,11 @@ interface CBItem {
   maturityDate: string;  // 到期日
   residualYears: number; // 剩余年限
   volume: number;        // 成交量(万元)
- 的双低Score: number;   // 双低评分 = price + premium*100
+ doubleLowScore: number;   // 双低评分 = price + premium*100
 }
 
 function generateMockCBs(): CBItem[] {
-  const data: Omit<CBItem, 'conversionValue' | 'pureBondValue' | 'bondFloor' | 'residualYears' | '的双低Score'>[] = [
+  const data: Omit<CBItem, 'conversionValue' | 'pureBondValue' | 'bondFloor' | 'residualYears' | 'doubleLowScore'>[] = [
     { code: '113050', name: '南银转债', stockCode: '601009', stockName: '南京银行', price: 108.5, premium: 8.5, conversionPrice: 10.10, stockPrice: 9.32, ytm: 0.85, maturityDate: '2027-06-15', volume: 3200 },
     { code: '113009', name: '广汽转债', stockCode: '601238', stockName: '广汽集团', price: 105.2, premium: 12.3, conversionPrice: 14.50, stockPrice: 12.91, ytm: 1.52, maturityDate: '2026-11-08', volume: 1800 },
     { code: '128136', name: '立讯转债', stockCode: '002475', stockName: '立讯精密', price: 118.6, premium: 5.2, conversionPrice: 45.20, stockPrice: 42.95, ytm: -1.20, maturityDate: '2026-03-20', volume: 4500 },
@@ -45,17 +45,17 @@ function generateMockCBs(): CBItem[] {
     const residualYears = Math.max(0.5, (new Date(item.maturityDate).getTime() - Date.now()) / (365 * 24 * 3600 * 1000));
     const pureBondValue = 100 / Math.pow(1 + item.ytm / 100, residualYears);
     const bondFloor = pureBondValue * 0.92; // 债底通常是纯债价值的92%
-    const 双低Score = item.price + item.premium * 100;
+    const doubleLowScore = item.price + item.premium * 100;
 
-    return { ...item, conversionValue, pureBondValue, bondFloor, residualYears, 的双低Score };
+    return { ...item, conversionValue, pureBondValue, bondFloor, residualYears, doubleLowScore };
   });
 }
 
-type SortKey = 'price' | 'premium' | '双低Score' | 'conversionValue' | 'ytm' | 'volume';
+type SortKey = 'price' | 'premium' | 'doubleLowScore' | 'conversionValue' | 'ytm' | 'volume';
 
 export const ConvertibleBond: Component = () => {
   const [cbs] = createSignal<CBItem[]>(generateMockCBs());
-  const [sortKey, setSortKey] = createSignal<SortKey>('双低Score');
+  const [sortKey, setSortKey] = createSignal<SortKey>('doubleLowScore');
   const [sortAsc, setSortAsc] = createSignal(true);
   const [filterDoubleLow, setFilterDoubleLow] = createSignal(false);
   const [showITMOnly, setShowITMOnly] = createSignal(false);
@@ -127,7 +127,7 @@ export const ConvertibleBond: Component = () => {
       {/* Stats summary */}
       <div class="flex gap-4 px-4 py-2 border-b border-white/10 bg-[#0d1117]/50">
         <div class="text-xs text-gray-400">
-          双低均值: <span class="text-yellow-400 font-mono font-bold">{sortedCBs().length > 0 ? (sortedCBs().reduce((a, b) => a + b.的双低Score, 0) / sortedCBs().length).toFixed(1) : '-'}</span>
+          双低均值: <span class="text-yellow-400 font-mono font-bold">{sortedCBs().length > 0 ? (sortedCBs().reduce((a, b) => a + b.doubleLowScore, 0) / sortedCBs().length).toFixed(1) : '-'}</span>
         </div>
         <div class="text-xs text-gray-400">
           平均溢价率: <span class="text-blue-400 font-mono">{sortedCBs().length > 0 ? (sortedCBs().reduce((a, b) => a + b.premium, 0) / sortedCBs().length).toFixed(1) : '-'}%</span>
@@ -152,7 +152,7 @@ export const ConvertibleBond: Component = () => {
               <th class="py-2 px-2 text-right">纯债价值</th>
               <th class="py-2 px-2 text-right">债底</th>
               <th class="py-2 px-2 text-right cursor-pointer hover:text-white" onClick={() => handleSort('ytm')}>到期收益率{sortIndicator('ytm')}</th>
-              <th class="py-2 px-2 text-right cursor-pointer hover:text-white" onClick={() => handleSort('双低Score')}>双低评分{sortIndicator('双低Score')}</th>
+              <th class="py-2 px-2 text-right cursor-pointer hover:text-white" onClick={() => handleSort('doubleLowScore')}>双低评分{sortIndicator('doubleLowScore')}</th>
               <th class="py-2 px-2 text-right cursor-pointer hover:text-white" onClick={() => handleSort('volume')}>成交量{sortIndicator('volume')}</th>
               <th class="py-2 px-2 text-left">正股</th>
               <th class="py-2 px-2 text-right">剩余年限</th>
@@ -184,8 +184,8 @@ export const ConvertibleBond: Component = () => {
                   <td class={`py-1.5 px-2 text-right font-mono ${cb.ytm >= 0 ? 'text-gray-300' : 'text-red-400'}`}>
                     {cb.ytm >= 0 ? '+' : ''}{cb.ytm.toFixed(2)}%
                   </td>
-                  <td class={`py-1.5 px-2 text-right font-mono font-bold ${doubleLowColor(cb.的双低Score)}`}>
-                    {cb.的双低Score.toFixed(1)}
+                  <td class={`py-1.5 px-2 text-right font-mono font-bold ${doubleLowColor(cb.doubleLowScore)}`}>
+                    {cb.doubleLowScore.toFixed(1)}
                   </td>
                   <td class="py-1.5 px-2 text-right font-mono text-gray-400">
                     {formatVolume(cb.volume)}
