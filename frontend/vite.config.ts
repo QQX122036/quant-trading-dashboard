@@ -37,21 +37,22 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       target: 'esnext',
-      sourcemap: true,
+      sourcemap: false,
       rollupOptions: {
         output: {
           manualChunks(id) {
-            if (id.includes('node_modules')) {
-              if (id.includes('echarts')) return 'echarts';
-              if (id.includes('lightweight-charts')) return 'lightweight-charts';
-              if (id.includes('pdfmake') || id.includes('jspdf')) return 'pdf';
-              if (id.includes('@solidjs') || id.includes('solid-js')) return 'solid';
-              if (id.includes('echarts') || id.includes('zrender')) return 'echarts';
-            }
+            if (!id.includes('node_modules')) return;
+            // Deduplicate: each lib goes to its own chunk
+            if (id.includes('echarts') || id.includes('zrender')) return 'echarts';
+            if (id.includes('lightweight-charts')) return 'lightweight-charts';
+            if (id.includes('jspdf') || id.includes('html2canvas')) return 'pdf-libs';
+            if (id.includes('@solidjs') || id.includes('solid-js') || id.includes('solid-js/')) return 'solid';
+            if (id.includes('date-fns')) return 'date-fns';
+            if (id.includes('@tanstack')) return 'tanstack';
           },
         },
       },
-      chunkSizeWarningLimit: 600,
+      chunkSizeWarningLimit: 1000,
     },
   };
 });

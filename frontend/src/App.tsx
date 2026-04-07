@@ -7,23 +7,42 @@ import { I18nProvider } from './i18n';
 import { PageErrorBoundary } from './components/common/ErrorBoundary';
 
 // Lazy load all page components for code splitting
-const MarketOverview = lazy(() => import('./components/pages/MarketOverview'));
-const StockDashboard = lazy(() => import('./components/pages/StockDashboard'));
-const DashboardHome = lazy(() => import('./components/dashboard/DashboardHome'));
-const BacktestAnalysis = lazy(() => import('./components/pages/BacktestAnalysis'));
-const TradeLog = lazy(() => import('./components/pages/TradeLog'));
-const PositionManagement = lazy(() => import('./components/pages/PositionManagement'));
-const DataManager = lazy(() => import('./components/pages/DataManager'));
-const StrategyManager = lazy(() => import('./components/pages/StrategyManager'));
-const FactorDashboard = lazy(() => import('./components/pages/FactorDashboard'));
-const MultiFactorChart = lazy(() => import('./components/pages/MultiFactorChart'));
-const PortfolioAnalysis = lazy(() => import('./components/pages/PortfolioAnalysis'));
-const SentimentPage = lazy(() => import('./components/pages/SentimentPage'));
-const NewsSentiment = lazy(() => import('./components/news/NewsSentiment'));
-const AIAdvisor = lazy(() => import('./components/news/AIAdvisor'));
-const DerivativesPage = lazy(() => import('./components/pages/Derivatives/DerivativesPage'));
-const BacktestReport = lazy(() => import('./components/reports/BacktestReport'));
-const StockReport = lazy(() => import('./components/reports/StockReport'));
+// @solidjs/router uses its own lazy() with different typing from solid-js
+// Cast to any to resolve TS mismatch between module namespace types vs { default: Component }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const MarketOverview = (lazy as any)(() => import('./components/pages/MarketOverview'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const StockDashboard = (lazy as any)(() => import('./components/pages/StockDashboard'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const DashboardHome = (lazy as any)(() => import('./components/dashboard/DashboardHome'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const BacktestAnalysis = (lazy as any)(() => import('./components/pages/BacktestAnalysis'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const TradeLog = (lazy as any)(() => import('./components/pages/TradeLog'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const PositionManagement = (lazy as any)(() => import('./components/pages/PositionManagement'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const DataManager = (lazy as any)(() => import('./components/pages/DataManager'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const StrategyManager = (lazy as any)(() => import('./components/pages/StrategyManager'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const FactorDashboard = (lazy as any)(() => import('./components/pages/FactorDashboard'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const MultiFactorChart = (lazy as any)(() => import('./components/pages/MultiFactorChart'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const PortfolioAnalysis = (lazy as any)(() => import('./components/pages/PortfolioAnalysis'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SentimentPage = (lazy as any)(() => import('./components/pages/SentimentPage'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const NewsSentiment = (lazy as any)(() => import('./components/news/NewsSentiment'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const AIAdvisor = (lazy as any)(() => import('./components/news/AIAdvisor'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const DerivativesPage = (lazy as any)(() => import('./components/pages/Derivatives/DerivativesPage'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const BacktestReport = (lazy as any)(() => import('./components/reports/BacktestReport'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const StockReport = (lazy as any)(() => import('./components/reports/StockReport'));
 
 // Loading skeleton components for different page types
 const PageLoader = () => (
