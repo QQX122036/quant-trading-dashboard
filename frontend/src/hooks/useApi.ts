@@ -47,13 +47,6 @@ function debouncedFetch<T>(
 
     const pending: PendingRequest<T> = {
       timer,
-      promise: new Promise<ApiResponse<T>>((res, rej) => {
-        // wrap resolve/reject so callers waiting on the timer get the result
-        const origResolve = resolve;
-        const origReject = reject;
-        pending.resolve = (v: ApiResponse<T>) => { origResolve(v); };
-        pending.reject = (e: unknown) => { origReject(e); };
-      }),
       resolve,
       reject,
     };
