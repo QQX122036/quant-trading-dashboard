@@ -16,11 +16,11 @@ import { DrawingsPanel } from './DrawingsPanel';
 import { CompareChart } from './CompareChart';
 import { computeRangeStats, adjustBars, normalizeToStart, type RangeStats } from './chartUtils';
 import { useChartDrawings } from './useChartDrawings';
-import type { AdjustType } from './ChartControls';
+import type { AdjustType } from './types';
 
 // ── Types ────────────────────────────────────────────────────
 
-export type { AdjustType };
+// AdjustType re-exported from types.ts
 export interface ComparedStock {
   ts_code: string; name: string; color: string;
   bars: DailyBar[];

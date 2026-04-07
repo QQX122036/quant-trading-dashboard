@@ -12,7 +12,7 @@
  * │ 底部通知中心 (预警/委托成交/系统通知)                  │
  * └─────────────────────────────────────────────────────┘
  */
-import { Component, createSignal, createMemo, For, onMount } from 'solid-js';
+import { Component, createSignal, createMemo, For, onMount, Show } from 'solid-js';
 import { EnhancedKlineChart } from '../charts/enhanced/EnhancedKlineChart';
 import { DashboardCharts } from './DashboardCharts';
 import { QuickOrderPanel } from './QuickOrderPanel';

@@ -97,7 +97,7 @@ export const KLineCanvas: Component<KLineCanvasProps> = (props) => {
       let price: number | undefined;
       if (param.point && candleSeries) {
         price = candleSeries.coordinateToPrice(param.point.y) ?? undefined;
-        setCurrentPrice(price);
+        setCurrentPrice(price ?? 0);
       }
       props.onCrosshairMove?.(t || null, price);
       updateVisibleRange();

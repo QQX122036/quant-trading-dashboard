@@ -84,7 +84,7 @@ const ErrorCapture: Component<{ children: JSX.Element; onError: (err: Error, inf
 /**
  * 默认错误展示 fallback UI
  */
-const DefaultErrorFallback: Component<{ error: Error; reset: () => void; info?: ErrorInfo }> = (props) => {
+const DefaultErrorFallback: Component<{ error: Error; reset: () => void; info?: ErrorInfo | null | undefined }> = (props) => {
   const errorMessage = () => props.error?.message || 'An unknown error occurred';
   const stack = () => props.error?.stack || '';
 

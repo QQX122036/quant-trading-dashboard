@@ -3,7 +3,7 @@
  * 职责：复权切换 | 绘图工具 | 缩放控制 | 区间统计 | 筹码/对比开关
  */
 import { Component, Show, For } from 'solid-js';
-import type { AdjustType } from './EnhancedKlineChart';
+import type { AdjustType } from './types';
 import type { DrawingToolType } from './DrawingTools';
 import { MAJOR_INDICES } from '../../../hooks/useApi';
 

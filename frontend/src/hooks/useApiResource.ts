@@ -76,8 +76,9 @@ export function createApiResource<T>(
     try {
       const result = await fetcher(source());
       if (!abortController.signal.aborted) {
-        if (result.code === 0 || result.code === '0') {
-          setData(result.data as T);
+        const code = result.code;
+        if (!code || code === '0' || Number(code) === 0) {
+          setData(result.data as T as T);
         } else {
           setError(new Error(result.message ?? `API error: ${result.code}`));
         }
@@ -146,8 +147,9 @@ export function createManualResource<T>(
 
     try {
       const result = await fetchFn();
-      if (result.code === 0 || result.code === '0') {
-        setData(result.data as T);
+      const code = result.code;
+      if (!code || code === '0' || Number(code) === 0) {
+        setData(() => result.data as T);
       } else {
         setError(new Error(result.message ?? `API error: ${result.code}`));
       }

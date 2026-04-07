@@ -1,6 +1,6 @@
 import { Router, Route, Navigate } from '@solidjs/router';
 import { MainLayout } from './components/layout/MainLayout';
-import { lazy, Suspense } from 'solid-js';
+import { lazy, Suspense, For } from 'solid-js';
 import { KeyboardShortcuts } from './components/KeyboardShortcuts';
 import { AboutDialog } from './components/dialogs/AboutDialog';
 import { I18nProvider } from './i18n';
@@ -67,9 +67,9 @@ const ChartSkeleton = () => (
 const TableSkeleton = () => (
   <div class="space-y-2 animate-pulse">
     <div class="h-8 bg-gray-800/50 rounded" />
-    {[1, 2, 3, 4, 5].map((i) => (
-      <div key={i} class="h-12 bg-gray-800/30 rounded" />
-    ))}
+    <For each={[1, 2, 3, 4, 5]}>
+      {(i) => <div class="h-12 bg-gray-800/30 rounded" />}
+    </For>
   </div>
 );
 

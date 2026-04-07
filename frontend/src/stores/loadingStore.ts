@@ -97,7 +97,17 @@ export const loadingActions = {
   reset() {
     setLoadingState({
       pendingCount: 0,
-      modules: Object.fromEntries(Object.keys(loadingState.modules).map((k) => [k, false])),
+      modules: {
+        indices: false,
+        positions: false,
+        accounts: false,
+        orders: false,
+        trades: false,
+        marketOverview: false,
+        kline: false,
+        strategies: false,
+        backtest: false,
+      },
       retrying: new Set(),
       lastUpdate: new Date().toLocaleTimeString('zh-CN'),
     });

@@ -37,7 +37,7 @@ export const StockDashboard: Component = () => {
     try {
       const tsCode = code.startsWith('6') ? `${code}.SH` : `${code}.SZ`;
       const res = await apiFetch<{ items: StockBasicItem[] }>(`/api/data/stock-basic?ts_code=${tsCode}&limit=1`);
-      if ((res.code === 0 || res.code === '0') && res.data?.items?.length) {
+      if ((!res.code || res.code === '0' || res.code === 0) && res.data?.items?.length) {
         const name = res.data.items[0].name;
         stockNameCache[code] = name;
         return name;

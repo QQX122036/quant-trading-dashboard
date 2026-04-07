@@ -1,4 +1,4 @@
-import { Component, JSX } from 'solid-js';
+import { Component, JSX, For } from 'solid-js';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
@@ -32,9 +32,9 @@ export const Skeleton: Component<SkeletonProps> = (props) => {
 
   return (
     <div class="space-y-2 animate-pulse">
-      {Array.from({ length: rows }, (_, i) => (
-        <div key={i} class={`bg-gray-700/50 rounded ${height}`} />
-      ))}
+      <For each={Array.from({ length: rows }, (_, i) => i)}>
+        {(i) => <div class={`bg-gray-700/50 rounded ${height}`} />}
+      </For>
     </div>
   );
 };

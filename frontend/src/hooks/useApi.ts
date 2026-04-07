@@ -16,7 +16,7 @@ const DEBOUNCE_MS = 300;
 
 interface PendingRequest<T> {
   timer: ReturnType<typeof setTimeout>;
-  promise: Promise<ApiResponse<T>>;
+  promise?: Promise<ApiResponse<T>>;
   resolve: (v: ApiResponse<T>) => void;
   reject: (e: unknown) => void;
 }
@@ -32,25 +32,27 @@ function debouncedFetch<T>(
   fn: () => Promise<ApiResponse<T>>
 ): Promise<ApiResponse<T>> {
   const existing = pendingRequests.get(key) as PendingRequest<T> | undefined;
-  if (existing) return existing.promise;
+  if (existing?.promise) return existing.promise;
 
   return new Promise<ApiResponse<T>>((resolve, reject) => {
-    const timer = setTimeout(async () => {
-      pendingRequests.delete(key);
-      try {
-        const result = await fn();
-        resolve(result);
-      } catch (e) {
-        reject(e);
-      }
-    }, DEBOUNCE_MS);
-
-    const pending: PendingRequest<T> = {
-      timer,
-      resolve,
-      reject,
-    };
-    pendingRequests.set(key, pending as PendingRequest<unknown>);
+    const p = new Promise<ApiResponse<T>>((res, rej) => {
+      const timer = setTimeout(async () => {
+        pendingRequests.delete(key);
+        try {
+          const result = await fn();
+          res(result);
+        } catch (e) {
+          rej(e);
+        }
+      }, DEBOUNCE_MS);
+      pendingRequests.set(key, {
+        timer,
+        promise: p,
+        resolve: res,
+        reject: rej,
+      } as PendingRequest<unknown>);
+    });
+    return p;
   });
 }
 
@@ -675,7 +677,7 @@ export type SentimentType = 'bullish' | 'bearish' | 'neutral';
 // ── REST API types ─────────────────────────────────────────
 
 export interface ApiResponse<T> {
-  code: string;
+  code: string | number;
   message: string;
   data?: T;
 }

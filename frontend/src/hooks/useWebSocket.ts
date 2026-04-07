@@ -193,9 +193,12 @@ export function useMarketWS() {
     }
   });
 
-  // 同步 WS 状态到 store
+  // 同步 WS 状态到 store（排除 connecting 状态）
   createEffect(() => {
-    actions.connection.setWsStatus(ws.status());
+    const s = ws.status();
+    if (s !== 'connecting') {
+      actions.connection.setWsStatus(s as 'connected' | 'disconnected' | 'reconnecting');
+    }
   });
 
   // 注册所有数据处理器
