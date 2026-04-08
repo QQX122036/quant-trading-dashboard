@@ -467,7 +467,8 @@ export const BacktestAnalysis: Component = () => {
                   });
                   console.log('[BacktestAnalysis] API response:', res);
                   // API 直接返回 task_id 字符串，而不是标准格式
-                  const taskId = typeof res === 'string' ? res : (res.data?.task_id || (res.data as any)?.task_id || res.data);
+                  const rawId = !res ? null : typeof res === 'string' ? res : ((res as any).data?.task_id || (res as any).data);
+                  const taskId = rawId ?? null;
                   if (taskId) {
                     console.log('[BacktestAnalysis] Got task_id:', taskId);
                     setApiState('backtestTaskId', taskId);

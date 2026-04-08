@@ -34,14 +34,14 @@ const DataManager = lazy(() => import('./components/pages/DataManager').then(m =
 const StrategyManager = lazy(() => import('./components/pages/StrategyManager').then(m => ({ default: m.StrategyManager })));
 const FactorDashboard = lazy(() => import('./components/pages/FactorDashboard').then(m => ({ default: m.FactorDashboard })));
 const MultiFactorChart = lazy(() => import('./components/pages/MultiFactorChart').then(m => ({ default: m.MultiFactorChart })));
-const PortfolioAnalysis = lazy(() => import('./components/pages/PortfolioAnalysis').then(m => ({ default: m.PortfolioAnalysis })));
+const PortfolioAnalysis = lazy(() => import('./components/pages/PortfolioAnalysis').then(m => ({ default: m.default })));
 const SentimentPage = lazy(() => import('./components/pages/SentimentPage').then(m => ({ default: m.SentimentPage })));
 const NewsSentiment = lazy(() => import('./components/news/NewsSentiment').then(m => ({ default: m.NewsSentiment })));
 const AIAdvisor = lazy(() => import('./components/news/AIAdvisor').then(m => ({ default: m.AIAdvisor })));
 const DerivativesPage = lazy(() => import('./components/pages/Derivatives/DerivativesPage').then(m => ({ default: m.DerivativesPage })));
 const BacktestReport = lazy(() => import('./components/reports/BacktestReport').then(m => ({ default: m.BacktestReport })));
 const StockReport = lazy(() => import('./components/reports/StockReport').then(m => ({ default: m.StockReport })));
-const RiskAlert = lazy(() => import('./components/pages/RiskAlert').then(m => ({ default: m.RiskAlert })));
+const RiskAlert = lazy(() => import('./components/pages/RiskAlert').then(m => ({ default: m.default })));
 const TestPage = lazy(() => import('./components/pages/TestPage').then(m => ({ default: m.TestPage })));
 
 // ── DEV-ONLY Components — dynamically imported only in dev mode ───────────────
