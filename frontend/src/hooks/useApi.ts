@@ -1,59 +1,78 @@
 /**
  * useApi.ts — REST API Hook & fetch utilities
  * 封装所有后端 REST API 调用
- * 
+ *
  * 请求防抖: 300ms debounce
  * 失败重试: 最多3次，间隔 1s/2s/3s
  */
-import type { OrderData, TradeData, PositionData, AccountData, ContractData, QuoteData } from '../types/vnpy';
+import type {
+  OrderData,
+  TradeData,
+  PositionData,
+  AccountData,
+  ContractData,
+  QuoteData,
+} from '../types/vnpy';
+import { getErrorTracker } from '../stores/errorStore';
+import { logger } from '../lib/logger';
 
 // Use env var or empty string (Vite dev server proxy handles /api → backend)
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '';
 
-// ── Debounce ─────────────────────────────────────────────
-// Pending request pool: key → { timer, promise, resolve, reject }
-const DEBOUNCE_MS = 300;
-
-interface PendingRequest<T> {
-  timer: ReturnType<typeof setTimeout>;
-  promise?: Promise<ApiResponse<T>>;
-  resolve: (v: ApiResponse<T>) => void;
-  reject: (e: unknown) => void;
+// Lazy-load error tracker to avoid circular deps at module init
+function getTracker() {
+  try {
+    return getErrorTracker();
+  } catch {
+    return null;
+  }
 }
 
-const pendingRequests = new Map<string, PendingRequest<unknown>>();
+// ── Debounce ─────────────────────────────────────────────
+// Pending request pool: key → { timer, promise }
+const DEBOUNCE_MS = 100;
+
+interface PendingRequest {
+  timer: ReturnType<typeof setTimeout>;
+  promise: Promise<ApiResponse<unknown>>;
+}
+
+const pendingRequests = new Map<string, PendingRequest>();
 
 /**
- * 防抖请求：同一 key（path+method）在 300ms 窗口内只发一次
- * 后续请求复用进行中的请求
+ * 防抖请求：同一 key（path+method）在 DEBOUNCE_MS 窗口内只发一次
+ * 后续请求复用进行中的请求（等待同一个 Promise）
  */
 function debouncedFetch<T>(
   key: string,
   fn: () => Promise<ApiResponse<T>>
 ): Promise<ApiResponse<T>> {
-  const existing = pendingRequests.get(key) as PendingRequest<T> | undefined;
-  if (existing?.promise) return existing.promise;
+  const existing = pendingRequests.get(key);
+  if (existing) {
+    // Return the SAME promise so all concurrent requests chain to one fetch
+    return existing.promise as Promise<ApiResponse<T>>;
+  }
 
-  return new Promise<ApiResponse<T>>((resolve, reject) => {
-    const p = new Promise<ApiResponse<T>>((res, rej) => {
-      const timer = setTimeout(async () => {
-        pendingRequests.delete(key);
-        try {
-          const result = await fn();
-          res(result);
-        } catch (e) {
-          rej(e);
-        }
-      }, DEBOUNCE_MS);
-      pendingRequests.set(key, {
-        timer,
-        promise: p,
-        resolve: res,
-        reject: rej,
-      } as PendingRequest<unknown>);
-    });
-    return p;
+  let _timer: ReturnType<typeof setTimeout> | undefined;
+
+  const p = new Promise<ApiResponse<T>>((resolve, reject) => {
+    _timer = setTimeout(async () => {
+      pendingRequests.delete(key);
+      try {
+        const result = await fn();
+        resolve(result);
+      } catch (e) {
+        reject(e);
+      }
+    }, DEBOUNCE_MS);
   });
+
+  pendingRequests.set(key, {
+    timer: _timer!,
+    promise: p as Promise<ApiResponse<unknown>>,
+  });
+
+  return p;
 }
 
 // ── Retry ────────────────────────────────────────────────
@@ -75,9 +94,7 @@ async function withRetry<T>(
       const errObj = e as Record<string, unknown> | undefined;
       const httpCode = String(errObj?.code ?? '');
       const isRetryable =
-        httpCode.startsWith('HTTP_5') ||
-        httpCode === 'HTTP_429' ||
-        httpCode.startsWith('HTTP_50');
+        httpCode.startsWith('HTTP_5') || httpCode === 'HTTP_429' || httpCode.startsWith('HTTP_50');
       if (attempt < MAX_RETRIES && isRetryable) {
         const delay = RETRY_DELAYS[attempt] ?? 3000;
         onRetry?.(attempt + 1, delay);
@@ -96,7 +113,8 @@ async function withRetry<T>(
  * 检查API响应的code是否表示成功
  * 支持字符串'0'和数字0
  */
-export function isSuccessCode(code: string | number | undefined): boolean {
+export function isSuccessCode(code: string | number | undefined, success?: boolean): boolean {
+  if (success === true) return true;
   return code === '0' || code === 0;
 }
 
@@ -132,17 +150,14 @@ export async function apiFetch<T>(
 ): Promise<ApiResponse<T>> {
   const key = buildKey(path, options);
 
-  return debouncedFetch<T>(key, () =>
-    withRetry<T>(() => _rawFetch<T>(path, options))
-  );
+  return debouncedFetch<T>(key, () => withRetry<T>(() => _rawFetch<T>(path, options)));
 }
 
-async function _rawFetch<T>(
-  path: string,
-  options: RequestInit = {}
-): Promise<ApiResponse<T>> {
+async function _rawFetch<T>(path: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   const url = path.startsWith('http') ? path : `${BASE_URL}${path}`;
   const token = getAuthToken();
+  const startTime = Date.now();
+  logger.debug(`[API] ${options.method ?? 'GET'} ${path}`);
   const headers = new Headers({
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
@@ -153,27 +168,81 @@ async function _rawFetch<T>(
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const res = await fetch(url, {
-    headers,
-    ...options,
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, { headers, ...options });
+  } catch (e: unknown) {
+    // 网络级错误（DNS 失败/连接拒绝/超时）
+    const duration = Date.now() - startTime;
+    const tracker = getTracker();
+    if (tracker) {
+      tracker.trackApiError({
+        url,
+        method: options.method ?? 'GET',
+        duration,
+        responseBody: String(e),
+        meta: { retryable: true },
+      });
+    }
+    throw { code: 'NETWORK_ERROR', message: String(e) };
+  }
+
+  const duration = Date.now() - startTime;
+  const tracker = getTracker();
+
   if (!res.ok) {
+    let responseBody = '';
+    try {
+      const raw = await res.text();
+      responseBody = raw.slice(0, 500);
+    } catch {
+      /* ignore */
+    }
+
+    if (tracker) {
+      tracker.trackApiError({
+        url,
+        method: options.method ?? 'GET',
+        status: res.status,
+        statusText: res.statusText,
+        duration,
+        responseBody,
+        meta: {},
+      });
+    }
+
     const err = await res.json().catch(() => ({
       code: `HTTP_${res.status}`,
       message: res.statusText,
     }));
     throw err;
   }
+
   const data = await res.json();
+  // 如果返回的业务 code 不为 0，视为 API 错误
+  if (data.code !== undefined && data.code !== '0' && data.code !== 0) {
+    if (tracker) {
+      tracker.trackApiError({
+        url,
+        method: options.method ?? 'GET',
+        status: res.status,
+        statusText: res.statusText,
+        duration,
+        responseBody: JSON.stringify(data).slice(0, 500),
+        meta: { api_code: data.code, api_message: data.message },
+      });
+    }
+  }
   // 如果返回的数据已经是ApiResponse格式，直接返回
-  if (data.code !== undefined) {
+  // 支持两种格式: {code, message, data} 或 {success: true, ...data}
+  if (data.code !== undefined || data.success === true) {
     return data as ApiResponse<T>;
   }
   // 如果返回的是直接的数据对象，包装成ApiResponse格式
   return {
     code: '0',
     message: 'success',
-    data: data as T
+    data: data as T,
   };
 }
 
@@ -190,18 +259,34 @@ export interface LoginResponse {
   user_id: string;
 }
 
-export async function login(username: string, password: string): Promise<ApiResponse<LoginResponse>> {
+export async function login(
+  username: string,
+  password: string
+): Promise<ApiResponse<LoginResponse>> {
   const res = await apiFetch<LoginResponse>('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify({ username, password }),
   });
-  
-  // 如果登录成功，保存token
-  if (isSuccessCode(res.code) && res.data?.access_token) {
-    setAuthToken(res.data.access_token);
+
+  // 后端 LoginResponse 是裸对象: { access_token, user_id, expires_in }
+  // apiFetch 的 _rawFetch 会包装成 ApiResponse 格式: { code: '0', message: 'success', data: LoginResponse }
+  // 但若后端直接返回裸对象（未包装），则 token 在顶层
+  // 兼容两种格式：1) ApiResponse 包装  2) 裸 LoginResponse
+  let token: string | undefined = undefined;
+
+  if (res && typeof res === 'object') {
+    // 尝试 ApiResponse 包装格式: { code, message, data: { access_token } }
+    const wrapper = res as unknown as Record<string, unknown>;
+    const dataObj = (wrapper.data || wrapper) as Record<string, unknown>;
+    token = typeof dataObj?.access_token === 'string' ? dataObj.access_token : undefined;
   }
-  
-  return res;
+
+  if (isSuccessCode((res as ApiResponse<LoginResponse>).code) && token) {
+    logger.debug(`[Auth] Token obtained, length=${token.length}`);
+    setAuthToken(token);
+  }
+
+  return res as ApiResponse<LoginResponse>;
 }
 
 export async function logout(): Promise<void> {
@@ -246,7 +331,10 @@ export async function disconnectGateway(
 
 // ── Orders ─────────────────────────────────────────────────
 
-export interface SendOrderResponse { vt_orderid: string; status: string }
+export interface SendOrderResponse {
+  vt_orderid: string;
+  status: string;
+}
 
 export async function fetchOrders(gateway?: string) {
   const url = gateway ? `/api/order/all?gateway=${encodeURIComponent(gateway)}` : '/api/order/all';
@@ -260,7 +348,11 @@ export async function submitOrder(req: SendOrderReq): Promise<ApiResponse<SendOr
   });
 }
 
-export async function cancelOrder(vt_orderid: string, symbol: string, exchange: string): Promise<ApiResponse<void>> {
+export async function cancelOrder(
+  vt_orderid: string,
+  symbol: string,
+  exchange: string
+): Promise<ApiResponse<void>> {
   return apiFetch<void>('/api/order/cancel', {
     method: 'POST',
     body: JSON.stringify({ orderid: vt_orderid, symbol, exchange }),
@@ -268,35 +360,45 @@ export async function cancelOrder(vt_orderid: string, symbol: string, exchange: 
 }
 
 export async function fetchActiveOrders(gateway?: string) {
-  const url = gateway ? `/api/order/active?gateway=${encodeURIComponent(gateway)}` : '/api/order/active';
+  const url = gateway
+    ? `/api/order/active?gateway=${encodeURIComponent(gateway)}`
+    : '/api/order/active';
   return apiFetch<{ success: boolean; total: number; orders: OrderData[] }>(url);
 }
 
 // ── Trades ─────────────────────────────────────────────────
 
 export async function fetchTrades(gateway?: string) {
-  const url = gateway ? `/api/order/trades?gateway=${encodeURIComponent(gateway)}` : '/api/order/trades';
+  const url = gateway
+    ? `/api/order/trades?gateway=${encodeURIComponent(gateway)}`
+    : '/api/order/trades';
   return apiFetch<{ success: boolean; total: number; trades: TradeData[] }>(url);
 }
 
 // ── Positions ──────────────────────────────────────────────
 
 export async function fetchPositions(gateway?: string) {
-  const url = gateway ? `/api/position/positions?gateway=${encodeURIComponent(gateway)}` : '/api/position/positions';
+  const url = gateway
+    ? `/api/position/positions?gateway=${encodeURIComponent(gateway)}`
+    : '/api/position/positions';
   return apiFetch<{ positions: PositionData[] }>(url);
 }
 
 // ── Accounts ──────────────────────────────────────────────
 
 export async function fetchAccounts(gateway?: string) {
-  const url = gateway ? `/api/position/accounts?gateway=${encodeURIComponent(gateway)}` : '/api/position/accounts';
+  const url = gateway
+    ? `/api/position/accounts?gateway=${encodeURIComponent(gateway)}`
+    : '/api/position/accounts';
   return apiFetch<{ accounts: AccountData[] }>(url);
 }
 
 // ── Contracts ─────────────────────────────────────────────
 
 export async function fetchContracts(keyword?: string) {
-  const url = keyword ? `/api/gateways/contracts?keyword=${encodeURIComponent(keyword)}` : '/api/gateways/contracts';
+  const url = keyword
+    ? `/api/gateways/contracts?keyword=${encodeURIComponent(keyword)}`
+    : '/api/gateways/contracts';
   return apiFetch<{ contracts: ContractData[] }>(url);
 }
 
@@ -387,8 +489,15 @@ export async function fetchIndexBars(
   end_date?: string,
   limit?: number
 ): Promise<ApiResponse<{ ts_code: string; total: number; items: IndexBarItem[] }>> {
-  const params = new URLSearchParams({ ts_code, ...(start_date && { start_date }), ...(end_date && { end_date }), ...(limit && { limit: String(limit) }) });
-  const res = await apiFetch<{ ts_code: string; total: number; items: IndexBarItem[] }>(`/api/data/index?${params}`);
+  const params = new URLSearchParams({
+    ts_code,
+    ...(start_date && { start_date }),
+    ...(end_date && { end_date }),
+    ...(limit && { limit: String(limit) }),
+  });
+  const res = await apiFetch<{ ts_code: string; total: number; items: IndexBarItem[] }>(
+    `/api/data/index?${params}`
+  );
   // 兼容后端返回的数据结构
   if (res.code === '0' && Array.isArray(res.data)) {
     return {
@@ -397,8 +506,8 @@ export async function fetchIndexBars(
       data: {
         ts_code,
         total: res.data.length,
-        items: res.data
-      }
+        items: res.data,
+      },
     };
   }
   return res;
@@ -417,14 +526,18 @@ export async function fetchSectorRanking(
   date?: string
 ): Promise<ApiResponse<{ date: string; total: number; items: SectorItem[] }>> {
   const params = date ? `?date=${date}` : '';
-  return apiFetch<{ date: string; total: number; items: SectorItem[] }>(`/api/data/sector-ranking${params}`);
+  return apiFetch<{ date: string; total: number; items: SectorItem[] }>(
+    `/api/data/sector-ranking${params}`
+  );
 }
 
 export async function fetchHotStocks(
   date?: string
 ): Promise<ApiResponse<{ date: string; total: number; items: HotStockItem[] }>> {
   const params = date ? `?date=${date}` : '';
-  return apiFetch<{ date: string; total: number; items: HotStockItem[] }>(`/api/data/hot-stocks${params}`);
+  return apiFetch<{ date: string; total: number; items: HotStockItem[] }>(
+    `/api/data/hot-stocks${params}`
+  );
 }
 
 export async function fetchMarketBreadth(
@@ -473,9 +586,7 @@ export interface DataExportResponse {
   download_url: string;
 }
 
-export async function exportData(
-  table: string
-): Promise<ApiResponse<DataExportResponse>> {
+export async function exportData(table: string): Promise<ApiResponse<DataExportResponse>> {
   return apiFetch<DataExportResponse>(`/api/data/export?table=${encodeURIComponent(table)}`);
 }
 
@@ -679,13 +790,14 @@ export type SentimentType = 'bullish' | 'bearish' | 'neutral';
 export interface ApiResponse<T> {
   code: string | number;
   message: string;
+  success?: boolean;
   data?: T;
 }
 
 export interface SendOrderReq {
   symbol: string;
   exchange: string;
-  direction: '多' | '空' | 'long' | 'short';  // 前端格式 或 后端格式
+  direction: '多' | '空' | 'long' | 'short'; // 前端格式 或 后端格式
   offset: '开' | '平' | 'open' | 'close' | 'none';
   type: string;
   price: number;
@@ -716,13 +828,16 @@ export interface GatewayInfo {
   display_name: string;
   gateway_type?: string;
   connected?: boolean;
-  default_setting?: Record<string, {
-    label: string;
-    type: 'text' | 'password' | 'number';
-    default: string;
-    required: boolean;
-    placeholder?: string;
-  }>;
+  default_setting?: Record<
+    string,
+    {
+      label: string;
+      type: 'text' | 'password' | 'number';
+      default: string;
+      required: boolean;
+      placeholder?: string;
+    }
+  >;
 }
 
 // ── Settings ─────────────────────────────────────────────────
@@ -817,4 +932,58 @@ export async function fetchMultiFactorScores(
   if (start_date) params.set('start_date', start_date);
   if (end_date) params.set('end_date', end_date);
   return apiFetch<{ items: MultiFactorScore[] }>(`/api/factors/scores?${params}`);
+}
+
+// ── Alpha Signals ─────────────────────────────────────────
+
+export interface AlphaStock {
+  ts_code: string;
+  name: string;
+  industry: string;
+  alpha20: number;
+  rating: string;
+  rating_label?: string;
+}
+
+export async function fetchAlphaTop20(): Promise<
+  ApiResponse<{ date: string; total: number; items: AlphaStock[] }>
+> {
+  return apiFetch<{ date: string; total: number; items: AlphaStock[] }>('/api/alpha/top20');
+}
+
+// ── Equity Curve ─────────────────────────────────────────────────
+
+export interface EquityCurvePoint {
+  date: string;
+  equity: number;
+  benchmark: number;
+  benchmark_date: string;
+  drawdown: number;
+  daily_return: number;
+  rolling_sharpe: number;
+}
+
+export interface EquityCurveResponse {
+  success: boolean;
+  account_id: string;
+  start_date: string;
+  end_date: string;
+  initial_balance: number;
+  final_equity: number;
+  total_return: number;
+  benchmark_return: number;
+  max_drawdown: number;
+  curve: EquityCurvePoint[];
+  message?: string;
+}
+
+export async function fetchEquityCurve(
+  accountId = 'default',
+  startDate?: string,
+  endDate?: string
+): Promise<ApiResponse<EquityCurveResponse>> {
+  const params = new URLSearchParams({ account_id: accountId });
+  if (startDate) params.set('start_date', startDate);
+  if (endDate) params.set('end_date', endDate);
+  return apiFetch<EquityCurveResponse>(`/api/equity-curve?${params}`);
 }

@@ -1,5 +1,73 @@
 @import "tailwindcss";
 
+/* ── Accessibility: Focus Visible ─────────────────────────── */
+/* Visible focus indicator for keyboard navigation */
+:focus-visible {
+  outline: 2px solid #818cf8;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Remove outline for mouse/touch users (but keep for keyboard) */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Skip link - hidden until focused */
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 16px;
+  z-index: 99999;
+  padding: 12px 20px;
+  background: #6366f1;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+  transition: top 0.2s ease;
+  text-decoration: none;
+}
+.skip-link:focus-visible {
+  top: 0;
+  outline: 2px solid #a5b4fc;
+  outline-offset: 2px;
+}
+
+/* Screen-reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ── Accessibility: Reduced Motion ──────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Accessibility: High Contrast Text ───────────────────── */
+@media (prefers-contrast: more) {
+  :root {
+    --text-primary: #ffffff;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --border-color: #374151;
+  }
+}
+
 /* ── Touch optimization ─────────────────────────────────── */
 * {
   touch-action: manipulation;
@@ -314,7 +382,8 @@ html, body, #root {
 }
 
 .form-input:focus {
-  outline: none;
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
   border-color: var(--border-focus);
 }
 
@@ -376,4 +445,24 @@ html, body, #root {
 @media (max-width: 768px) {
   .hidden-md { display: none !important; }
   .w-full-md { width: 100% !important; }
+
+  /* Mobile: constrain fixed/absolute elements */
+  .dialog-panel,
+  [style*="min-width"] {
+    min-width: 0 !important;
+    width: 95vw !important;
+    max-width: 95vw !important;
+  }
+
+  /* Mobile: prevent horizontal overflow */
+  .overflow-x-auto {
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ── Hamburger menu slide animation ─────────────────────── */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

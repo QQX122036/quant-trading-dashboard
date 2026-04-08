@@ -4,7 +4,12 @@
  */
 import { Component, Show, For, onMount, onCleanup, createEffect } from 'solid-js';
 import {
-  createChart, IChartApi, ISeriesApi, LineData, Time, CrosshairMode,
+  createChart,
+  IChartApi,
+  ISeriesApi,
+  LineData,
+  Time,
+  CrosshairMode,
 } from 'lightweight-charts';
 import type { ComparedStock } from './EnhancedKlineChart';
 import { adjustBars, normalizeToStart } from './chartUtils';
@@ -25,8 +30,14 @@ export const CompareChart: Component<CompareChartProps> = (props) => {
     if (!containerRef) return;
     chart = createChart(containerRef, {
       layout: { background: { color: '#0A0E17' }, textColor: '#9CA3AF' },
-      grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } },
-      rightPriceScale: { borderColor: 'rgba(255,255,255,0.1)', scaleMargins: { top: 0.1, bottom: 0.1 } },
+      grid: {
+        vertLines: { color: 'rgba(255,255,255,0.03)' },
+        horzLines: { color: 'rgba(255,255,255,0.03)' },
+      },
+      rightPriceScale: {
+        borderColor: 'rgba(255,255,255,0.1)',
+        scaleMargins: { top: 0.1, bottom: 0.1 },
+      },
       timeScale: { borderColor: 'rgba(255,255,255,0.1)', timeVisible: true },
       crosshair: { mode: CrosshairMode.Normal },
     });
@@ -57,7 +68,12 @@ export const CompareChart: Component<CompareChartProps> = (props) => {
               <span class="flex items-center gap-1 text-xs">
                 <span class="w-2 h-2 rounded-full" style={{ background: stock.color }} />
                 <span class="text-gray-300">{stock.name}</span>
-                <button class="text-gray-500 hover:text-red-400 ml-1" onClick={() => props.onRemoveStock(stock.ts_code)}>✕</button>
+                <button
+                  class="text-gray-500 hover:text-red-400 ml-1"
+                  onClick={() => props.onRemoveStock(stock.ts_code)}
+                >
+                  ✕
+                </button>
               </span>
             )}
           </For>

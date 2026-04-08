@@ -52,7 +52,9 @@ export const QuickOrderPanel: Component<{ symbol: string }> = (props) => {
       const res = await submitOrder(req);
       if (res.code === '0') {
         setResult({ success: true, message: `委托成功: ${res.data?.vt_orderid}` });
-        setTimeout(() => { setResult(null); }, 3000);
+        setTimeout(() => {
+          setResult(null);
+        }, 3000);
         // 刷新持仓
         const posRes = await fetchPositions(GATEWAY);
         if (posRes.code === '0' && posRes.data?.positions) {
@@ -89,17 +91,24 @@ export const QuickOrderPanel: Component<{ symbol: string }> = (props) => {
       {/* 代码 + 交易所 */}
       <div class="flex gap-2 mb-2">
         <div class="flex-1">
-          <label class="text-[10px] text-gray-500 block mb-0.5">代码</label>
+          <label class="text-[10px] text-gray-500 block mb-0.5" for="qo-code">
+            代码
+          </label>
           <input
+            id="qo-code"
             class="w-full bg-white/10 border border-white/20 rounded px-2 py-1 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
             placeholder="600519"
             value={code()}
             onInput={(e) => setCode(e.currentTarget.value)}
+            aria-label="股票代码"
           />
         </div>
         <div>
-          <label class="text-[10px] text-gray-500 block mb-0.5">交易所</label>
+          <label class="text-[10px] text-gray-500 block mb-0.5" for="qo-exchange">
+            交易所
+          </label>
           <select
+            id="qo-exchange"
             class="bg-white/10 border border-white/20 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500"
             value={exchange()}
             onChange={(e) => setExchange(e.currentTarget.value as 'SSE' | 'SZE')}
@@ -112,19 +121,29 @@ export const QuickOrderPanel: Component<{ symbol: string }> = (props) => {
 
       {/* 方向 */}
       <div class="mb-2">
-        <label class="text-[10px] text-gray-500 block mb-0.5">方向</label>
-        <div class="flex gap-1">
+        <span class="text-[10px] text-gray-500 block mb-0.5" id="qo-dir-label">
+          方向
+        </span>
+        <div class="flex gap-1" role="group" aria-labelledby="qo-dir-label">
           <button
             class="flex-1 py-1 rounded text-xs font-bold transition-colors"
-            classList={{ 'bg-green-600 text-white': direction() === 'long', 'bg-white/10 text-gray-400 hover:bg-white/20': direction() !== 'long' }}
+            classList={{
+              'bg-green-600 text-white': direction() === 'long',
+              'bg-white/10 text-gray-400 hover:bg-white/20': direction() !== 'long',
+            }}
             onClick={() => setDirection('long')}
+            aria-pressed={direction() === 'long'}
           >
             买入
           </button>
           <button
             class="flex-1 py-1 rounded text-xs font-bold transition-colors"
-            classList={{ 'bg-red-600 text-white': direction() === 'short', 'bg-white/10 text-gray-400 hover:bg-white/20': direction() !== 'short' }}
+            classList={{
+              'bg-red-600 text-white': direction() === 'short',
+              'bg-white/10 text-gray-400 hover:bg-white/20': direction() !== 'short',
+            }}
             onClick={() => setDirection('short')}
+            aria-pressed={direction() === 'short'}
           >
             卖出
           </button>
@@ -133,32 +152,44 @@ export const QuickOrderPanel: Component<{ symbol: string }> = (props) => {
 
       {/* 价格 */}
       <div class="mb-2">
-        <label class="text-[10px] text-gray-500 block mb-0.5">价格</label>
+        <label class="text-[10px] text-gray-500 block mb-0.5" for="qo-price">
+          价格
+        </label>
         <input
+          id="qo-price"
           type="number"
           class="w-full bg-white/10 border border-white/20 rounded px-2 py-1 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
           placeholder={orderType() === 'market' ? '市价' : '0.00'}
           value={price()}
           onInput={(e) => setPrice(e.currentTarget.value)}
           disabled={orderType() === 'market'}
+          aria-label="下单价格"
         />
       </div>
 
       {/* 数量 */}
       <div class="mb-3">
-        <label class="text-[10px] text-gray-500 block mb-0.5">数量 (手)</label>
+        <label class="text-[10px] text-gray-500 block mb-0.5" for="qo-volume">
+          数量 (手)
+        </label>
         <input
+          id="qo-volume"
           type="number"
           class="w-full bg-white/10 border border-white/20 rounded px-2 py-1 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
           placeholder="100"
           value={volume()}
           onInput={(e) => setVolume(e.currentTarget.value)}
+          aria-label="下单数量"
         />
       </div>
 
       {/* 结果提示 */}
       <Show when={result()}>
-        <div class={`mb-2 text-[10px] px-2 py-1 rounded ${result()!.success ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>
+        <div
+          class={`mb-2 text-[10px] px-2 py-1 rounded ${result()!.success ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}
+          role="status"
+          aria-live="polite"
+        >
           {result()!.message}
         </div>
       </Show>
@@ -169,6 +200,7 @@ export const QuickOrderPanel: Component<{ symbol: string }> = (props) => {
           class="w-full py-2 rounded text-xs font-bold bg-green-600 hover:bg-green-500 text-white disabled:opacity-50 transition-colors"
           onClick={handleSubmit}
           disabled={submitting()}
+          aria-busy={submitting()}
         >
           {submitting() ? '提交中...' : '限价委托'}
         </button>
@@ -176,6 +208,7 @@ export const QuickOrderPanel: Component<{ symbol: string }> = (props) => {
           class="w-full py-2 rounded text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 transition-colors"
           onClick={handleMarket}
           disabled={submitting()}
+          aria-busy={submitting()}
         >
           一键市价
         </button>

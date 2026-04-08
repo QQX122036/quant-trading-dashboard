@@ -4,6 +4,9 @@
  */
 import { createSignal, onCleanup } from 'solid-js';
 import type { WsMessage, WsStatus } from '../types/ws';
+import { getPerformanceMonitor } from './usePerformanceMetrics';
+import { getErrorTracker } from '../stores/errorStore';
+import { logger } from '../lib/logger';
 
 type WsHandler = (msg: WsMessage) => void;
 
@@ -23,7 +26,7 @@ export function createWebSocket() {
   const [error, setError] = createSignal<string | null>(null);
 
   // 全局消息处理器
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const handlers = new Map<WsMessage['type'] | '*', Set<WsHandler>>();
 
   function addHandler(type: WsMessage['type'], handler: WsHandler) {
@@ -50,7 +53,10 @@ export function createWebSocket() {
   }
 
   function stopPing() {
-    if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
+    if (pingTimer) {
+      clearInterval(pingTimer);
+      pingTimer = null;
+    }
   }
 
   function connect() {
@@ -76,16 +82,42 @@ export function createWebSocket() {
       ws.onmessage = (event) => {
         try {
           const msg: WsMessage = JSON.parse(event.data);
-          if (msg.type === 'pong') return; // 忽略 pong
+          if (msg.type === 'pong') {
+            // 记录 WS 延迟
+            try {
+              const monitor = getPerformanceMonitor();
+              const pong = msg as unknown as { timestamp?: string };
+              if (pong?.timestamp) {
+                // server echoes timestamp → calculate RTT
+                const serverTs = new Date(pong.timestamp).getTime();
+                const rtt = Date.now() - serverTs;
+                monitor.recordWsLatency(rtt);
+              }
+            } catch {
+              /* noop */
+            }
+            return;
+          }
           dispatch(msg);
         } catch (e) {
-          console.warn('[WS] parse error', e);
+          logger.warn('[WS] parse error', { error: e });
         }
       };
 
       ws.onerror = (e) => {
-        console.warn('[WS] error', e);
+        logger.warn('[WS] connection error', { event: e });
         setError('连接错误');
+        // 上报到错误追踪
+        try {
+          const tracker = getErrorTracker();
+          tracker.trackWsError({
+            message: 'WebSocket connection error',
+            code: (e as CloseEvent)?.code,
+            meta: { url: WS_URL, readyState: ws?.readyState },
+          });
+        } catch {
+          /* noop */
+        }
       };
 
       ws.onclose = () => {
@@ -103,12 +135,23 @@ export function createWebSocket() {
     } catch (e: unknown) {
       setError((e as Error)?.message || '创建 WebSocket 失败');
       setStatus('disconnected');
+      try {
+        getErrorTracker().trackWsError({
+          message: (e as Error)?.message || 'Failed to create WebSocket',
+          meta: { url: WS_URL },
+        });
+      } catch {
+        /* noop */
+      }
     }
   }
 
   function disconnect() {
     reconnectCount = MAX_RECONNECT; // 阻止重连
-    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
     stopPing();
     ws?.close();
     ws = null;
@@ -127,7 +170,7 @@ export function createWebSocket() {
   function subscribe(req: { symbols?: string[]; exchanges?: string[] }) {
     const payload = {
       type: 'sub',
-      channels: req.symbols?.map(_s => 'quote') ?? ['quote'],
+      channels: req.symbols?.map((_s) => 'quote') ?? ['quote'],
       filters: {
         symbol: req.symbols,
         exchange: req.exchanges,
@@ -141,7 +184,7 @@ export function createWebSocket() {
   function unsubscribe(req: { symbols?: string[]; exchanges?: string[] }) {
     const payload = {
       type: 'unsub',
-      channels: req.symbols?.map(_s => 'quote') ?? ['quote'],
+      channels: req.symbols?.map((_s) => 'quote') ?? ['quote'],
       filters: {
         symbol: req.symbols,
         exchange: req.exchanges,
@@ -181,7 +224,14 @@ export function getWsInstance() {
 // ── 便捷 Hook: useMarketWS ────────────────────────────────
 import { createEffect } from 'solid-js';
 import { actions } from '../stores/index';
-import type { TickData, OrderData, TradeData, PositionData, AccountData, LogData } from '../types/vnpy';
+import type {
+  TickData,
+  OrderData,
+  TradeData,
+  PositionData,
+  AccountData,
+  LogData,
+} from '../types/vnpy';
 
 export function useMarketWS() {
   const ws = getWsInstance();

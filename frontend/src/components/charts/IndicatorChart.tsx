@@ -1,6 +1,6 @@
 import { Component, onMount, onCleanup, createSignal, createEffect } from 'solid-js';
 import { createChart, IChartApi, Time } from 'lightweight-charts';
-import { fetchDailyBar, type DailyBar } from '../../hooks/useApi';
+import { fetchDailyBar, type KLineBar, type DailyBar } from '../../hooks/useApi';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -8,7 +8,7 @@ export interface IndicatorChartProps {
   type: 'MACD' | 'RSI' | 'KDJ' | 'BOLL';
   symbol?: string;
   exchange?: string;
-  bars?: DailyBar[];
+  bars?: KLineBar[] | DailyBar[];
 }
 
 // ── Technical Indicator Calculations (from scratch) ──────────────────────────
@@ -197,21 +197,25 @@ function calculateBOLL(closes: number[], period = 20, stdDev_mult = 2): BOLLResu
 export const IndicatorChart: Component<IndicatorChartProps> = (props) => {
   let containerRef: HTMLDivElement | undefined;
   let chart: IChartApi | undefined;
+  let isDisposed = false; // 跟踪图表是否已被销毁
   const [loading, setLoading] = createSignal(false);
 
   const loadData = async () => {
-    if (!chart || !containerRef) return;
+    if (!containerRef) return;
+    
+    // 如果图表已被销毁，不要继续
+    if (isDisposed) return;
 
-    let bars: DailyBar[] = [];
+    let bars: (KLineBar | DailyBar)[] = [];
 
     if (props.bars && props.bars.length > 0) {
-      bars = props.bars;
+      bars = props.bars as (KLineBar | DailyBar)[];
     } else if (props.symbol && props.exchange) {
       setLoading(true);
       try {
         const res = await fetchDailyBar(`${props.symbol}.${props.exchange}`, undefined, undefined, 100);
         if (res.code === '0' && res.data?.bars) {
-          bars = res.data.bars as unknown as DailyBar[];
+          bars = res.data.bars as unknown as KLineBar[];
         }
       } catch (e) {
         console.error('[IndicatorChart] Failed to fetch bars:', e);
@@ -224,7 +228,15 @@ export const IndicatorChart: Component<IndicatorChartProps> = (props) => {
 
     // Clear existing series - use a safer approach by recreating the chart
     if (containerRef) {
-      chart.remove();
+      // 安全地移除旧图表（如果存在）
+      if (chart) {
+        try {
+          chart.remove();
+        } catch (e) {
+          // 忽略图表已被销毁的错误
+          console.debug('[IndicatorChart] Chart already disposed');
+        }
+      }
       chart = createChart(containerRef, {
         layout: {
           background: { color: '#0A0E17' },
@@ -258,10 +270,51 @@ export const IndicatorChart: Component<IndicatorChartProps> = (props) => {
       });
     }
 
+    // 确保图表已创建
+    if (!chart) return;
+
     const closes: number[] = bars.map((b) => b.close);
     const highs: number[] = bars.map((b) => b.high);
     const lows: number[] = bars.map((b) => b.low);
-    const times: Time[] = bars.map((b) => b.trade_date as Time);
+    
+    // 转换时间戳，过滤掉无效的日期
+    const times: Time[] = [];
+    bars.forEach((b, index) => {
+      const dateStr = (b as any).time || (b as any).timestamp || (b as any).date || (b as any).datetime || (b as any).trade_date || '';
+      // 处理不同的日期格式，转换为 yyyy-mm-dd 格式
+      let date: Date;
+      let formattedDate: string;
+      
+      if (dateStr.includes('T')) {
+        // ISO 格式：2024-01-08T00:00:00 -> 提取日期部分
+        formattedDate = dateStr.split('T')[0];
+        date = new Date(formattedDate);
+      } else if (dateStr.includes('-')) {
+        // 日期格式：2024-01-08
+        formattedDate = dateStr;
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+          date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        } else {
+          date = new Date(dateStr);
+        }
+      } else {
+        // 其他格式，尝试直接解析
+        date = new Date(dateStr);
+        formattedDate = dateStr;
+      }
+      
+      const timestamp = Math.floor(date.getTime() / 1000);
+      // 如果日期无效，使用前一个有效时间戳 + 60 秒（避免重复）
+      if (isNaN(timestamp)) {
+        const prevTime = index > 0 ? times[index - 1] as number : Math.floor(Date.now() / 1000);
+        times.push((prevTime + 60) as Time);
+        console.warn('[IndicatorChart] Invalid date:', dateStr, 'using fallback timestamp:', times[times.length - 1]);
+      } else {
+        // lightweight-charts 期望 yyyy-mm-dd 格式的字符串作为 Time
+        times.push(formattedDate as unknown as Time);
+      }
+    });
 
     if (props.type === 'MACD') {
       const { dif, dea, histogram } = calculateMACD(closes);
@@ -504,7 +557,13 @@ export const IndicatorChart: Component<IndicatorChartProps> = (props) => {
 
     onCleanup(() => {
       resizeObserver.disconnect();
-      chart?.remove();
+      if (chart) {
+        try {
+          chart.remove();
+        } catch (e) {
+          console.debug('[IndicatorChart] Chart already disposed in cleanup');
+        }
+      }
     });
   });
 

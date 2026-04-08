@@ -3,7 +3,7 @@
  * 水平条形图 + 排名表格 + 跳转K线
  */
 import { Component, createSignal, onMount, onCleanup, For, Show } from 'solid-js';
-import * as echarts from 'echarts';
+import echarts from '@/lib/echarts';
 import { useNavigate } from '@solidjs/router';
 import { fetchMultiFactorScores, type MultiFactorScore } from '../../hooks/useApi';
 
@@ -25,7 +25,7 @@ export const MultiFactorChart: Component<MultiFactorChartProps> = (props) => {
   const [selectedRow, setSelectedRow] = createSignal<string | null>(null);
 
   // ── Horizontal Bar Chart ────────────────────────────────────
-  const buildBarOption = (data: MultiFactorScore[]): echarts.EChartsOption => {
+  const buildBarOption = (data: MultiFactorScore[]): echarts.EChartsCoreOption => {
     const items = data.slice(0, 20); // top 20
 
     const composite = items.map((d) => d.composite_score);
@@ -60,12 +60,20 @@ export const MultiFactorChart: Component<MultiFactorChartProps> = (props) => {
         borderColor: 'rgba(255,255,255,0.1)',
         textStyle: { color: '#fff' },
         formatter: (params: unknown) => {
-          const arr = params as Array<{ axisValue: string; seriesName: string; value: number; color: string }>;
+          const arr = params as Array<{
+            axisValue: string;
+            seriesName: string;
+            value: number;
+            color: string;
+          }>;
           if (!arr?.length) return '';
           const code = arr[0].axisValue;
-          const rows = arr.map((p) =>
-            `<tr><td style="padding:2px 8px;color:#9CA3AF">${p.seriesName}</td><td style="padding:2px 8px;color:${p.color};font-weight:bold">${p.value.toFixed(2)}</td></tr>`
-          ).join('');
+          const rows = arr
+            .map(
+              (p) =>
+                `<tr><td style="padding:2px 8px;color:#9CA3AF">${p.seriesName}</td><td style="padding:2px 8px;color:${p.color};font-weight:bold">${p.value.toFixed(2)}</td></tr>`
+            )
+            .join('');
           return `<div style="font-size:12px"><div style="margin-bottom:4px;font-weight:bold">${code}</div><table style="border-collapse:collapse">${rows}</table></div>`;
         },
       },
@@ -150,14 +158,24 @@ export const MultiFactorChart: Component<MultiFactorChartProps> = (props) => {
           value={tsCode()}
           onInput={(e) => setTsCode(e.target.value.toUpperCase())}
         />
-        <input type="date" class="bg-[#0A0E17] border border-white/10 rounded px-2 py-1.5 text-xs"
-          value={startDate()} onInput={(e) => setStartDate(e.target.value)} />
+        <input
+          type="date"
+          class="bg-[#0A0E17] border border-white/10 rounded px-2 py-1.5 text-xs"
+          value={startDate()}
+          onInput={(e) => setStartDate(e.target.value)}
+        />
         <span class="text-gray-500 text-xs">—</span>
-        <input type="date" class="bg-[#0A0E17] border border-white/10 rounded px-2 py-1.5 text-xs"
-          value={endDate()} onInput={(e) => setEndDate(e.target.value)} />
+        <input
+          type="date"
+          class="bg-[#0A0E17] border border-white/10 rounded px-2 py-1.5 text-xs"
+          value={endDate()}
+          onInput={(e) => setEndDate(e.target.value)}
+        />
         <button
           class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded text-sm transition-colors"
-          onClick={() => { loadData(); }}
+          onClick={() => {
+            loadData();
+          }}
         >
           查询
         </button>
@@ -198,23 +216,36 @@ export const MultiFactorChart: Component<MultiFactorChartProps> = (props) => {
                   {(item, idx) => (
                     <tr
                       class={`border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors ${selectedRow() === item.ts_code ? 'bg-blue-500/10' : ''}`}
-                      onClick={() => { setSelectedRow(item.ts_code); handleRowClick(item.ts_code); }}
+                      onClick={() => {
+                        setSelectedRow(item.ts_code);
+                        handleRowClick(item.ts_code);
+                      }}
                     >
                       <td class="py-1.5 pr-3 text-gray-500">{idx() + 1}</td>
                       <td class="py-1.5 pr-3 font-mono text-blue-300">{item.ts_code}</td>
-                      <td class={`py-1.5 pr-3 text-right font-bold tabular-nums ${getScoreColor(item.composite_score)}`}>
+                      <td
+                        class={`py-1.5 pr-3 text-right font-bold tabular-nums ${getScoreColor(item.composite_score)}`}
+                      >
                         {item.composite_score.toFixed(1)}
                       </td>
-                      <td class={`py-1.5 pr-3 text-right tabular-nums ${getScoreColor(item.valuation_score)}`}>
+                      <td
+                        class={`py-1.5 pr-3 text-right tabular-nums ${getScoreColor(item.valuation_score)}`}
+                      >
                         {item.valuation_score.toFixed(1)}
                       </td>
-                      <td class={`py-1.5 pr-3 text-right tabular-nums ${getScoreColor(item.momentum_score)}`}>
+                      <td
+                        class={`py-1.5 pr-3 text-right tabular-nums ${getScoreColor(item.momentum_score)}`}
+                      >
                         {item.momentum_score.toFixed(1)}
                       </td>
-                      <td class={`py-1.5 pr-3 text-right tabular-nums ${getScoreColor(item.quality_score)}`}>
+                      <td
+                        class={`py-1.5 pr-3 text-right tabular-nums ${getScoreColor(item.quality_score)}`}
+                      >
                         {item.quality_score.toFixed(1)}
                       </td>
-                      <td class={`py-1.5 text-right tabular-nums ${getScoreColor(item.sentiment_score)}`}>
+                      <td
+                        class={`py-1.5 text-right tabular-nums ${getScoreColor(item.sentiment_score)}`}
+                      >
                         {item.sentiment_score.toFixed(1)}
                       </td>
                     </tr>

@@ -27,27 +27,43 @@ export const MarketOverview: Component = () => {
     [...marketState.hotStocks].sort((a, b) => b.change_pct - a.change_pct).slice(0, 10);
 
   return (
-    <div class="h-full flex flex-col p-4 gap-4 overflow-auto">
-      {/* Loading overlay */}
-      <Show when={marketState.loading}>
-        <div class="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 pointer-events-none">
-          <div class="flex flex-col items-center gap-3">
-            <div class="w-10 h-10 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-            <span class="text-sm text-gray-400">加载市场数据...</span>
-          </div>
+    <div class="min-h-screen w-full bg-[#0A0E17] p-4" role="main" aria-label="市场总览页面">
+      {/* Debug: 页面已渲染 - 使用大字体和明显背景 */}
+      <div class="text-white text-lg mb-4 p-4 bg-green-900/40 border-2 border-green-500 rounded font-bold">
+        ✅ MarketOverview 页面已成功加载！
+        <div class="text-sm font-normal mt-2">
+          时间：{new Date().toLocaleString('zh-CN')}<br/>
+          indices: {marketState.indices.length} | sectors: {marketState.sectors.length} | hotStocks: {marketState.hotStocks.length}
         </div>
-      </Show>
+      </div>
 
       {/* Top Section: Indices + Breadth + Sentiment */}
-      <div class="grid grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Index Cards */}
         <div class="col-span-2 grid grid-cols-2 gap-4">
-          <Show when={marketState.indices.length === 0 && marketState.loading}>
+          {/* Skeleton: show when loading OR when no real data (indices show default 0 prices) */}
+          <Show
+            when={
+              marketState.loading || marketState.indices.every((i) => i.price === 0 && !i.loading)
+            }
+          >
             <div class="col-span-2 grid grid-cols-2 gap-4">
-              <For each={[1, 2, 3, 4]}>
-                {() => (
+              <For
+                each={
+                  marketState.indices.length > 0
+                    ? marketState.indices
+                    : [
+                        { ts_code: '000001.SH', displayName: '上证指数' },
+                        { ts_code: '399001.SZ', displayName: '深证成指' },
+                        { ts_code: '399006.SZ', displayName: '创业板指' },
+                        { ts_code: '000016.SH', displayName: '上证50' },
+                      ]
+                }
+              >
+                {(index) => (
                   <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4 animate-pulse">
                     <div class="h-4 bg-white/5 rounded w-1/2 mb-3" />
+                    <div class="text-sm text-gray-400 mb-3">{index.displayName}</div>
                     <div class="h-8 bg-white/5 rounded w-3/4 mb-2" />
                     <div class="h-4 bg-white/5 rounded w-1/2" />
                   </div>
@@ -55,15 +71,15 @@ export const MarketOverview: Component = () => {
               </For>
             </div>
           </Show>
-          <Show when={marketState.indices.length > 0}>
-            <For each={marketState.indices}>
-              {(index) => <IndexCard {...index} />}
-            </For>
+          <Show
+            when={marketState.indices.length > 0 && marketState.indices.some((i) => i.price > 0)}
+          >
+            <For each={marketState.indices}>{(index) => <IndexCard {...index} />}</For>
           </Show>
         </div>
 
         {/* Right side: Breadth + Sentiment */}
-        <div class="col-span-2 flex flex-col gap-4">
+        <div class="col-span-1 sm:col-span-2 flex flex-col gap-4">
           <MarketBreadth
             data={marketState.marketBreadth}
             loading={marketState.loading && !marketState.marketBreadth}
@@ -76,14 +92,17 @@ export const MarketOverview: Component = () => {
       </div>
 
       {/* Middle Section: Sectors + Hot Stocks */}
-      <div class="flex gap-4 flex-1 min-h-0">
+      <div class="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
         {/* Sector Performance */}
-        <HotSectors sectors={marketState.sectors} loading={marketState.loading && marketState.sectors.length === 0} />
+        <HotSectors
+          sectors={marketState.sectors}
+          loading={marketState.loading && marketState.sectors.length === 0}
+        />
 
         {/* Hot Stocks */}
         <div class="flex-1 bg-[#111827]/80 rounded-lg border border-white/10 p-4 flex flex-col">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="font-bold">今日强势股</h3>
+            <h2 class="font-bold text-base">今日强势股</h2>
             <Show when={marketState.lastUpdate}>
               <span class="text-xs text-gray-600">更新: {marketState.lastUpdate}</span>
             </Show>
@@ -98,29 +117,49 @@ export const MarketOverview: Component = () => {
           </Show>
 
           <Show when={sortedHotStocks().length > 0}>
-            <div class="flex-1 overflow-auto">
-              <table class="w-full text-sm">
+            <div class="flex-1 overflow-auto" role="region" aria-label="热门股票列表">
+              <table class="w-full text-sm" role="table" aria-label="今日强势股">
                 <thead>
-                  <tr class="text-gray-500 text-xs border-b border-white/5">
-                    <th class="text-left py-2 font-normal">代码</th>
-                    <th class="text-left py-2 font-normal">名称</th>
-                    <th class="text-right py-2 font-normal">最新价</th>
-                    <th class="text-right py-2 font-normal">涨跌幅</th>
+                  <tr class="text-gray-500 text-xs border-b border-white/5" role="row">
+                    <th class="text-left py-2 font-normal" role="columnheader">
+                      代码
+                    </th>
+                    <th class="text-left py-2 font-normal" role="columnheader">
+                      名称
+                    </th>
+                    <th class="text-right py-2 font-normal" role="columnheader">
+                      最新价
+                    </th>
+                    <th class="text-right py-2 font-normal" role="columnheader">
+                      涨跌幅
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   <For each={sortedHotStocks()}>
                     {(stock) => (
-                      <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
-                        <td class="py-2 font-mono text-xs text-gray-400">{stock.ts_code.split('.')[0]}</td>
-                        <td class="py-2 text-sm">{stock.name}</td>
-                        <td class="py-2 text-right tabular-nums font-medium">
+                      <tr
+                        class="border-b border-white/5 hover:bg-white/5 transition-colors"
+                        role="row"
+                      >
+                        <td class="py-2 font-mono text-xs text-gray-400" role="cell">
+                          {stock.ts_code.split('.')[0]}
+                        </td>
+                        <td class="py-2 text-sm" role="cell">
+                          {stock.name}
+                        </td>
+                        <td class="py-2 text-right tabular-nums font-medium" role="cell">
                           {stock.close > 0 ? stock.close.toFixed(2) : '—'}
                         </td>
-                        <td class={`py-2 text-right tabular-nums font-bold ${
-                          stock.change_pct >= 0 ? 'text-[#EF4444]' : 'text-[#22C55E]'
-                        }`}>
-                          {stock.change_pct >= 0 ? '+' : ''}{stock.change_pct.toFixed(2)}%
+                        <td
+                          class={`py-2 text-right tabular-nums font-bold ${
+                            stock.change_pct >= 0 ? 'text-[#EF4444]' : 'text-[#22C55E]'
+                          }`}
+                          role="cell"
+                          aria-label={`涨跌幅${stock.change_pct >= 0 ? '+' : ''}${stock.change_pct.toFixed(2)}%`}
+                        >
+                          {stock.change_pct >= 0 ? '+' : ''}
+                          {stock.change_pct.toFixed(2)}%
                         </td>
                       </tr>
                     )}

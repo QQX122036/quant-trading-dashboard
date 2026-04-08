@@ -3,47 +3,47 @@
  * 各持仓对组合 VaR 的边际贡献分析与可视化
  */
 import { Component, createSignal, onMount, onCleanup, createEffect, Show } from 'solid-js';
-import * as echarts from 'echarts';
+import echarts from '@/lib/echarts';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface Position {
   code: string;
   name: string;
-  weight: number;       // 持仓占比 (0-1)
-  volatility: number;   // 年化波动率 (0-1)
+  weight: number; // 持仓占比 (0-1)
+  volatility: number; // 年化波动率 (0-1)
 }
 
 interface RiskContributionItem {
   code: string;
   name: string;
-  weight: number;           // 持仓占比 (%)
-  riskContribution: number;  // 风险贡献占比 (%)
-  marginalVaR: number;       // 边际 VaR
-  componentVaR: number;      // 成分 VaR
+  weight: number; // 持仓占比 (%)
+  riskContribution: number; // 风险贡献占比 (%)
+  marginalVaR: number; // 边际 VaR
+  componentVaR: number; // 成分 VaR
 }
 
 // ── Mock Data ────────────────────────────────────────────────────────────────
 
 const MOCK_POSITIONS: Position[] = [
   { code: '000001', name: '平安银行', weight: 0.15, volatility: 0.28 },
-  { code: '000002', name: '万科A',    weight: 0.12, volatility: 0.32 },
+  { code: '000002', name: '万科A', weight: 0.12, volatility: 0.32 },
   { code: '600036', name: '招商银行', weight: 0.18, volatility: 0.25 },
-  { code: '600519', name: '贵州茅台', weight: 0.20, volatility: 0.22 },
-  { code: '601318', name: '中国平安', weight: 0.10, volatility: 0.30 },
-  { code: '000858', name: '五粮液',   weight: 0.13, volatility: 0.26 },
-  { code: '600887', name: '伊利股份', weight: 0.12, volatility: 0.20 },
+  { code: '600519', name: '贵州茅台', weight: 0.2, volatility: 0.22 },
+  { code: '601318', name: '中国平安', weight: 0.1, volatility: 0.3 },
+  { code: '000858', name: '五粮液', weight: 0.13, volatility: 0.26 },
+  { code: '600887', name: '伊利股份', weight: 0.12, volatility: 0.2 },
 ];
 
 // 简化的相关矩阵 (对称, 对角线=1)
 const CORRELATION_MATRIX: number[][] = [
-  [1.00, 0.45, 0.52, 0.28, 0.60, 0.38, 0.32],
-  [0.45, 1.00, 0.40, 0.25, 0.48, 0.35, 0.30],
-  [0.52, 0.40, 1.00, 0.30, 0.55, 0.42, 0.36],
-  [0.28, 0.25, 0.30, 1.00, 0.32, 0.65, 0.42],
-  [0.60, 0.48, 0.55, 0.32, 1.00, 0.40, 0.35],
-  [0.38, 0.35, 0.42, 0.65, 0.40, 1.00, 0.45],
-  [0.32, 0.30, 0.36, 0.42, 0.35, 0.45, 1.00],
+  [1.0, 0.45, 0.52, 0.28, 0.6, 0.38, 0.32],
+  [0.45, 1.0, 0.4, 0.25, 0.48, 0.35, 0.3],
+  [0.52, 0.4, 1.0, 0.3, 0.55, 0.42, 0.36],
+  [0.28, 0.25, 0.3, 1.0, 0.32, 0.65, 0.42],
+  [0.6, 0.48, 0.55, 0.32, 1.0, 0.4, 0.35],
+  [0.38, 0.35, 0.42, 0.65, 0.4, 1.0, 0.45],
+  [0.32, 0.3, 0.36, 0.42, 0.35, 0.45, 1.0],
 ];
 
 // ── VaR 计算 ────────────────────────────────────────────────────────────────
@@ -180,7 +180,7 @@ export const RiskContribution: Component = () => {
 
   // ── ECharts 配置 ──────────────────────────────────────────────────────────
 
-  const buildChartOption = (items: RiskContributionItem[]): echarts.EChartsOption => {
+  const buildChartOption = (items: RiskContributionItem[]): echarts.EChartsCoreOption => {
     if (!items.length) return { backgroundColor: 'transparent', series: [] };
 
     const codes = items.map((d) => d.code);
@@ -203,7 +203,12 @@ export const RiskContribution: Component = () => {
         borderColor: 'rgba(255,255,255,0.12)',
         textStyle: { color: '#F9FAFB', fontSize: 12 },
         formatter: (params: unknown) => {
-          const arr = (params as Array<{ axisValue: string; seriesName: string; value: number; color: string }>);
+          const arr = params as Array<{
+            axisValue: string;
+            seriesName: string;
+            value: number;
+            color: string;
+          }>;
           if (!arr?.length) return '';
           const code = arr[0]?.axisValue ?? '';
           const item = items.find((d) => d.code === code);
@@ -246,7 +251,8 @@ export const RiskContribution: Component = () => {
           stack: 'risk',
           data: riskContributions,
           itemStyle: {
-            color: (params: { dataIndex: number }) => STOCK_COLORS[params.dataIndex % STOCK_COLORS.length],
+            color: (params: { dataIndex: number }) =>
+              STOCK_COLORS[params.dataIndex % STOCK_COLORS.length],
             borderRadius: [4, 0, 0, 4],
           },
           barMaxWidth: 48,
@@ -295,7 +301,7 @@ export const RiskContribution: Component = () => {
   return (
     <div class="flex flex-col gap-4 h-full">
       {/* 汇总指标卡片 */}
-      <div class="grid grid-cols-3 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-3">
           <div class="text-xs text-gray-400 mb-1">组合 VaR (95%)</div>
           <div class="text-xl font-bold text-white">{portfolioVaR().toFixed(2)}%</div>
@@ -361,7 +367,9 @@ export const RiskContribution: Component = () => {
                       {item.riskContribution.toFixed(2)}%
                     </span>
                   </td>
-                  <td class="px-4 py-2.5 text-right text-gray-300">{item.marginalVaR.toFixed(4)}</td>
+                  <td class="px-4 py-2.5 text-right text-gray-300">
+                    {item.marginalVaR.toFixed(4)}
+                  </td>
                   <td class="px-4 py-2.5 text-right text-gray-300">
                     {(item.componentVaR * 100).toFixed(4)}%
                   </td>
@@ -369,9 +377,14 @@ export const RiskContribution: Component = () => {
               ))}
               {/* 汇总行 */}
               <tr class="bg-white/5 font-semibold border-t border-white/10">
-                <td class="px-4 py-2.5 text-gray-400" colspan="2">合计</td>
+                <td class="px-4 py-2.5 text-gray-400" colspan="2">
+                  合计
+                </td>
                 <td class="px-4 py-2.5 text-right text-white">
-                  {data().reduce((s, d) => s + d.weight, 0).toFixed(2)}%
+                  {data()
+                    .reduce((s, d) => s + d.weight, 0)
+                    .toFixed(2)}
+                  %
                 </td>
                 <td class="px-4 py-2.5 text-right text-white">100.00%</td>
                 <td class="px-4 py-2.5 text-right text-gray-400">—</td>

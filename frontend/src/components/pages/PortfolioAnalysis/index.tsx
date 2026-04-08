@@ -26,10 +26,18 @@ const TabContent: Component = () => {
   const tabVal = activeTab();
   return (
     <div class="h-full" data-tab={tabVal}>
-      <Show when={tabVal === 'overview'}><PortfolioOverview /></Show>
-      <Show when={tabVal === 'correlation'}><CorrelationMatrix /></Show>
-      <Show when={tabVal === 'risk'}><RiskContribution /></Show>
-      <Show when={tabVal === 'simulator'}><PortfolioSimulator /></Show>
+      <Show when={tabVal === 'overview'}>
+        <PortfolioOverview />
+      </Show>
+      <Show when={tabVal === 'correlation'}>
+        <CorrelationMatrix />
+      </Show>
+      <Show when={tabVal === 'risk'}>
+        <RiskContribution />
+      </Show>
+      <Show when={tabVal === 'simulator'}>
+        <PortfolioSimulator />
+      </Show>
     </div>
   );
 };

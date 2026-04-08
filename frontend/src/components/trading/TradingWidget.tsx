@@ -33,7 +33,8 @@ export const TradingWidget: Component = () => {
 
   // ── Derived ─────────────────────────────────────────────────
   const selected = () => state.ui.selectedVtSymbol;
-  const tick = (): TickData | undefined => selected() ? state.market.ticks[selected()] : undefined;
+  const tick = (): TickData | undefined =>
+    selected() ? state.market.ticks[selected()] : undefined;
 
   // 解析 vt_symbol -> symbol + exchange
   const symbolExchange = () => {
@@ -49,13 +50,13 @@ export const TradingWidget: Component = () => {
 
   const positions = () => {
     const pos = state.positions.items;
-    return Object.values(pos).filter(p => p.gateway_name === GATEWAY_NAME);
+    return Object.values(pos).filter((p) => p.gateway_name === GATEWAY_NAME);
   };
 
   const selectedPosition = () => {
     const se = symbolExchange();
     if (!se.symbol) return undefined;
-    return positions().find(p => p.symbol === se.symbol);
+    return positions().find((p) => p.symbol === se.symbol);
   };
 
   const depth = (): { bid: [number, number][]; ask: [number, number][] } => {
@@ -112,8 +113,8 @@ export const TradingWidget: Component = () => {
       const order = msg.data as OrderData;
       if (order.gateway_name === GATEWAY_NAME) {
         // 更新本地活跃订单
-        setActiveOrders(prev => {
-          const existing = prev.findIndex(o => o.vt_orderid === order.vt_orderid);
+        setActiveOrders((prev) => {
+          const existing = prev.findIndex((o) => o.vt_orderid === order.vt_orderid);
           if (existing >= 0) {
             const updated = [...prev];
             updated[existing] = order;
@@ -204,9 +205,9 @@ export const TradingWidget: Component = () => {
 
     try {
       // 映射方向: 多->long, 空->short
-      const dirMap: Record<string, string> = { '多': 'long', '空': 'short' };
+      const dirMap: Record<string, string> = { 多: 'long', 空: 'short' };
       // 映射开平: 开->open, 平->close
-      const offsetMap: Record<string, string> = { '开': 'open', '平': 'close' };
+      const offsetMap: Record<string, string> = { 开: 'open', 平: 'close' };
 
       const req = {
         symbol: se.symbol,
@@ -244,7 +245,7 @@ export const TradingWidget: Component = () => {
     try {
       const res = await apiActions.cancelOrder(order.vt_orderid, order.symbol, order.exchange);
       if (res.code === '0') {
-        setActiveOrders(prev => prev.filter(o => o.vt_orderid !== order.vt_orderid));
+        setActiveOrders((prev) => prev.filter((o) => o.vt_orderid !== order.vt_orderid));
         await apiActions.fetchOrders(GATEWAY_NAME);
       } else {
         setSubmitError((res.message as string) || '撤单失败');
@@ -280,12 +281,16 @@ export const TradingWidget: Component = () => {
 
       {/* Price display */}
       <div class="px-3 py-3 border-b border-[var(--border-color)]">
-        <div class="text-2xl font-bold tabular-nums" style={{ color: change().v >= 0 ? 'var(--color-up)' : 'var(--color-down)' }}>
+        <div
+          class="text-2xl font-bold tabular-nums"
+          style={{ color: change().v >= 0 ? 'var(--color-up)' : 'var(--color-down)' }}
+        >
           {formatPrice(tick()?.last_price || 0)}
         </div>
         <div class="flex gap-3 mt-1 text-xs">
           <span class={change().v >= 0 ? 'text-[var(--color-up)]' : 'text-[var(--color-down)]'}>
-            {change().v >= 0 ? '+' : ''}{formatPrice(change().v)}
+            {change().v >= 0 ? '+' : ''}
+            {formatPrice(change().v)}
           </span>
           <span class={change().v >= 0 ? 'text-[var(--color-up)]' : 'text-[var(--color-down)]'}>
             {formatPercent(change().p)}
@@ -299,14 +304,18 @@ export const TradingWidget: Component = () => {
           <div class="px-3 py-2 border-b border-[var(--border-color)]">
             <div class="text-xs text-[var(--text-muted)] mb-1">持仓</div>
             <div class="flex gap-4 text-xs">
-              <span class={pos().direction === '多' ? 'text-[var(--color-up)]' : 'text-[var(--color-down)]'}>
-                {pos().direction === '多' ? '多' : '空'}{pos().volume}股
+              <span
+                class={
+                  pos().direction === '多' ? 'text-[var(--color-up)]' : 'text-[var(--color-down)]'
+                }
+              >
+                {pos().direction === '多' ? '多' : '空'}
+                {pos().volume}股
               </span>
-              <span class="text-[var(--text-secondary)]">
-                均价 {formatPrice(pos().price)}
-              </span>
+              <span class="text-[var(--text-secondary)]">均价 {formatPrice(pos().price)}</span>
               <span class={pos().pnl >= 0 ? 'text-[var(--color-up)]' : 'text-[var(--color-down)]'}>
-                {pos().pnl >= 0 ? '+' : ''}{formatPrice(pos().pnl)}
+                {pos().pnl >= 0 ? '+' : ''}
+                {formatPrice(pos().pnl)}
               </span>
             </div>
           </div>
@@ -319,21 +328,33 @@ export const TradingWidget: Component = () => {
         <div class="grid grid-cols-2 gap-x-2 text-xs">
           {/* Ask (sell) */}
           <div class="space-y-0.5">
-            {depth().ask.slice().reverse().map(([p, v]) => (
-              <div class="flex justify-between items-center">
-                <span class="text-[var(--color-ask)] font-mono tabular-nums">{formatPrice(p)}</span>
-                <span class="text-[var(--text-secondary)] tabular-nums">{formatVolume(v as number)}</span>
-              </div>
-            ))}
+            <For each={depth().ask.slice().reverse()}>
+              {([p, v]) => (
+                <div class="flex justify-between items-center">
+                  <span class="text-[var(--color-ask)] font-mono tabular-nums">
+                    {formatPrice(p)}
+                  </span>
+                  <span class="text-[var(--text-secondary)] tabular-nums">
+                    {formatVolume(v as number)}
+                  </span>
+                </div>
+              )}
+            </For>
           </div>
           {/* Bid (buy) */}
           <div class="space-y-0.5">
-            {depth().bid.map(([p, v]) => (
-              <div class="flex justify-between items-center">
-                <span class="text-[var(--color-bid)] font-mono tabular-nums">{formatPrice(p)}</span>
-                <span class="text-[var(--text-secondary)] tabular-nums">{formatVolume(v as number)}</span>
-              </div>
-            ))}
+            <For each={depth().bid}>
+              {([p, v]) => (
+                <div class="flex justify-between items-center">
+                  <span class="text-[var(--color-bid)] font-mono tabular-nums">
+                    {formatPrice(p)}
+                  </span>
+                  <span class="text-[var(--text-secondary)] tabular-nums">
+                    {formatVolume(v as number)}
+                  </span>
+                </div>
+              )}
+            </For>
           </div>
         </div>
       </div>
@@ -344,59 +365,72 @@ export const TradingWidget: Component = () => {
 
         {/* Direction */}
         <div class="grid grid-cols-2 gap-1">
-          {(['多', '空'] as const).map((d) => (
-            <button
-              class="py-2 rounded text-sm font-bold border transition-colors"
-              classList={{
-                [directionBg(d)]: true,
-                'border-transparent': direction() !== d,
-                'border-[var(--border-focus)]': direction() === d,
-                'ring-1 ring-inset ring-white/20': direction() === d,
-              }}
-              onClick={() => setDirection(d)}
-            >
-              {d}
-            </button>
-          ))}
+          <For each={['多', '空'] as const}>
+            {(d) => (
+              <button
+                class="py-2 rounded text-sm font-bold border transition-colors"
+                classList={{
+                  [directionBg(d)]: true,
+                  'border-transparent': direction() !== d,
+                  'border-[var(--border-focus)]': direction() === d,
+                  'ring-1 ring-inset ring-white/20': direction() === d,
+                }}
+                onClick={() => setDirection(d)}
+              >
+                {d}
+              </button>
+            )}
+          </For>
         </div>
 
         {/* Offset */}
         <div class="grid grid-cols-2 gap-1">
-          {(['开', '平'] as const).map((o) => (
-            <button
-              class="py-1.5 rounded text-xs border transition-colors"
-              classList={{
-                'bg-[var(--bg-active)] text-white border-transparent': offset() === o,
-                'border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--border-focus)]': offset() !== o,
-              }}
-              onClick={() => setOffset(o)}
-            >
-              {o}
-            </button>
-          ))}
+          <For each={['开', '平'] as const}>
+            {(o) => (
+              <button
+                class="py-1.5 rounded text-xs border transition-colors"
+                classList={{
+                  'bg-[var(--bg-active)] text-white border-transparent': offset() === o,
+                  'border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--border-focus)]':
+                    offset() !== o,
+                }}
+                onClick={() => setOffset(o)}
+              >
+                {o}
+              </button>
+            )}
+          </For>
         </div>
 
         {/* Price */}
         <div>
-          <label class="text-xs text-[var(--text-muted)]">价格</label>
+          <label class="text-xs text-[var(--text-muted)]" for="tw-price">
+            价格
+          </label>
           <input
+            id="tw-price"
             type="number"
             class="mt-1 w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded px-2 py-1.5 text-sm text-[var(--text-primary)] font-mono tabular-nums focus:border-[var(--border-focus)] focus:outline-none"
             value={price()}
             onInput={(e) => setPrice(e.currentTarget.value)}
             placeholder={formatPrice(tick()?.last_price || 0)}
+            aria-label="下单价格"
           />
         </div>
 
         {/* Volume */}
         <div>
-          <label class="text-xs text-[var(--text-muted)]">数量</label>
+          <label class="text-xs text-[var(--text-muted)]" for="tw-volume">
+            数量
+          </label>
           <input
+            id="tw-volume"
             type="number"
             class="mt-1 w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded px-2 py-1.5 text-sm text-[var(--text-primary)] font-mono tabular-nums focus:border-[var(--border-focus)] focus:outline-none"
             value={volume()}
             onInput={(e) => setVolume(e.currentTarget.value)}
             placeholder="100"
+            aria-label="下单数量"
           />
         </div>
 
@@ -405,7 +439,9 @@ export const TradingWidget: Component = () => {
           <div class="text-xs text-red-400 bg-red-500/10 rounded px-2 py-1">{submitError()}</div>
         </Show>
         <Show when={submitSuccess()}>
-          <div class="text-xs text-green-400 bg-green-500/10 rounded px-2 py-1">{submitSuccess()}</div>
+          <div class="text-xs text-green-400 bg-green-500/10 rounded px-2 py-1">
+            {submitSuccess()}
+          </div>
         </Show>
 
         {/* Submit */}
@@ -431,12 +467,21 @@ export const TradingWidget: Component = () => {
               {(order) => (
                 <div class="flex items-center justify-between text-xs bg-[var(--bg-tertiary)] rounded px-2 py-1">
                   <div class="flex flex-col">
-                    <span class={order.direction === '多' ? 'text-[var(--color-up)]' : 'text-[var(--color-down)]'}>
-                      {order.direction}{order.offset}{order.volume}@{formatPrice(order.price)}
+                    <span
+                      class={
+                        order.direction === '多'
+                          ? 'text-[var(--color-up)]'
+                          : 'text-[var(--color-down)]'
+                      }
+                    >
+                      {order.direction}
+                      {order.offset}
+                      {order.volume}@{formatPrice(order.price)}
                     </span>
                     <span class="text-[var(--text-muted)] text-[10px]">{order.status}</span>
                   </div>
                   <button
+                    aria-label={`撤销订单 ${order.symbol} ${order.direction}${order.offset} ${order.volume}手 @ ${formatPrice(order.price)}`}
                     class="text-red-400 hover:text-red-300 text-[10px]"
                     onClick={() => handleCancel(order)}
                   >

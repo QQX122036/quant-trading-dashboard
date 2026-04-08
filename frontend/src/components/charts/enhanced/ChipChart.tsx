@@ -4,7 +4,12 @@
  */
 import { Component, Show, onMount, onCleanup, createEffect } from 'solid-js';
 import {
-  createChart, IChartApi, ISeriesApi, HistogramData, Time, CrosshairMode,
+  createChart,
+  IChartApi,
+  ISeriesApi,
+  HistogramData,
+  Time,
+  CrosshairMode,
 } from 'lightweight-charts';
 import type { DailyBar } from '../../../hooks/useApi';
 import { computeChipDistribution, type ChipDistribution } from './chartUtils';
@@ -23,13 +28,17 @@ export const ChipChart: Component<ChipChartProps> = (props) => {
     if (!containerRef) return;
     chart = createChart(containerRef, {
       layout: { background: { color: '#0A0E17' }, textColor: '#9CA3AF' },
-      grid: { vertLines: { color: 'rgba(255,255,255,0.03)' }, horzLines: { color: 'rgba(255,255,255,0.03)' } },
+      grid: {
+        vertLines: { color: 'rgba(255,255,255,0.03)' },
+        horzLines: { color: 'rgba(255,255,255,0.03)' },
+      },
       rightPriceScale: { borderColor: 'rgba(255,255,255,0.1)' },
       timeScale: { visible: false },
       crosshair: { mode: CrosshairMode.Normal },
     });
     chipSeries = chart.addHistogramSeries({
-      priceLineVisible: false, priceFormat: { type: 'volume' },
+      priceLineVisible: false,
+      priceFormat: { type: 'volume' },
     });
 
     onCleanup(() => chart?.remove());

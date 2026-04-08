@@ -1,15 +1,16 @@
 import { Component, createSignal, createMemo, For, onMount } from 'solid-js';
 import { state, actions } from '../../stores';
 import { fetchContracts } from '../../hooks/useApi';
+import { logger } from '../../lib/logger';
 import type { ContractData } from '../../types/vnpy';
 
 const COLUMNS = [
-  { field: 'symbol',      header: '代码',     width: 80  },
-  { field: 'name',        header: '名称',     width: 120 },
-  { field: 'exchange',     header: '交易所',   width: 70  },
-  { field: 'product',     header: '类型',     width: 65  },
-  { field: 'size',        header: '合约乘数',  width: 75  },
-  { field: 'price_tick',  header: '最小变动',  width: 85  },
+  { field: 'symbol', header: '代码', width: 80 },
+  { field: 'name', header: '名称', width: 120 },
+  { field: 'exchange', header: '交易所', width: 70 },
+  { field: 'product', header: '类型', width: 65 },
+  { field: 'size', header: '合约乘数', width: 75 },
+  { field: 'price_tick', header: '最小变动', width: 85 },
 ];
 
 export const ContractManager: Component = () => {
@@ -28,7 +29,7 @@ export const ContractManager: Component = () => {
         }
       }
     } catch (e) {
-      console.warn('[ContractManager] fetchContracts error', e);
+      logger.warn('[ContractManager] fetchContracts error', { error: e });
     } finally {
       setLoading(false);
     }
@@ -43,7 +44,7 @@ export const ContractManager: Component = () => {
         setAllContracts(res.data.contracts);
       }
     } catch (e) {
-      console.warn('[ContractManager] search error', e);
+      logger.warn('[ContractManager] search error', { error: e });
     } finally {
       setLoading(false);
     }
@@ -70,10 +71,15 @@ export const ContractManager: Component = () => {
 
   return (
     <div class="dialog-overlay" onClick={(e) => e.target === e.currentTarget && close()}>
-      <div class="dialog-panel" style={{ width: '680px', 'max-height': '80vh' }}>
+      <div class="dialog-panel" style={{ 'max-height': '80vh' }}>
         <div class="dialog-header">
           <span class="text-sm font-bold text-[var(--text-primary)]">📋 合约查询</span>
-          <button class="text-[var(--text-muted)] hover:text-[var(--text-primary)] text-lg leading-none" onClick={close}>×</button>
+          <button
+            class="text-[var(--text-muted)] hover:text-[var(--text-primary)] text-lg leading-none"
+            onClick={close}
+          >
+            ×
+          </button>
         </div>
 
         <div class="dialog-body">
@@ -101,7 +107,10 @@ export const ContractManager: Component = () => {
                     {(col) => (
                       <th
                         class="px-2 py-2 text-[var(--text-muted)] font-normal border-b border-[var(--border-color)] whitespace-nowrap"
-                        style={{ width: col.width ? `${col.width}px` : undefined, 'text-align': 'left' }}
+                        style={{
+                          width: col.width ? `${col.width}px` : undefined,
+                          'text-align': 'left',
+                        }}
                       >
                         {col.header}
                       </th>
@@ -110,13 +119,19 @@ export const ContractManager: Component = () => {
                 </tr>
               </thead>
               <tbody>
-                <For each={filtered()} fallback={
-                  <tr>
-                    <td colspan={COLUMNS.length} class="text-center py-8 text-[var(--text-muted)]">
-                      {loading() ? '加载中…' : '暂无合约数据'}
-                    </td>
-                  </tr>
-                }>
+                <For
+                  each={filtered()}
+                  fallback={
+                    <tr>
+                      <td
+                        colspan={COLUMNS.length}
+                        class="text-center py-8 text-[var(--text-muted)]"
+                      >
+                        {loading() ? '加载中…' : '暂无合约数据'}
+                      </td>
+                    </tr>
+                  }
+                >
                   {(contract) => (
                     <tr
                       class="border-b border-[var(--border-color)] hover:bg-[var(--bg-hover)] cursor-pointer transition-colors"
@@ -130,9 +145,19 @@ export const ContractManager: Component = () => {
                         {(col) => {
                           const val = (contract as unknown as Record<string, unknown>)[col.field];
                           if (col.field === 'price_tick') {
-                            return <td class="px-2 py-1.5 text-xs font-mono tabular-nums text-[var(--text-secondary)]">{(val as number).toFixed(val === 0 ? 4 : (val as number) < 1 ? 4 : 2)}</td>;
+                            return (
+                              <td class="px-2 py-1.5 text-xs font-mono tabular-nums text-[var(--text-secondary)]">
+                                {(val as number).toFixed(
+                                  val === 0 ? 4 : (val as number) < 1 ? 4 : 2
+                                )}
+                              </td>
+                            );
                           }
-                          return <td class="px-2 py-1.5 text-xs text-[var(--text-secondary)]">{String(val ?? '-')}</td>;
+                          return (
+                            <td class="px-2 py-1.5 text-xs text-[var(--text-secondary)]">
+                              {String(val ?? '-')}
+                            </td>
+                          );
                         }}
                       </For>
                     </tr>
@@ -147,7 +172,9 @@ export const ContractManager: Component = () => {
         </div>
 
         <div class="dialog-footer">
-          <button class="btn btn-secondary" onClick={close}>关闭</button>
+          <button class="btn btn-secondary" onClick={close}>
+            关闭
+          </button>
         </div>
       </div>
     </div>

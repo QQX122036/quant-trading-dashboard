@@ -15,7 +15,9 @@ export const LoadingSpinner: Component<LoadingSpinnerProps> = (props) => {
 
   return (
     <div class="flex flex-col items-center justify-center gap-3">
-      <div class={`${sizeClasses[size]} border-blue-400/30 border-t-blue-400 rounded-full animate-spin`} />
+      <div
+        class={`${sizeClasses[size]} border-blue-400/30 border-t-blue-400 rounded-full animate-spin`}
+      />
       {props.text && <span class="text-sm text-gray-400">{props.text}</span>}
     </div>
   );
@@ -81,9 +83,7 @@ export const ErrorState: Component<ErrorStateProps> = (props) => {
     <div class="flex flex-col items-center justify-center h-full gap-3 py-12">
       <span class="text-4xl opacity-50">⚠️</span>
       <h3 class="text-lg font-medium text-red-400">加载失败</h3>
-      {props.message && (
-        <p class="text-sm text-gray-500 max-w-sm text-center">{props.message}</p>
-      )}
+      {props.message && <p class="text-sm text-gray-500 max-w-sm text-center">{props.message}</p>}
       {props.onRetry && (
         <button
           class="mt-2 px-4 py-2 text-sm rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400"

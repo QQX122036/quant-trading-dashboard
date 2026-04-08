@@ -10,10 +10,10 @@ import { formatPercent } from '@/utils/format';
 interface StockData {
   symbol: string;
   name: string;
-  currentWeight: number;   // 当前权重 (0-100)
-  expectedReturn: number;  // 年化预期收益 (e.g. 0.15 = 15%)
-  volatility: number;      // 年化波动率
-  sharpe: number;           // 夏普比率
+  currentWeight: number; // 当前权重 (0-100)
+  expectedReturn: number; // 年化预期收益 (e.g. 0.15 = 15%)
+  volatility: number; // 年化波动率
+  sharpe: number; // 夏普比率
 }
 
 interface RebalanceSuggestion {
@@ -21,7 +21,7 @@ interface RebalanceSuggestion {
   name: string;
   currentWeight: number;
   targetWeight: number;
-  diff: number;          // target - current
+  diff: number; // target - current
   action: 'increase' | 'decrease' | 'unchanged';
 }
 
@@ -33,21 +33,56 @@ const RISK_FREE_RATE = 0.03; // 无风险利率 3%
 // ── Mock 当前持仓数据 ────────────────────────────────────────────────────────
 // 真实场景从 apiStore / hooks/useApi 获取
 const INITIAL_STOCKS: StockData[] = [
-  { symbol: '000001', name: '平安银行',   currentWeight: 20, expectedReturn: 0.12, volatility: 0.25, sharpe: 0.36 },
-  { symbol: '000002', name: '万科A',      currentWeight: 15, expectedReturn: 0.08, volatility: 0.30, sharpe: 0.17 },
-  { symbol: '600036', name: '招商银行',   currentWeight: 25, expectedReturn: 0.14, volatility: 0.22, sharpe: 0.50 },
-  { symbol: '600519', name: '贵州茅台',   currentWeight: 30, expectedReturn: 0.18, volatility: 0.28, sharpe: 0.54 },
-  { symbol: '601318', name: '中国平安',   currentWeight: 10, expectedReturn: 0.10, volatility: 0.24, sharpe: 0.29 },
+  {
+    symbol: '000001',
+    name: '平安银行',
+    currentWeight: 20,
+    expectedReturn: 0.12,
+    volatility: 0.25,
+    sharpe: 0.36,
+  },
+  {
+    symbol: '000002',
+    name: '万科A',
+    currentWeight: 15,
+    expectedReturn: 0.08,
+    volatility: 0.3,
+    sharpe: 0.17,
+  },
+  {
+    symbol: '600036',
+    name: '招商银行',
+    currentWeight: 25,
+    expectedReturn: 0.14,
+    volatility: 0.22,
+    sharpe: 0.5,
+  },
+  {
+    symbol: '600519',
+    name: '贵州茅台',
+    currentWeight: 30,
+    expectedReturn: 0.18,
+    volatility: 0.28,
+    sharpe: 0.54,
+  },
+  {
+    symbol: '601318',
+    name: '中国平安',
+    currentWeight: 10,
+    expectedReturn: 0.1,
+    volatility: 0.24,
+    sharpe: 0.29,
+  },
 ];
 
 // 简化协方差矩阵（基于5只股票的相关性估算）
 // [平安银行, 万科A, 招商银行, 贵州茅台, 中国平安]
 const CORRELATION_MATRIX: number[][] = [
-  [1.00, 0.45, 0.65, 0.30, 0.55],
-  [0.45, 1.00, 0.40, 0.25, 0.50],
-  [0.65, 0.40, 1.00, 0.35, 0.60],
-  [0.30, 0.25, 0.35, 1.00, 0.40],
-  [0.55, 0.50, 0.60, 0.40, 1.00],
+  [1.0, 0.45, 0.65, 0.3, 0.55],
+  [0.45, 1.0, 0.4, 0.25, 0.5],
+  [0.65, 0.4, 1.0, 0.35, 0.6],
+  [0.3, 0.25, 0.35, 1.0, 0.4],
+  [0.55, 0.5, 0.6, 0.4, 1.0],
 ];
 
 // ── 计算函数 ─────────────────────────────────────────────────────────────────
@@ -87,13 +122,15 @@ const MetricCard: Component<{
   positive?: boolean;
   negative?: boolean;
 }> = (props) => (
-  <div class={`flex flex-col gap-1 p-3 rounded-lg border ${
-    props.highlight
-      ? 'bg-blue-500/10 border-blue-500/30'
-      : 'bg-white/5 border-white/10'
-  }`}>
+  <div
+    class={`flex flex-col gap-1 p-3 rounded-lg border ${
+      props.highlight ? 'bg-blue-500/10 border-blue-500/30' : 'bg-white/5 border-white/10'
+    }`}
+  >
     <span class="text-xs text-gray-400">{props.label}</span>
-    <span class={`text-xl font-bold ${props.positive ? 'text-green-400' : props.negative ? 'text-red-400' : 'text-white'}`}>
+    <span
+      class={`text-xl font-bold ${props.positive ? 'text-green-400' : props.negative ? 'text-red-400' : 'text-white'}`}
+    >
       {props.value}
     </span>
     <Show when={props.sub}>
@@ -123,7 +160,9 @@ const CompareRow: Component<{
         <span class="text-sm font-mono text-white">{props.simulated}</span>
       </div>
       <Show when={props.delta}>
-        <span class={`text-xs font-mono w-16 text-right ${props.positive ? 'text-green-400' : props.negative ? 'text-red-400' : 'text-gray-500'}`}>
+        <span
+          class={`text-xs font-mono w-16 text-right ${props.positive ? 'text-green-400' : props.negative ? 'text-red-400' : 'text-gray-500'}`}
+        >
           {props.delta}
         </span>
       </Show>
@@ -139,11 +178,15 @@ const SuggestionItem: Component<{
   const isDown = stock.action === 'decrease';
 
   return (
-    <div class={`flex items-center justify-between p-3 rounded-lg border ${
-      isUp ? 'bg-green-500/10 border-green-500/20' :
-      isDown ? 'bg-red-500/10 border-red-500/20' :
-      'bg-white/5 border-white/10'
-    }`}>
+    <div
+      class={`flex items-center justify-between p-3 rounded-lg border ${
+        isUp
+          ? 'bg-green-500/10 border-green-500/20'
+          : isDown
+            ? 'bg-red-500/10 border-red-500/20'
+            : 'bg-white/5 border-white/10'
+      }`}
+    >
       <div class="flex flex-col gap-0.5">
         <span class="text-sm font-medium text-white">{stock.name}</span>
         <span class="text-xs text-gray-500">{stock.symbol}</span>
@@ -155,9 +198,11 @@ const SuggestionItem: Component<{
             <span class="text-gray-600">→</span>
             <span class="text-white font-mono">{stock.targetWeight.toFixed(1)}%</span>
           </div>
-          <div class={`flex items-center gap-1 text-xs font-mono ${
-            isUp ? 'text-green-400' : isDown ? 'text-red-400' : 'text-gray-500'
-          }`}>
+          <div
+            class={`flex items-center gap-1 text-xs font-mono ${
+              isUp ? 'text-green-400' : isDown ? 'text-red-400' : 'text-gray-500'
+            }`}
+          >
             <Show when={isUp}>
               <span>↑</span>
             </Show>
@@ -170,11 +215,15 @@ const SuggestionItem: Component<{
             <span>{Math.abs(stock.diff).toFixed(1)}%</span>
           </div>
         </div>
-        <div class={`w-6 h-6 rounded flex items-center justify-center text-sm ${
-          isUp ? 'bg-green-500/20 text-green-400' :
-          isDown ? 'bg-red-500/20 text-red-400' :
-          'bg-white/10 text-gray-500'
-        }`}>
+        <div
+          class={`w-6 h-6 rounded flex items-center justify-center text-sm ${
+            isUp
+              ? 'bg-green-500/20 text-green-400'
+              : isDown
+                ? 'bg-red-500/20 text-red-400'
+                : 'bg-white/10 text-gray-500'
+          }`}
+        >
           {isUp ? '↑' : isDown ? '↓' : '—'}
         </div>
       </div>
@@ -185,13 +234,13 @@ const SuggestionItem: Component<{
 // ── 主组件 ───────────────────────────────────────────────────────────────────
 
 export const PortfolioSimulator: Component = () => {
-  const [weights, setWeights] = createSignal<number[]>(INITIAL_STOCKS.map(s => s.currentWeight));
+  const [weights, setWeights] = createSignal<number[]>(INITIAL_STOCKS.map((s) => s.currentWeight));
 
   const stocks = INITIAL_STOCKS;
 
   // 当前组合指标
   const currentMetrics = createMemo(() => {
-    const w = INITIAL_STOCKS.map(s => s.currentWeight);
+    const w = INITIAL_STOCKS.map((s) => s.currentWeight);
     const ret = calcPortfolioReturn(INITIAL_STOCKS, w);
     const vol = calcPortfolioVolatility(INITIAL_STOCKS, w);
     const sharpe = calcSharpe(ret, vol);
@@ -214,7 +263,14 @@ export const PortfolioSimulator: Component = () => {
       const diff = targetWeight - s.currentWeight;
       const action: RebalanceSuggestion['action'] =
         diff > 0.5 ? 'increase' : diff < -0.5 ? 'decrease' : 'unchanged';
-      return { symbol: s.symbol, name: s.name, currentWeight: s.currentWeight, targetWeight, diff, action };
+      return {
+        symbol: s.symbol,
+        name: s.name,
+        currentWeight: s.currentWeight,
+        targetWeight,
+        diff,
+        action,
+      };
     }).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
   });
 
@@ -227,32 +283,22 @@ export const PortfolioSimulator: Component = () => {
     return (d >= 0 ? '+' : '') + (d * 100).toFixed(2) + '%';
   };
 
-// formatPct: takes a decimal (e.g. 0.15) and returns '15.00%'
-const formatPct = (v: number) => formatPercent(v, 2);
+  // formatPct: takes a decimal (e.g. 0.15) and returns '15.00%'
+  const formatPct = (v: number) => formatPercent(v, 2);
 
   return (
     <div class="h-full flex flex-col gap-4 overflow-auto">
-
       {/* 顶部概览：当前 vs 模拟 指标对比 */}
       <div class="grid grid-cols-2 gap-4 shrink-0">
-
         {/* 当前组合 */}
         <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4">
           <div class="flex items-center gap-2 mb-3">
-            <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+            <div class="w-2 h-2 rounded-full bg-blue-400" />
             <h3 class="text-sm font-semibold text-white">当前组合</h3>
           </div>
           <div class="grid grid-cols-3 gap-2">
-            <MetricCard
-              label="预期收益"
-              value={formatPct(currentMetrics().ret)}
-              sub="年化"
-            />
-            <MetricCard
-              label="波动率"
-              value={formatPct(currentMetrics().vol)}
-              sub="年化"
-            />
+            <MetricCard label="预期收益" value={formatPct(currentMetrics().ret)} sub="年化" />
+            <MetricCard label="波动率" value={formatPct(currentMetrics().vol)} sub="年化" />
             <MetricCard
               label="夏普比率"
               value={currentMetrics().sharpe.toFixed(2)}
@@ -265,7 +311,7 @@ const formatPct = (v: number) => formatPercent(v, 2);
         {/* 模拟组合 */}
         <div class="bg-[#111827]/80 rounded-lg border border-blue-500/20 p-4">
           <div class="flex items-center gap-2 mb-3">
-            <div class="w-2 h-2 rounded-full bg-green-400"></div>
+            <div class="w-2 h-2 rounded-full bg-green-400" />
             <h3 class="text-sm font-semibold text-white">模拟组合</h3>
             <span class="ml-auto text-xs text-gray-500">调整权重后自动计算</span>
           </div>
@@ -293,10 +339,9 @@ const formatPct = (v: number) => formatPercent(v, 2);
       </div>
 
       {/* 中间三栏：左侧对比 + 中间滑块 + 右侧建议 */}
-      <div class="flex gap-4 min-h-0 flex-1">
-
+      <div class="flex flex-col lg:flex-row gap-4 min-h-0 flex-1">
         {/* 左：指标变化明细 */}
-        <div class="w-72 shrink-0 bg-[#111827]/80 rounded-lg border border-white/10 p-4 flex flex-col gap-3">
+        <div class="w-full lg:w-72 shrink-0 bg-[#111827]/80 rounded-lg border border-white/10 p-4 flex flex-col gap-3">
           <h3 class="text-sm font-semibold text-white">指标变化明细</h3>
           <CompareRow
             label="预期收益"
@@ -326,7 +371,9 @@ const formatPct = (v: number) => formatPercent(v, 2);
           <div class="mt-2 pt-2 border-t border-white/10">
             <div class="flex items-center justify-between text-xs mb-1">
               <span class="text-gray-500">权重总和</span>
-              <span class={`font-mono ${Math.abs(totalWeight() - 100) < 0.01 ? 'text-green-400' : 'text-red-400'}`}>
+              <span
+                class={`font-mono ${Math.abs(totalWeight() - 100) < 0.01 ? 'text-green-400' : 'text-red-400'}`}
+              >
                 {totalWeight().toFixed(1)}%
               </span>
             </div>
@@ -353,7 +400,7 @@ const formatPct = (v: number) => formatPercent(v, 2);
             <h3 class="text-sm font-semibold text-white">调整权重</h3>
             <button
               class="px-3 py-1 text-xs rounded bg-white/10 hover:bg-white/20 text-gray-300"
-              onClick={() => setWeights(INITIAL_STOCKS.map(s => s.currentWeight))}
+              onClick={() => setWeights(INITIAL_STOCKS.map((s) => s.currentWeight))}
             >
               重置
             </button>
@@ -379,10 +426,13 @@ const formatPct = (v: number) => formatPercent(v, 2);
                         <div class="flex flex-col items-end gap-0.5">
                           <div class="flex items-center gap-2">
                             <span class="text-xs text-gray-500">当前 {currentW.toFixed(1)}%</span>
-                            <span class={`text-xs font-mono ${
-                              isUp ? 'text-green-400' : isDown ? 'text-red-400' : 'text-gray-400'
-                            }`}>
-                              {isUp ? '↑' : isDown ? '↓' : ''} {(w() - currentW) >= 0 ? '+' : ''}{(w() - currentW).toFixed(1)}%
+                            <span
+                              class={`text-xs font-mono ${
+                                isUp ? 'text-green-400' : isDown ? 'text-red-400' : 'text-gray-400'
+                              }`}
+                            >
+                              {isUp ? '↑' : isDown ? '↓' : ''} {w() - currentW >= 0 ? '+' : ''}
+                              {(w() - currentW).toFixed(1)}%
                             </span>
                           </div>
                           <span class="text-sm font-mono text-white">{w().toFixed(1)}%</span>
@@ -405,16 +455,26 @@ const formatPct = (v: number) => formatPercent(v, 2);
                         }}
                         class="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-blue-500"
                         style={{
-                          background: `linear-gradient(to right, #3B82F6 0%, #3B82F6 ${w()}%, rgba(255,255,255,0.1) ${w()}%, rgba(255,255,255,0.1) 100%)`
+                          background: `linear-gradient(to right, #3B82F6 0%, #3B82F6 ${w()}%, rgba(255,255,255,0.1) ${w()}%, rgba(255,255,255,0.1) 100%)`,
                         }}
                       />
                     </div>
 
                     {/* 股票基本信息 */}
                     <div class="flex gap-4 text-xs text-gray-500">
-                      <span>预期收益: <span class="text-gray-300">{formatPct(stock.expectedReturn)}</span></span>
-                      <span>波动率: <span class="text-gray-300">{formatPct(stock.volatility)}</span></span>
-                      <span>夏普: <span class={stock.sharpe > 0.4 ? 'text-green-400' : 'text-gray-300'}>{stock.sharpe.toFixed(2)}</span></span>
+                      <span>
+                        预期收益:{' '}
+                        <span class="text-gray-300">{formatPct(stock.expectedReturn)}</span>
+                      </span>
+                      <span>
+                        波动率: <span class="text-gray-300">{formatPct(stock.volatility)}</span>
+                      </span>
+                      <span>
+                        夏普:{' '}
+                        <span class={stock.sharpe > 0.4 ? 'text-green-400' : 'text-gray-300'}>
+                          {stock.sharpe.toFixed(2)}
+                        </span>
+                      </span>
                     </div>
                   </div>
                 );
@@ -424,11 +484,11 @@ const formatPct = (v: number) => formatPercent(v, 2);
         </div>
 
         {/* 右：调仓建议 */}
-        <div class="w-72 shrink-0 bg-[#111827]/80 rounded-lg border border-white/10 p-4 flex flex-col gap-3 overflow-auto">
+        <div class="w-full lg:w-72 shrink-0 bg-[#111827]/80 rounded-lg border border-white/10 p-4 flex flex-col gap-3 overflow-auto">
           <h3 class="text-sm font-semibold text-white">调仓建议</h3>
 
           <Show
-            when={suggestions().some(s => s.action !== 'unchanged')}
+            when={suggestions().some((s) => s.action !== 'unchanged')}
             fallback={
               <div class="flex-1 flex flex-col items-center justify-center text-gray-500 text-sm gap-2">
                 <div class="text-2xl">⚖</div>
@@ -437,9 +497,7 @@ const formatPct = (v: number) => formatPercent(v, 2);
             }
           >
             <div class="flex flex-col gap-2">
-              <For each={suggestions()}>
-                {(s) => <SuggestionItem stock={s} />}
-              </For>
+              <For each={suggestions()}>{(s) => <SuggestionItem stock={s} />}</For>
             </div>
           </Show>
 
@@ -450,7 +508,6 @@ const formatPct = (v: number) => formatPercent(v, 2);
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

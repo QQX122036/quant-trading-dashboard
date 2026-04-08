@@ -61,7 +61,7 @@ export interface ApiResponse<T> {
 export interface SendOrderReq {
   symbol: string;
   exchange: string;
-  direction: '多' | '空' | 'long' | 'short';  // 前端格式 或 后端格式
+  direction: '多' | '空' | 'long' | 'short'; // 前端格式 或 后端格式
   offset: '开' | '平' | 'open' | 'close' | 'none';
   type: string;
   price: number;

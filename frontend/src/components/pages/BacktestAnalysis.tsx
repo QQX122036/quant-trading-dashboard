@@ -3,17 +3,14 @@
  * 收益率曲线 + 回撤分析 + 月度收益热力图
  */
 import { Component, createSignal, For, Show, onMount, onCleanup, createEffect } from 'solid-js';
-import * as echarts from 'echarts';
-import { apiState } from '../../stores/apiStore';
+import echarts from '@/lib/echarts';
+import { apiState, setApiState, apiActions } from '../../stores/apiStore';
 import { BacktestConfig } from './BacktestConfig';
 import { BacktestProgress } from './BacktestProgress';
-
-
 
 type ViewMode = 'config' | 'progress' | 'result';
 
 export const BacktestAnalysis: Component = () => {
-
   const [viewMode, setViewMode] = createSignal<ViewMode>('config');
   const [taskId, _setTaskId] = createSignal<string>('');
 
@@ -26,12 +23,20 @@ export const BacktestAnalysis: Component = () => {
   let monthlyChart: echarts.ECharts | undefined;
 
   // ── Equity + Benchmark Chart ────────────────────────────────
-  const buildEquityOption = (curve: Array<{ date: string; equity: number; benchmark: number }>): echarts.EChartsOption => {
+  const buildEquityOption = (
+    curve: Array<{ date: string; equity: number; benchmark: number }>
+  ): echarts.EChartsCoreOption => {
     if (!curve.length) return { backgroundColor: 'transparent', series: [] };
     const initial = curve[0]?.equity || 1;
     const dates = curve.map((d) => d.date);
-    const strategyReturns = curve.map((d) => ({ date: d.date, value: parseFloat(((d.equity / initial - 1) * 100).toFixed(4)) }));
-    const benchReturns = curve.map((d) => ({ date: d.date, value: parseFloat(((d.benchmark / initial - 1) * 100).toFixed(4)) }));
+    const strategyReturns = curve.map((d) => ({
+      date: d.date,
+      value: parseFloat(((d.equity / initial - 1) * 100).toFixed(4)),
+    }));
+    const benchReturns = curve.map((d) => ({
+      date: d.date,
+      value: parseFloat(((d.benchmark / initial - 1) * 100).toFixed(4)),
+    }));
 
     return {
       backgroundColor: 'transparent',
@@ -42,14 +47,24 @@ export const BacktestAnalysis: Component = () => {
         borderColor: 'rgba(255,255,255,0.1)',
         textStyle: { color: '#fff' },
         formatter: (params: unknown) => {
-          const arr = params as Array<{ axisValue: string; seriesName: string; value: number; color: string }>;
+          const arr = params as Array<{
+            axisValue: string;
+            seriesName: string;
+            value: number;
+            color: string;
+          }>;
           if (!arr?.length) return '';
           const date = `<div style="font-size:11px;color:#9CA3AF;margin-bottom:4px">${arr[0].axisValue}</div>`;
-          return date + arr.map((p) => {
-            const color = p.seriesName === '策略收益' ? '#3B82F6' : '#6B7280';
-            const sign = p.value >= 0 ? '+' : '';
-            return `<div style="display:flex;justify-content:space-between;gap:16px"><span style="color:${color}">${p.seriesName}</span><span style="color:${color}">${sign}${p.value}%</span></div>`;
-          }).join('');
+          return (
+            date +
+            arr
+              .map((p) => {
+                const color = p.seriesName === '策略收益' ? '#3B82F6' : '#6B7280';
+                const sign = p.value >= 0 ? '+' : '';
+                return `<div style="display:flex;justify-content:space-between;gap:16px"><span style="color:${color}">${p.seriesName}</span><span style="color:${color}">${sign}${p.value}%</span></div>`;
+              })
+              .join('')
+          );
         },
       },
       legend: { data: ['策略收益', '基准收益'], textStyle: { color: '#9CA3AF' }, top: 0 },
@@ -62,7 +77,11 @@ export const BacktestAnalysis: Component = () => {
       yAxis: {
         type: 'value',
         axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
-        axisLabel: { color: '#9CA3AF', fontSize: 10, formatter: (v: number) => `${v > 0 ? '+' : ''}${v}%` },
+        axisLabel: {
+          color: '#9CA3AF',
+          fontSize: 10,
+          formatter: (v: number) => `${v > 0 ? '+' : ''}${v}%`,
+        },
         splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
       },
       series: [
@@ -93,7 +112,9 @@ export const BacktestAnalysis: Component = () => {
   };
 
   // ── Drawdown Chart ─────────────────────────────────────────
-  const buildDrawdownOption = (curve: Array<{ date: string; equity: number }>): echarts.EChartsOption => {
+  const buildDrawdownOption = (
+    curve: Array<{ date: string; equity: number }>
+  ): echarts.EChartsCoreOption => {
     if (!curve.length) return { backgroundColor: 'transparent', series: [] };
 
     let peak = curve[0]?.equity || 0;
@@ -103,7 +124,7 @@ export const BacktestAnalysis: Component = () => {
 
     for (const bar of curve) {
       if (bar.equity > peak) peak = bar.equity;
-      const dd = (bar.equity - peak) / peak * 100;
+      const dd = ((bar.equity - peak) / peak) * 100;
       if (dd < maxDD) maxDD = dd;
       drawdowns.push(parseFloat(dd.toFixed(4)));
       dates.push(bar.date);
@@ -169,28 +190,40 @@ export const BacktestAnalysis: Component = () => {
         splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
         max: 0,
       },
-      series: [{
-        type: 'line',
-        smooth: true,
-        data: drawdowns,
-        lineStyle: { color: '#EF4444', width: 1.5 },
-        itemStyle: { color: '#EF4444' },
-        areaStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(239,68,68,0.3)' },
-            { offset: 1, color: 'rgba(239,68,68,0)' },
-          ]),
+      series: [
+        {
+          type: 'line',
+          smooth: true,
+          data: drawdowns,
+          lineStyle: { color: '#EF4444', width: 1.5 },
+          itemStyle: { color: '#EF4444' },
+          areaStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: 'rgba(239,68,68,0.3)' },
+              { offset: 1, color: 'rgba(239,68,68,0)' },
+            ]),
+          },
+          markArea:
+            maxDuration > 0
+              ? {
+                  silent: true,
+                  data: [
+                    [
+                      { xAxis: dates[maxDDStart], itemStyle: { color: 'rgba(239,68,68,0.08)' } },
+                      { xAxis: dates[maxDDStart + maxDuration] },
+                    ],
+                  ],
+                }
+              : undefined,
         },
-        markArea: maxDuration > 0 ? {
-          silent: true,
-          data: [[{ xAxis: dates[maxDDStart], itemStyle: { color: 'rgba(239,68,68,0.08)' } }, { xAxis: dates[maxDDStart + maxDuration] }]],
-        } : undefined,
-      }],
+      ],
     };
   };
 
   // ── Monthly Returns Heatmap ─────────────────────────────────
-  const buildMonthlyOption = (curve: Array<{ date: string; equity: number }>): echarts.EChartsOption => {
+  const buildMonthlyOption = (
+    curve: Array<{ date: string; equity: number }>
+  ): echarts.EChartsCoreOption => {
     if (curve.length < 30) return { backgroundColor: 'transparent', series: [] };
 
     // Group by year-month
@@ -209,11 +242,24 @@ export const BacktestAnalysis: Component = () => {
       .map(([ym]) => ym);
 
     const years = [...new Set(months.map((m) => m.slice(0, 4)))];
-    const monthLabels = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+    const monthLabels = [
+      '1月',
+      '2月',
+      '3月',
+      '4月',
+      '5月',
+      '6月',
+      '7月',
+      '8月',
+      '9月',
+      '10月',
+      '11月',
+      '12月',
+    ];
 
     const data: Array<{ value: [number, number, number]; tooltip: string }> = [];
     monthlyMap.forEach((v, ym) => {
-      const ret = (v.last - v.first) / v.first * 100;
+      const ret = ((v.last - v.first) / v.first) * 100;
       const yearIdx = years.indexOf(ym.slice(0, 4));
       const monthIdx = parseInt(ym.slice(5, 7)) - 1;
       data.push({
@@ -236,14 +282,20 @@ export const BacktestAnalysis: Component = () => {
         data: monthLabels,
         axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
         axisLabel: { color: '#9CA3AF', fontSize: 10 },
-        splitArea: { show: true, areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(255,255,255,0.01)'] } },
+        splitArea: {
+          show: true,
+          areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(255,255,255,0.01)'] },
+        },
       },
       yAxis: {
         type: 'category',
         data: years,
         axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
         axisLabel: { color: '#9CA3AF', fontSize: 10 },
-        splitArea: { show: true, areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(255,255,255,0.01)'] } },
+        splitArea: {
+          show: true,
+          areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(255,255,255,0.01)'] },
+        },
       },
       visualMap: {
         show: true,
@@ -259,19 +311,22 @@ export const BacktestAnalysis: Component = () => {
         inRange: { color: ['#22C55E', '#6B7280', '#EF4444'] },
         formatter: (v: number) => `${v > 0 ? '+' : ''}${v}%`,
       },
-      series: [{
-        type: 'heatmap',
-        data,
-        label: {
-          show: true,
-          formatter: (p: { value: [number, number, number] }) => `${p.value[2] >= 0 ? '+' : ''}${p.value[2].toFixed(0)}`,
-          fontSize: 9,
-          color: '#fff',
+      series: [
+        {
+          type: 'heatmap',
+          data,
+          label: {
+            show: true,
+            formatter: (p: { value: [number, number, number] }) =>
+              `${p.value[2] >= 0 ? '+' : ''}${p.value[2].toFixed(0)}`,
+            fontSize: 9,
+            color: '#fff',
+          },
+          itemStyle: { borderWidth: 2, borderColor: '#111827', borderRadius: 2 },
+          emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' } },
         },
-        itemStyle: { borderWidth: 2, borderColor: '#111827', borderRadius: 2 },
-        emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' } },
-      }],
-    } as unknown as echarts.EChartsOption;
+      ],
+    } as unknown as echarts.EChartsCoreOption;
   };
 
   onMount(() => {
@@ -300,23 +355,32 @@ export const BacktestAnalysis: Component = () => {
     if (result && equityChart && drawdownChart && monthlyChart) {
       // Build equity curve from result if available
       const curve: Array<{ date: string; equity: number; benchmark: number }> = [];
-      const equity = result.equity_curve as Array<{ date: string; equity: number; benchmark?: number }> | undefined;
+      const equity = result.equity_curve as
+        | Array<{ date: string; equity: number; benchmark?: number }>
+        | undefined;
       if (equity && Array.isArray(equity)) {
-        curve.push(...equity.map((d) => ({
-          date: d.date,
-          equity: d.equity,
-          benchmark: (d as { benchmark?: number }).benchmark ?? d.equity,
-        })));
+        curve.push(
+          ...equity.map((d) => ({
+            date: d.date,
+            equity: d.equity,
+            benchmark: (d as { benchmark?: number }).benchmark ?? d.equity,
+          }))
+        );
       }
 
       if (curve.length > 0) {
         equityChart.setOption(buildEquityOption(curve), true);
-        drawdownChart.setOption(buildDrawdownOption(curve.map((d) => ({ date: d.date, equity: d.equity }))), true);
-        monthlyChart.setOption(buildMonthlyOption(curve.map((d) => ({ date: d.date, equity: d.equity }))), true);
+        drawdownChart.setOption(
+          buildDrawdownOption(curve.map((d) => ({ date: d.date, equity: d.equity }))),
+          true
+        );
+        monthlyChart.setOption(
+          buildMonthlyOption(curve.map((d) => ({ date: d.date, equity: d.equity }))),
+          true
+        );
       }
     }
   });
-
 
   const handleComplete = () => {
     setViewMode('result');
@@ -326,15 +390,24 @@ export const BacktestAnalysis: Component = () => {
 
   const perfCards = () => {
     const p = perf();
-    if (!p) return [
-      { label: '总收益率', value: '--', color: 'text-gray-400' },
-      { label: '年化收益率', value: '--', color: 'text-gray-400' },
-      { label: '夏普比率', value: '--', color: 'text-gray-400' },
-      { label: '最大回撤', value: '--', color: 'text-gray-400' },
-    ];
+    if (!p)
+      return [
+        { label: '总收益率', value: '--', color: 'text-gray-400' },
+        { label: '年化收益率', value: '--', color: 'text-gray-400' },
+        { label: '夏普比率', value: '--', color: 'text-gray-400' },
+        { label: '最大回撤', value: '--', color: 'text-gray-400' },
+      ];
     return [
-      { label: '总收益率', value: `${(p?.total_return ?? 0) >= 0 ? '+' : ''}${(p?.total_return ?? 0)}%`, color: (p?.total_return ?? 0) >= 0 ? 'text-[#EF4444]' : 'text-[#22C55E]' },
-      { label: '年化收益率', value: `${(p?.annual_return ?? 0) >= 0 ? '+' : ''}${(p?.annual_return ?? 0)}%`, color: (p?.annual_return ?? 0) >= 0 ? 'text-[#EF4444]' : 'text-[#22C55E]' },
+      {
+        label: '总收益率',
+        value: `${(p?.total_return ?? 0) >= 0 ? '+' : ''}${p?.total_return ?? 0}%`,
+        color: (p?.total_return ?? 0) >= 0 ? 'text-[#EF4444]' : 'text-[#22C55E]',
+      },
+      {
+        label: '年化收益率',
+        value: `${(p?.annual_return ?? 0) >= 0 ? '+' : ''}${p?.annual_return ?? 0}%`,
+        color: (p?.annual_return ?? 0) >= 0 ? 'text-[#EF4444]' : 'text-[#22C55E]',
+      },
       { label: '夏普比率', value: String(p?.sharpe_ratio ?? 0), color: 'text-blue-400' },
       { label: '最大回撤', value: `${p?.max_drawdown ?? 0}%`, color: 'text-[#EF4444]' },
     ];
@@ -342,14 +415,19 @@ export const BacktestAnalysis: Component = () => {
 
   const extraCards = () => {
     const p = perf();
-    if (!p) return [
-      { label: '超额收益', value: '--', color: 'text-gray-400' },
-      { label: '卡玛比率', value: '--', color: 'text-gray-400' },
-      { label: '总交易次数', value: '--', color: 'text-gray-400' },
-      { label: '胜率', value: '--', color: 'text-gray-400' },
-    ];
+    if (!p)
+      return [
+        { label: '超额收益', value: '--', color: 'text-gray-400' },
+        { label: '卡玛比率', value: '--', color: 'text-gray-400' },
+        { label: '总交易次数', value: '--', color: 'text-gray-400' },
+        { label: '胜率', value: '--', color: 'text-gray-400' },
+      ];
     return [
-      { label: '超额收益', value: `${(p?.excess_return ?? 0) >= 0 ? '+' : ''}${(p?.excess_return ?? 0)}%`, color: (p?.excess_return ?? 0) >= 0 ? 'text-[#EF4444]' : 'text-[#22C55E]' },
+      {
+        label: '超额收益',
+        value: `${(p?.excess_return ?? 0) >= 0 ? '+' : ''}${p?.excess_return ?? 0}%`,
+        color: (p?.excess_return ?? 0) >= 0 ? 'text-[#EF4444]' : 'text-[#22C55E]',
+      },
       { label: '卡玛比率', value: String(p?.calmar_ratio ?? 0), color: 'text-blue-400' },
       { label: '总交易次数', value: String(p?.total_trades ?? 0), color: 'text-gray-300' },
       { label: '盈亏比', value: String(p?.profit_loss_ratio ?? 0), color: 'text-gray-300' },
@@ -377,10 +455,31 @@ export const BacktestAnalysis: Component = () => {
       <div class="flex-1 flex gap-4 min-h-0 overflow-hidden">
         {/* Left Panel — Config */}
         <Show when={viewMode() === 'config'}>
-          <div class="w-80 shrink-0 overflow-y-auto">
-            <BacktestConfig onRun={() => {
-              // Task ID would come from the API response, handled via apiActions
-            }} />
+          <div class="w-full sm:w-80 shrink-0 overflow-y-auto">
+            <BacktestConfig
+              onRun={async (config) => {
+                try {
+                  const res = await apiActions.runBacktest({
+                    strategy: config.strategy,
+                    symbols: config.symbols,
+                    start_date: config.start_date,
+                    end_date: config.end_date,
+                  });
+                  console.log('[BacktestAnalysis] API response:', res);
+                  // API 直接返回 task_id 字符串，而不是标准格式
+                  const taskId = typeof res === 'string' ? res : (res.data?.task_id || (res.data as any)?.task_id || res.data);
+                  if (taskId) {
+                    console.log('[BacktestAnalysis] Got task_id:', taskId);
+                    setApiState('backtestTaskId', taskId);
+                    setViewMode('progress');
+                  } else {
+                    console.error('[BacktestAnalysis] No task_id in response:', res);
+                  }
+                } catch (e) {
+                  console.error('[BacktestAnalysis] Error starting backtest:', e);
+                }
+              }}
+            />
           </div>
           {/* Spacer when no config */}
           <div class="flex-1" />
@@ -390,10 +489,7 @@ export const BacktestAnalysis: Component = () => {
         <Show when={viewMode() === 'progress'}>
           <div class="flex-1 flex items-center justify-center">
             <div class="w-full max-w-md">
-              <BacktestProgress
-                taskId={taskId()}
-                onComplete={handleComplete}
-              />
+              <BacktestProgress taskId={apiState.backtestTaskId || ''} onComplete={handleComplete} />
             </div>
           </div>
         </Show>
@@ -402,7 +498,7 @@ export const BacktestAnalysis: Component = () => {
         <Show when={viewMode() !== 'progress'}>
           <div class="flex-1 flex flex-col gap-4 min-h-0 overflow-hidden">
             {/* Primary Metrics */}
-            <div class="grid grid-cols-4 gap-4 shrink-0">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 shrink-0">
               <For each={perfCards()}>
                 {(card) => (
                   <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4">
@@ -414,7 +510,7 @@ export const BacktestAnalysis: Component = () => {
             </div>
 
             {/* Secondary Metrics */}
-            <div class="grid grid-cols-4 gap-4 shrink-0">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 shrink-0">
               <For each={extraCards()}>
                 {(card) => (
                   <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4">
@@ -428,20 +524,23 @@ export const BacktestAnalysis: Component = () => {
             {/* Equity Curve */}
             <div class="flex-1 bg-[#111827]/80 rounded-lg border border-white/10 p-4 min-h-[240px] shrink-0">
               <h3 class="font-bold mb-2 text-sm text-gray-300">收益率曲线</h3>
-              <div ref={equityRef} class="w-full flex-1" style="min-height:200px" />
+              <div ref={equityRef} class="w-full flex-1" style={{ 'min-height': '200px' }} />
             </div>
 
             {/* Drawdown + Monthly Heatmap */}
-            <div class="grid grid-cols-2 gap-4 shrink-0" style="min-height:220px">
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 gap-4 shrink-0"
+              style={{ 'min-height': '220px' }}
+            >
               {/* Drawdown */}
               <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4">
                 <h3 class="font-bold mb-2 text-sm text-gray-300">回撤分析</h3>
-                <div ref={drawdownRef} class="w-full" style="min-height:180px" />
+                <div ref={drawdownRef} class="w-full" style={{ 'min-height': '180px' }} />
               </div>
               {/* Monthly */}
               <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4">
                 <h3 class="font-bold mb-2 text-sm text-gray-300">月度收益热力图</h3>
-                <div ref={monthlyRef} class="w-full" style="min-height:180px" />
+                <div ref={monthlyRef} class="w-full" style={{ 'min-height': '180px' }} />
               </div>
             </div>
 
@@ -449,12 +548,35 @@ export const BacktestAnalysis: Component = () => {
             <Show when={perf()}>
               <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4 shrink-0">
                 <h3 class="font-bold mb-3 text-sm">回测概要</h3>
-                <div class="grid grid-cols-5 gap-4 text-sm">
-                  <div><div class="text-xs text-gray-400">标的</div><div class="font-mono mt-0.5">{perf()?.ts_code ?? ''}</div></div>
-                  <div><div class="text-xs text-gray-400">策略</div><div class="mt-0.5">{perf()?.strategy_type ?? ''}</div></div>
-                  <div><div class="text-xs text-gray-400">期初资金</div><div class="tabular-nums mt-0.5">{(perf()?.initial_capital ?? 0).toLocaleString()}</div></div>
-                  <div><div class="text-xs text-gray-400">期末资金</div><div class="tabular-nums mt-0.5">{(perf()?.end_capital ?? 0).toLocaleString('en-US', { maximumFractionDigits: 2 })}</div></div>
-                  <div><div class="text-xs text-gray-400">回测区间</div><div class="text-xs mt-0.5">{perf()?.start_date ?? ''} ~ {perf()?.end_date ?? ''}</div></div>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm">
+                  <div>
+                    <div class="text-xs text-gray-400">标的</div>
+                    <div class="font-mono mt-0.5">{perf()?.ts_code ?? ''}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-400">策略</div>
+                    <div class="mt-0.5">{perf()?.strategy_type ?? ''}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-400">期初资金</div>
+                    <div class="tabular-nums mt-0.5">
+                      {(perf()?.initial_capital ?? 0).toLocaleString()}
+                    </div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-400">期末资金</div>
+                    <div class="tabular-nums mt-0.5">
+                      {(perf()?.end_capital ?? 0).toLocaleString('en-US', {
+                        maximumFractionDigits: 2,
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-400">回测区间</div>
+                    <div class="text-xs mt-0.5">
+                      {perf()?.start_date ?? ''} ~ {perf()?.end_date ?? ''}
+                    </div>
+                  </div>
                 </div>
               </div>
             </Show>

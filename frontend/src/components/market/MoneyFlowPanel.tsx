@@ -3,8 +3,8 @@
  * 堆叠面积图：北向资金/主力净流入/超大单/大单/中单/小单
  * 净流入(红) / 净流出(绿)
  */
-import { Component, createSignal, onMount, onCleanup, createEffect } from 'solid-js';
-import * as echarts from 'echarts';
+import { Component, createSignal, onMount, onCleanup, createEffect, For } from 'solid-js';
+import echarts from '@/lib/echarts';
 import { apiFetch } from '../../hooks/useApi';
 import { getWsInstance } from '../../hooks/useWebSocket';
 import type { WsMessage } from '../../types/ws';
@@ -41,9 +41,9 @@ function mapRawToMoneyFlow(raw: RawMoneyFlow, time: string): MoneyFlowItem {
   // 按资金量级分配比例（超大15%/大单20%/中单25%/小单40%）
   const total = scale;
   const huge = total * 0.15;
-  const large = total * 0.20;
+  const large = total * 0.2;
   const medium = total * 0.25;
-  const small = total * 0.40;
+  const small = total * 0.4;
   const main = huge + large + medium; // 主力 = 超大+大单+中单
   const north = total * 0.05; // 北向资金占比约5%
 
@@ -108,10 +108,10 @@ export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
           ? 'time' in res.data.items[0]
             ? 'time'
             : 'trade_date' in res.data.items[0]
-            ? 'trade_date'
-            : 'datetime' in res.data.items[0]
-            ? 'datetime'
-            : null
+              ? 'trade_date'
+              : 'datetime' in res.data.items[0]
+                ? 'datetime'
+                : null
           : null;
 
         const mapped = res.data.items.map((raw) => {
@@ -139,7 +139,7 @@ export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
     }
   };
 
-  const buildOption = (items: MoneyFlowItem[]): echarts.EChartsOption => {
+  const buildOption = (items: MoneyFlowItem[]): echarts.EChartsCoreOption => {
     if (!items.length) return {};
 
     const times = items.map((d) => d.time);
@@ -161,7 +161,7 @@ export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
       return { cat, inflow, outflow };
     });
 
-    const series: echarts.SeriesOption[] = [];
+    const series: Record<string, unknown>[] = [];
     categories.forEach((cat, i) => {
       const color = SERIES_COLORS[cat];
       series.push({
@@ -186,7 +186,10 @@ export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
       });
     });
 
-    const legendNames = categories.flatMap((cat) => [`${SERIES_NAMES[cat]}(+)`, `${SERIES_NAMES[cat]}(-)`]);
+    const legendNames = categories.flatMap((cat) => [
+      `${SERIES_NAMES[cat]}(+)`,
+      `${SERIES_NAMES[cat]}(-)`,
+    ]);
 
     return {
       backgroundColor: 'transparent',
@@ -282,7 +285,11 @@ export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
     resizeObserver?.disconnect();
     clearInterval(refreshTimer);
     chart?.dispose();
-    if (wsHandler) (ws.removeHandler as (type: string, handler: (msg: WsMessage) => void) => void)('*', wsHandler!);
+    if (wsHandler)
+      (ws.removeHandler as (type: string, handler: (msg: WsMessage) => void) => void)(
+        '*',
+        wsHandler!
+      );
     ws.send({ type: 'unsubscribe', topic: `money_flow.${tsCode()}` });
   });
 
@@ -308,12 +315,14 @@ export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
       <div ref={chartRef} class="w-full" style={{ height: props.embedded ? '140px' : '260px' }} />
 
       <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-        {Object.entries(SERIES_NAMES).map(([key, name]) => (
-          <div class="flex items-center gap-1.5">
-            <div class="w-3 h-2 rounded-sm" style={{ background: SERIES_COLORS[key] }} />
-            <span class="text-xs text-gray-500">{name}</span>
-          </div>
-        ))}
+        <For each={Object.entries(SERIES_NAMES)}>
+          {([key, name]) => (
+            <div class="flex items-center gap-1.5">
+              <div class="w-3 h-2 rounded-sm" style={{ background: SERIES_COLORS[key] }} />
+              <span class="text-xs text-gray-500">{name}</span>
+            </div>
+          )}
+        </For>
       </div>
     </div>
   );

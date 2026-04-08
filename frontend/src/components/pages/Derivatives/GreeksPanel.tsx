@@ -7,19 +7,19 @@
  * Rho：利率敏感度（利率变动1%，期权价格变动）
  */
 import { Component, createSignal, createEffect, onMount, onCleanup, For } from 'solid-js';
-import * as echarts from 'echarts';
+import echarts from '@/lib/echarts';
 
 interface GreeksData {
-  delta: number;    // 范围约 -1 到 1
-  gamma: number;    // 范围约 0 到 0.1
-  vega: number;     // 范围约 0 到 1
-  rho: number;      // 范围约 -0.5 到 0.5
-  theta: number;     // 范围约 -1 到 0
-  iv: number;       // 隐含波动率 0-100%
+  delta: number; // 范围约 -1 到 1
+  gamma: number; // 范围约 0 到 0.1
+  vega: number; // 范围约 0 到 1
+  rho: number; // 范围约 -0.5 到 0.5
+  theta: number; // 范围约 -1 到 0
+  iv: number; // 隐含波动率 0-100%
   markPrice: number; // 期权标记价格
   theoreticalPrice: number; // 理论价格
-  intrinsicValue: number;  // 内在价值
-  timeValue: number;       // 时间价值
+  intrinsicValue: number; // 内在价值
+  timeValue: number; // 时间价值
 }
 
 function generateMockGreeks(): GreeksData {
@@ -31,8 +31,8 @@ function generateMockGreeks(): GreeksData {
     theta: -0.045,
     iv: 22.5,
     markPrice: 0.385,
-    theoreticalPrice: 0.380,
-    intrinsicValue: 0.120,
+    theoreticalPrice: 0.38,
+    intrinsicValue: 0.12,
     timeValue: 0.265,
   };
 }
@@ -45,7 +45,7 @@ function createGaugeOption(
   unit: string,
   normalRange: [number, number],
   accentColor: string
-): echarts.EChartsOption {
+): echarts.EChartsCoreOption {
   const _pct = ((value - min) / (max - min)) * 100;
   const inRange = value >= normalRange[0] && value <= normalRange[1];
   const color = inRange ? accentColor : '#EF4444';
@@ -134,7 +134,10 @@ const GreekCard: Component<{
     );
     const ro = new ResizeObserver(() => chart?.resize());
     ro.observe(chartRef);
-    onCleanup(() => { ro.disconnect(); chart?.dispose(); });
+    onCleanup(() => {
+      ro.disconnect();
+      chart?.dispose();
+    });
   });
 
   createEffect(() => {
@@ -164,12 +167,12 @@ const GreekCard: Component<{
 export const GreeksPanel: Component = () => {
   const [greeks, setGreeks] = createSignal<GreeksData>(generateMockGreeks());
   const [position, setPosition] = createSignal('Long Call'); // 多头买入看涨期权
-  const [theoPnl, _setTheoPnl] = createSignal(1250.50);
-  const [deltaPnl, _setDeltaPnl] = createSignal(830.20);
-  const [gammaPnl, _setGammaPnl] = createSignal(210.30);
-  const [vegaPnl, _setVegaPnl] = createSignal(150.80);
-  const [thetaPnl, _setThetaPnl] = createSignal(-65.40);
-  const [rhoPnl, _setRhoPnl] = createSignal(25.60);
+  const [theoPnl, _setTheoPnl] = createSignal(1250.5);
+  const [deltaPnl, _setDeltaPnl] = createSignal(830.2);
+  const [gammaPnl, _setGammaPnl] = createSignal(210.3);
+  const [vegaPnl, _setVegaPnl] = createSignal(150.8);
+  const [thetaPnl, _setThetaPnl] = createSignal(-65.4);
+  const [rhoPnl, _setRhoPnl] = createSignal(25.6);
 
   let thetaChartRef: HTMLDivElement | undefined;
   let thetaChart: echarts.ECharts | undefined;
@@ -190,7 +193,8 @@ export const GreeksPanel: Component = () => {
         backgroundColor: '#1f2937',
         borderColor: '#374151',
         textStyle: { color: '#e5e7eb', fontSize: 11 },
-        formatter: (params: any) => `剩余${params[0].axisValue}天: <b>${params[0].value.toFixed(4)}</b>`,
+        formatter: (params: any) =>
+          `剩余${params[0].axisValue}天: <b>${params[0].value.toFixed(4)}</b>`,
       },
       xAxis: {
         type: 'category',
@@ -209,25 +213,27 @@ export const GreeksPanel: Component = () => {
         axisLabel: { color: '#6b7280', fontSize: 9 },
         splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
       },
-      series: [{
-        type: 'line',
-        data: thetaValue,
-        smooth: true,
-        lineStyle: { color: '#8B5CF6', width: 2 },
-        itemStyle: { color: '#8B5CF6' },
-        areaStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(139,92,246,0.2)' },
-            { offset: 1, color: 'rgba(139,92,246,0)' },
-          ]),
+      series: [
+        {
+          type: 'line',
+          data: thetaValue,
+          smooth: true,
+          lineStyle: { color: '#8B5CF6', width: 2 },
+          itemStyle: { color: '#8B5CF6' },
+          areaStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: 'rgba(139,92,246,0.2)' },
+              { offset: 1, color: 'rgba(139,92,246,0)' },
+            ]),
+          },
+          markLine: {
+            silent: true,
+            lineStyle: { color: 'rgba(255,255,255,0.2)', type: 'dashed' },
+            data: [{ yAxis: 0, name: '价值=0' }],
+          },
         },
-        markLine: {
-          silent: true,
-          lineStyle: { color: 'rgba(255,255,255,0.2)', type: 'dashed' },
-          data: [{ yAxis: 0, name: '价值=0' }],
-        },
-      }],
-    } as unknown as echarts.EChartsOption);
+      ],
+    } as unknown as echarts.EChartsCoreOption);
 
     const ro = new ResizeObserver(() => thetaChart?.resize());
     ro.observe(thetaChartRef);
@@ -272,7 +278,17 @@ export const GreeksPanel: Component = () => {
             value={position()}
             onChange={(e) => setPosition(e.target.value)}
           >
-            <For each={['Long Call', 'Long Put', 'Short Call', 'Short Put', 'Bull Spread', 'Bear Spread', 'Straddle']}>
+            <For
+              each={[
+                'Long Call',
+                'Long Put',
+                'Short Call',
+                'Short Put',
+                'Bull Spread',
+                'Bear Spread',
+                'Straddle',
+              ]}
+            >
               {(p) => <option value={p}>{p}</option>}
             </For>
           </select>
@@ -284,7 +300,8 @@ export const GreeksPanel: Component = () => {
         <GreekCard
           title="Delta"
           value={g.delta}
-          min={-1} max={1}
+          min={-1}
+          max={1}
           unit=""
           normalRange={[-0.5, 0.5]}
           accentColor="#3B82F6"
@@ -293,7 +310,8 @@ export const GreeksPanel: Component = () => {
         <GreekCard
           title="Gamma"
           value={g.gamma}
-          min={0} max={0.05}
+          min={0}
+          max={0.05}
           unit=""
           normalRange={[0, 0.02]}
           accentColor="#22C55E"
@@ -302,7 +320,8 @@ export const GreeksPanel: Component = () => {
         <GreekCard
           title="Vega"
           value={g.vega}
-          min={0} max={0.5}
+          min={0}
+          max={0.5}
           unit=""
           normalRange={[0.05, 0.3]}
           accentColor="#F59E0B"
@@ -311,7 +330,8 @@ export const GreeksPanel: Component = () => {
         <GreekCard
           title="Rho"
           value={g.rho}
-          min={-0.5} max={0.5}
+          min={-0.5}
+          max={0.5}
           unit=""
           normalRange={[-0.2, 0.2]}
           accentColor="#EC4899"
@@ -320,7 +340,8 @@ export const GreeksPanel: Component = () => {
         <GreekCard
           title="Theta"
           value={g.theta}
-          min={-0.2} max={0}
+          min={-0.2}
+          max={0}
           unit=""
           normalRange={[-0.1, -0.01]}
           accentColor="#8B5CF6"
@@ -385,7 +406,8 @@ const PnlItem: Component<{ label: string; value: number; color: string }> = (pro
   <div class="flex justify-between">
     <span class="text-gray-500 text-[10px]">{props.label}</span>
     <span class={`font-mono text-[10px] ${props.value >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-      {props.value >= 0 ? '+' : ''}{props.value.toFixed(2)}
+      {props.value >= 0 ? '+' : ''}
+      {props.value.toFixed(2)}
     </span>
   </div>
 );

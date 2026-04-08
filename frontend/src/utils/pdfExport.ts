@@ -5,7 +5,7 @@
  */
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import type { ECharts } from 'echarts';
+import type { ECharts, EChartsOption } from 'echarts';
 
 // ── 水印工具 ────────────────────────────────────────────────
 function addWatermark(doc: jsPDF, text = '量化分析报告'): void {
@@ -31,7 +31,9 @@ function addHeaderFooter(doc: jsPDF, pageNum: number, totalPages: number, genTim
   doc.setTextColor(150, 150, 150);
   doc.text(`第 ${pageNum} / ${totalPages} 页`, pageWidth / 2, pageHeight - 8, { align: 'center' });
   doc.text(`生成时间: ${genTime}`, margin, pageHeight - 8);
-  doc.text('本报告仅供参考，不构成投资建议', pageWidth - margin, pageHeight - 8, { align: 'right' });
+  doc.text('本报告仅供参考，不构成投资建议', pageWidth - margin, pageHeight - 8, {
+    align: 'right',
+  });
 
   // Reset
   doc.setTextColor(0, 0, 0);
@@ -52,8 +54,13 @@ export async function divToImageDataURL(elementId: string, scale = 2): Promise<s
 }
 
 // ── ECharts 实例 → imageDataURL ───────────────────────────
-export function echartsToImageDataURL(chart: ECharts, pixelRatio = 2): string {
-  return chart.getDataURL({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function echartsToImageDataURL(chart: any, pixelRatio = 2): string {
+  // EChartsOption is just a config object; only real ECharts instances have getDataURL
+  if (!chart || !('getDataURL' in chart)) {
+    return '';
+  }
+  return (chart as ECharts).getDataURL({
     type: 'png',
     pixelRatio,
     backgroundColor: '#0f172a',
@@ -92,11 +99,9 @@ export async function exportToPdf(
   const imgHeightPx = img.height || 600;
 
   // Calculate image dimensions to fit page
-  const ratio = contentWidth / (imgWidthPx / scale * 0.264583); // px→mm
+  const ratio = contentWidth / ((imgWidthPx / scale) * 0.264583); // px→mm
   const imgDisplayWidth = contentWidth;
   const imgDisplayHeight = Math.min((imgHeightPx / scale) * 0.264583 * ratio, contentHeight);
-
-  let _yOffset = margin;
 
   // Split into pages if image is tall
   let srcY = 0;
@@ -110,11 +115,7 @@ export async function exportToPdf(
     pageCanvas.width = imgWidthPx;
     pageCanvas.height = srcH;
     const ctx = pageCanvas.getContext('2d')!;
-    ctx.drawImage(
-      await loadImage(imgDataURL),
-      0, srcY, imgWidthPx, srcH,
-      0, 0, imgWidthPx, srcH
-    );
+    ctx.drawImage(await loadImage(imgDataURL), 0, srcY, imgWidthPx, srcH, 0, 0, imgWidthPx, srcH);
 
     const pageImgData = pageCanvas.toDataURL('image/png', 1.0);
 
@@ -124,7 +125,6 @@ export async function exportToPdf(
     addWatermark(doc, watermark);
 
     const genTime = new Date().toLocaleString('zh-CN');
-    const _pageNum = Math.floor(srcY / (srcH)) + 1;
     const totalPages = Math.ceil(imgHeightPx / srcH);
 
     // Header
@@ -133,7 +133,14 @@ export async function exportToPdf(
     doc.text(watermark, margin, margin - 4);
     doc.text(genTime, pageWidth - margin, margin - 4, { align: 'right' });
 
-    doc.addImage(pageImgData, 'PNG', margin, margin + 4, contentWidth, imgDisplayHeight * (srcH / imgHeightPx));
+    doc.addImage(
+      pageImgData,
+      'PNG',
+      margin,
+      margin + 4,
+      contentWidth,
+      imgDisplayHeight * (srcH / imgHeightPx)
+    );
 
     // Footer
     addHeaderFooter(doc, Math.floor(srcY / srcH) + 1, totalPages, genTime);
@@ -184,9 +191,9 @@ export interface BacktestReportData {
 
 export async function exportBacktestReport(
   charts: {
-    equityChart: ECharts | undefined;
-    drawdownChart: ECharts | undefined;
-    monthlyChart: ECharts | undefined;
+    equityChart: any;
+    drawdownChart: any;
+    monthlyChart: any;
   },
   data: BacktestReportData,
   filename = 'backtest_report'
@@ -226,7 +233,11 @@ export async function exportBacktestReport(
   doc.setFontSize(10);
   doc.setTextColor(150, 150, 150);
   const metrics = [
-    ['年化收益率', `${data.annualReturn >= 0 ? '+' : ''}${data.annualReturn.toFixed(2)}%`, data.annualReturn >= 0 ? '#3B82F6' : '#22C55E'],
+    [
+      '年化收益率',
+      `${data.annualReturn >= 0 ? '+' : ''}${data.annualReturn.toFixed(2)}%`,
+      data.annualReturn >= 0 ? '#3B82F6' : '#22C55E',
+    ],
     ['夏普比率', data.sharpeRatio.toFixed(2), '#3B82F6'],
     ['最大回撤', `${data.maxDrawdown.toFixed(2)}%`, '#EF4444'],
     ['卡玛比率', data.calmarRatio.toFixed(2), '#3B82F6'],
@@ -237,7 +248,8 @@ export async function exportBacktestReport(
     doc.setTextColor(150, 150, 150);
     doc.text(label, x + colW / 2, 120, { align: 'center' });
     doc.setFontSize(14);
-    const hex = color === '#3B82F6' ? [59, 130, 246] : color === '#EF4444' ? [239, 68, 68] : [34, 197, 94];
+    const hex =
+      color === '#3B82F6' ? [59, 130, 246] : color === '#EF4444' ? [239, 68, 68] : [34, 197, 94];
     doc.setTextColor(hex[0], hex[1], hex[2]);
     doc.text(value, x + colW / 2, 128, { align: 'center' });
     doc.setFontSize(10);
@@ -247,10 +259,12 @@ export async function exportBacktestReport(
   doc.setFontSize(8);
   doc.setTextColor(150, 150, 150);
   doc.text(`生成时间: ${genTime}`, margin, pageHeight - 8);
-  doc.text('本报告仅供参考，不构成投资建议', pageWidth - margin, pageHeight - 8, { align: 'right' });
+  doc.text('本报告仅供参考，不构成投资建议', pageWidth - margin, pageHeight - 8, {
+    align: 'right',
+  });
 
   // ── Page 2+: 图表页 ─────────────────────────────────────
-  const addChartPage = async (chart: ECharts | undefined, title: string) => {
+  const addChartPage = async (chart: ECharts | EChartsOption | undefined, title: string) => {
     if (!chart) return;
     doc.addPage();
     addWatermark(doc, watermark);
@@ -284,17 +298,33 @@ export async function exportBacktestReport(
 
   const metrics2 = [
     ['指标', '数值', '说明'],
-    ['总收益率', `${data.totalReturn >= 0 ? '+' : ''}${data.totalReturn.toFixed(2)}%`, '期末相对期初总增长'],
-    ['年化收益率', `${data.annualReturn >= 0 ? '+' : ''}${data.annualReturn.toFixed(2)}%`, '年化收益水平'],
+    [
+      '总收益率',
+      `${data.totalReturn >= 0 ? '+' : ''}${data.totalReturn.toFixed(2)}%`,
+      '期末相对期初总增长',
+    ],
+    [
+      '年化收益率',
+      `${data.annualReturn >= 0 ? '+' : ''}${data.annualReturn.toFixed(2)}%`,
+      '年化收益水平',
+    ],
     ['夏普比率', data.sharpeRatio.toFixed(2), '风险调整后收益'],
     ['卡玛比率', data.calmarRatio.toFixed(2), '年化收益/最大回撤'],
     ['最大回撤', `${data.maxDrawdown.toFixed(2)}%`, '历史最大亏损幅度'],
-    ['超额收益', `${data.excessReturn >= 0 ? '+' : ''}${data.excessReturn.toFixed(2)}%`, '相对基准超额回报'],
+    [
+      '超额收益',
+      `${data.excessReturn >= 0 ? '+' : ''}${data.excessReturn.toFixed(2)}%`,
+      '相对基准超额回报',
+    ],
     ['胜率', `${(data.winRate * 100).toFixed(1)}%`, '盈利交易占比'],
     ['总交易次数', String(data.totalTrades), '回测区间内交易总数'],
     ['盈亏比', data.profitLossRatio.toFixed(2), '平均盈利/平均亏损'],
     ['期初资金', `${data.initialCapital.toLocaleString()}`, '回测起始资金'],
-    ['期末资金', `${data.endCapital.toLocaleString('en-US', { maximumFractionDigits: 2 })}`, '回测结束资金'],
+    [
+      '期末资金',
+      `${data.endCapital.toLocaleString('en-US', { maximumFractionDigits: 2 })}`,
+      '回测结束资金',
+    ],
   ];
 
   const startY = margin + 10;
@@ -375,14 +405,18 @@ export async function exportBacktestReport(
       doc.text(String(t.volume), tradeCols[4] + 2, y + 5);
       if (t.pnl !== undefined) {
         doc.setTextColor(t.pnl >= 0 ? 59 : 239, t.pnl >= 0 ? 130 : 68, t.pnl >= 0 ? 246 : 68);
-        doc.text(`${t.pnl >= 0 ? '+' : ''}${(t.pnl).toFixed(2)}`, tradeCols[5] + 2, y + 5);
+        doc.text(`${t.pnl >= 0 ? '+' : ''}${t.pnl.toFixed(2)}`, tradeCols[5] + 2, y + 5);
       }
     });
 
     if (data.trades.length > 50) {
       doc.setTextColor(150, 150, 150);
       doc.setFontSize(8);
-      doc.text(`... 共 ${data.trades.length} 条记录，仅显示前50条`, margin, tradeStartY + (51) * tradeRowH + 5);
+      doc.text(
+        `... 共 ${data.trades.length} 条记录，仅显示前50条`,
+        margin,
+        tradeStartY + 51 * tradeRowH + 5
+      );
     }
   }
 
@@ -391,7 +425,8 @@ export async function exportBacktestReport(
 
 // ── ECharts 直接导出PDF ────────────────────────────────────
 export async function exportEchartsToPdf(
-  chart: ECharts,
+  chart: any,
+
   title: string,
   filename = 'chart',
   options: ExportPdfOptions = {}
@@ -416,7 +451,14 @@ export async function exportEchartsToPdf(
   const ratio = contentWidth / (img.width * 0.264583);
   const imgH = img.height * 0.264583 * ratio;
 
-  doc.addImage(imgData, 'PNG', margin, margin + 8, contentWidth, Math.min(imgH, contentHeight - 16));
+  doc.addImage(
+    imgData,
+    'PNG',
+    margin,
+    margin + 8,
+    contentWidth,
+    Math.min(imgH, contentHeight - 16)
+  );
 
   addHeaderFooter(doc, 1, 1, genTime);
 

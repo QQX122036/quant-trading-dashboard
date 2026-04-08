@@ -16,12 +16,12 @@ export function directionBg(d: Direction | string): string {
 
 export function statusColor(s: OrderStatus | string): string {
   const map: Record<string, string> = {
-    '提交中':   'bg-gray-600 text-white',
-    '未成交':   'bg-blue-600 text-white',
-    '部分成交': 'bg-yellow-600 text-black',
-    '全部成交': 'bg-green-700 text-white',
-    '已撤销':   'bg-gray-500 text-white',
-    '拒单':     'bg-red-700 text-white',
+    提交中: 'bg-gray-600 text-white',
+    未成交: 'bg-blue-600 text-white',
+    部分成交: 'bg-yellow-600 text-black',
+    全部成交: 'bg-green-700 text-white',
+    已撤销: 'bg-gray-500 text-white',
+    拒单: 'bg-red-700 text-white',
   };
   return map[s] || 'bg-gray-400 text-black';
 }

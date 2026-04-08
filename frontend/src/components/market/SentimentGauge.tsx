@@ -4,13 +4,13 @@
  * ECharts 仪表盘 + 数值卡片
  */
 import { Component, createSignal, onMount, onCleanup, createMemo } from 'solid-js';
-import * as echarts from 'echarts';
+import echarts from '@/lib/echarts';
 
 interface SentimentData {
-  fear_greed: number;      // 0-100
-  volatility: number;      // 布林带宽度
-  up_count: number;        // 上涨家数
-  down_count: number;      // 下跌家数
+  fear_greed: number; // 0-100
+  volatility: number; // 布林带宽度
+  up_count: number; // 上涨家数
+  down_count: number; // 下跌家数
   date: string;
 }
 
@@ -18,7 +18,8 @@ interface SentimentGaugeProps {
   embedded?: boolean;
 }
 
-const cardStyle = 'bg-[#1f2937]/80 rounded-lg border border-white/10 p-4 flex flex-col items-center justify-center gap-2';
+const cardStyle =
+  'bg-[#1f2937]/80 rounded-lg border border-white/10 p-4 flex flex-col items-center justify-center gap-2';
 
 // 创建仪表盘配置
 function createGaugeOption(
@@ -28,7 +29,7 @@ function createGaugeOption(
   name: string,
   colorStops: Array<{ offset: number; color: string }>,
   suffix = ''
-): echarts.EChartsOption {
+): echarts.EChartsCoreOption {
   return {
     backgroundColor: 'transparent',
     series: [
@@ -46,7 +47,10 @@ function createGaugeOption(
           itemStyle: {
             color: {
               type: 'linear',
-              x: 0, y: 0, x2: 1, y2: 0,
+              x: 0,
+              y: 0,
+              x2: 1,
+              y2: 0,
               colorStops,
             },
           },
@@ -79,12 +83,14 @@ function FearGreedGauge(props: { value: number }) {
 
   const label = createMemo(() => {
     const v = props.value;
-    if (v < 30) return { text: '恐惧', color: '#22C55E', bg: 'bg-green-500/10 border-green-500/30' };
-    if (v <= 70) return { text: '中性', color: '#F59E0B', bg: 'bg-yellow-500/10 border-yellow-500/30' };
+    if (v < 30)
+      return { text: '恐惧', color: '#22C55E', bg: 'bg-green-500/10 border-green-500/30' };
+    if (v <= 70)
+      return { text: '中性', color: '#F59E0B', bg: 'bg-yellow-500/10 border-yellow-500/30' };
     return { text: '贪婪', color: '#EF4444', bg: 'bg-red-500/10 border-red-500/30' };
   });
 
-  const option = createMemo((): echarts.EChartsOption => {
+  const option = createMemo((): echarts.EChartsCoreOption => {
     const v = Math.round(props.value);
     return createGaugeOption(v, 0, 100, '', [
       { offset: 0, color: '#22C55E' },
@@ -99,14 +105,19 @@ function FearGreedGauge(props: { value: number }) {
     chart.setOption(option());
     const ro = new ResizeObserver(() => chart?.resize());
     ro.observe(ref);
-    onCleanup(() => { ro.disconnect(); chart?.dispose(); });
+    onCleanup(() => {
+      ro.disconnect();
+      chart?.dispose();
+    });
   });
 
   return (
     <div class={`${cardStyle} flex-1 min-w-[140px]`}>
       <div ref={ref} class="w-full" style={{ height: '140px' }} />
       <div class={`text-center px-2 py-1 rounded border ${label().bg}`}>
-        <span class="text-sm font-bold" style={{ color: label().color }}>{label().text}</span>
+        <span class="text-sm font-bold" style={{ color: label().color }}>
+          {label().text}
+        </span>
       </div>
     </div>
   );
@@ -152,7 +163,9 @@ function UpDownRatioCard(props: { up: number; down: number }) {
         <span class="text-2xl font-bold font-mono" style={{ color: level().color }}>
           {ratio().toFixed(2)}
         </span>
-        <span class="text-xs text-gray-500">= {props.up}/{props.down}</span>
+        <span class="text-xs text-gray-500">
+          = {props.up}/{props.down}
+        </span>
       </div>
       <div class={`text-xs px-2 py-0.5 rounded ${level().bg}`} style={{ color: level().color }}>
         市场{level().text}
@@ -203,17 +216,27 @@ export const SentimentGauge: Component<SentimentGaugeProps> = (props) => {
   });
 
   return (
-    <div class={`bg-[#111827]/80 rounded-lg border border-white/10 ${props.embedded ? '' : 'p-4'}`}>
+    <div
+      class={`bg-[#111827]/80 rounded-lg border border-white/10 ${props.embedded ? '' : 'p-4'}`}
+      role="region"
+      aria-label="市场情绪仪表盘"
+    >
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-bold text-sm">市场情绪</h3>
         <div class="flex items-center gap-2">
-          {loading() && <span class="text-xs text-gray-500 animate-pulse">刷新中…</span>}
+          {loading() && (
+            <span class="text-xs text-gray-500 animate-pulse" role="status" aria-live="polite">
+              刷新中…
+            </span>
+          )}
           <span class="text-xs text-gray-500">{sentiment().date}</span>
         </div>
       </div>
 
       {error() && (
-        <div class="text-xs text-yellow-500 mb-2">⚠️ {error()} — 显示预览数据</div>
+        <div class="text-xs text-yellow-500 mb-2" role="alert">
+          ⚠️ {error()} — 显示预览数据
+        </div>
       )}
 
       <div class="flex gap-3 flex-wrap">

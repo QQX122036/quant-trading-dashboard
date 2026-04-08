@@ -22,7 +22,7 @@ const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? ''
 // ── Types ─────────────────────────────────────────────────
 
 export interface MinuteBar {
-  datetime: string;   // "2026-04-05 09:30:00"
+  datetime: string; // "2026-04-05 09:30:00"
   open: number;
   high: number;
   low: number;
@@ -46,13 +46,13 @@ interface MinuteChartProps {
 }
 
 // ── Colors ────────────────────────────────────────────────
-const CHART_BG   = '#0a0a0f';
+const CHART_BG = '#0a0a0f';
 const GRID_COLOR = 'rgba(255,255,255,0.04)';
 const TEXT_COLOR = '#94a3b8';
-const UP_COLOR   = '#ef4444';
+const UP_COLOR = '#ef4444';
 const DOWN_COLOR = '#22c55e';
-const AVG_COLOR  = '#f59e0b';   // 均价线
-const BORDER     = 'rgba(255,255,255,0.08)';
+const AVG_COLOR = '#f59e0b'; // 均价线
+const BORDER = 'rgba(255,255,255,0.08)';
 
 // ── API ──────────────────────────────────────────────────
 
@@ -61,7 +61,11 @@ async function fetchMinuteBar(ts_code: string): Promise<MinuteBar[]> {
   const url = `${BASE_URL}/api/data/minute-bar?${params}`;
   const res = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-  const json = await res.json() as { code: string; message?: string; data?: { items?: MinuteBar[]; total?: number } };
+  const json = (await res.json()) as {
+    code: string;
+    message?: string;
+    data?: { items?: MinuteBar[]; total?: number };
+  };
   if (json.code !== '0') throw new Error(json.message || '加载分时数据失败');
   return json.data?.items ?? [];
 }
@@ -89,7 +93,7 @@ function calcAvgLine(bars: MinuteBar[]): LineData<Time>[] {
   let cumAmount = 0;
   let cumVolume = 0;
   return bars.map((bar) => {
-    cumAmount += bar.close * bar.volume;   // 用 close 作为成交价近似
+    cumAmount += bar.close * bar.volume; // 用 close 作为成交价近似
     cumVolume += bar.volume;
     const avg = cumVolume > 0 ? cumAmount / cumVolume : bar.close;
     return { time: toTime(bar.datetime), value: Number(avg.toFixed(2)) };
@@ -102,9 +106,10 @@ function buildVolData(bars: MinuteBar[]): HistogramData<Time>[] {
   return bars.map((bar) => ({
     time: toTime(bar.datetime),
     value: bar.volume,
-    color: bar.close >= firstClose
-      ? 'rgba(239,68,68,0.5)'   // 涨
-      : 'rgba(34,197,94,0.5)',   // 跌
+    color:
+      bar.close >= firstClose
+        ? 'rgba(239,68,68,0.5)' // 涨
+        : 'rgba(34,197,94,0.5)', // 跌
   }));
 }
 
@@ -114,12 +119,12 @@ export const MinuteChart: Component<MinuteChartProps> = (props) => {
   let containerRef: HTMLDivElement | undefined;
   let chart: IChartApi | undefined;
   let priceSeries: ISeriesApi<'Line'> | undefined;
-  let avgSeries:   ISeriesApi<'Line'> | undefined;
-  let volSeries:   ISeriesApi<'Histogram'> | undefined;
+  let avgSeries: ISeriesApi<'Line'> | undefined;
+  let volSeries: ISeriesApi<'Histogram'> | undefined;
 
-  const [bars, setBars]     = createSignal<MinuteBar[]>([]);
+  const [bars, setBars] = createSignal<MinuteBar[]>([]);
   const [loading, setLoading] = createSignal(false);
-  const [error, setError]   = createSignal<string | null>(null);
+  const [error, setError] = createSignal<string | null>(null);
 
   // ── 加载数据 ────────────────────────────────────────────
   async function loadData() {
@@ -236,7 +241,7 @@ export const MinuteChart: Component<MinuteChartProps> = (props) => {
     avgSeries = chart.addLineSeries({
       color: AVG_COLOR,
       lineWidth: 1,
-      lineStyle: 0,       // dashed — lightweight-charts 支持但用实线保持清晰
+      lineStyle: 0, // dashed — lightweight-charts 支持但用实线保持清晰
       priceLineVisible: false,
       lastValueVisible: false,
       title: 'MA',
@@ -245,7 +250,7 @@ export const MinuteChart: Component<MinuteChartProps> = (props) => {
     // 成交量 — 放在下方 priceScale
     volSeries = chart.addHistogramSeries({
       priceFormat: { type: 'volume' },
-      priceScaleId: '',    // 默认 right
+      priceScaleId: '', // 默认 right
     });
     volSeries.priceScale().applyOptions({
       scaleMargins: { top: 0.75, bottom: 0 },
@@ -310,25 +315,38 @@ export const MinuteChart: Component<MinuteChartProps> = (props) => {
     <div class="relative w-full" style={{ height: `${h()}px` }}>
       {/* Loading overlay */}
       {loading() && (
-        <div class="absolute inset-0 z-10 flex items-center justify-center"
-          style={{ background: 'rgba(10,10,15,0.75)', 'backdrop-filter': 'blur(4px)' }}>
+        <div
+          class="absolute inset-0 z-10 flex items-center justify-center"
+          style={{ background: 'rgba(10,10,15,0.75)', 'backdrop-filter': 'blur(4px)' }}
+        >
           <div class="flex flex-col items-center gap-2">
             <div class="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-            <span class="text-xs" style={{ color: TEXT_COLOR }}>加载分时数据...</span>
+            <span class="text-xs" style={{ color: TEXT_COLOR }}>
+              加载分时数据...
+            </span>
           </div>
         </div>
       )}
 
       {/* Error badge */}
       {error() && (
-        <div class="absolute top-2 left-2 z-10 px-2 py-1 rounded text-xs"
-          style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}>
+        <div
+          class="absolute top-2 left-2 z-10 px-2 py-1 rounded text-xs"
+          style={{
+            background: 'rgba(239,68,68,0.15)',
+            color: '#ef4444',
+            border: '1px solid rgba(239,68,68,0.3)',
+          }}
+        >
           {error()}
         </div>
       )}
 
       {/* Legend */}
-      <div class="absolute top-2 right-2 z-10 flex items-center gap-3 text-xs" style={{ color: TEXT_COLOR }}>
+      <div
+        class="absolute top-2 right-2 z-10 flex items-center gap-3 text-xs"
+        style={{ color: TEXT_COLOR }}
+      >
         <span class="flex items-center gap-1">
           <span class="w-3 h-0.5 rounded-sm" style={{ background: UP_COLOR }} />
           <span>分时</span>

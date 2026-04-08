@@ -1,60 +1,118 @@
 import { test, expect } from '@playwright/test';
-const BASE_URL = 'http://localhost:8501';
 
-// === API Tests ===
+const FRONTEND_URL = 'http://localhost:5180';
+const API_BASE = 'http://192.168.2.105:8501';
 
-test('JWT login flow', async ({ page }) => {
-  // Note: backend expects query params, not JSON body
-  const response = await page.request.post(`${BASE_URL}/api/auth/login?username=admin&password=admin123`);
-  expect(response.status()).toBe(200);
-  const body = await response.json();
-  expect(body.access_token).toBeDefined();
-  const tokenParts = body.access_token.split('.');
-  expect(tokenParts.length).toBe(3);
-  expect(body.user_id).toBeDefined();
-});
+test.describe('Auth Flow E2E', () => {
+  
+  test('Access protected page → redirect to login', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/dashboard`, { waitUntil: 'networkidle', timeout: 15000 });
+    await page.waitForTimeout(3000);
+    const url = page.url();
+    console.log('Current URL after accessing /dashboard:', url);
+    // If auth guard works, should redirect to /login
+    const redirected = url.includes('/login');
+    console.log('Redirected to login:', redirected);
+    // Even if not redirected, check if page loaded properly
+    const content = await page.textContent('body');
+    console.log('Page content length:', content?.length);
+    expect(redirected).toBe(true);
+  });
 
-test('API health check', async ({ page }) => {
-  const response = await page.request.get(`${BASE_URL}/api/health`);
-  expect(response.status()).toBe(200);
-  const body = await response.json();
-  expect(body.status).toBeDefined();
-});
+  test('Login page loads', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/login`, { waitUntil: 'networkidle', timeout: 15000 });
+    await page.waitForTimeout(2000);
+    const url = page.url();
+    console.log('Login page URL:', url);
+    const content = await page.textContent('body');
+    console.log('Login page content length:', content?.length);
+    expect(content?.length).toBeGreaterThan(50);
+  });
 
-test('API daily-bar returns market data', async ({ page }) => {
-  const response = await page.request.get(`${BASE_URL}/api/data/daily-bar?ts_code=600519.SH&start=2026-01-01&end=2026-04-05`);
-  expect(response.status()).toBe(200);
-  const body = await response.json();
-  // Response format: {code:0, data:[...]} not {bars:[...]}
-  expect(body.data).toBeDefined();
-  expect(Array.isArray(body.data)).toBe(true);
-  expect(body.data.length).toBeGreaterThan(0);
-  expect(body.data[0]).toHaveProperty('ts_code');
-  expect(body.data[0]).toHaveProperty('trade_date');
-  expect(body.data[0]).toHaveProperty('close');
-});
+  test('Login → token stored in localStorage', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/login`, { waitUntil: 'networkidle', timeout: 15000 });
+    await page.waitForTimeout(2000);
+    
+    const inputs = await page.locator('input').all();
+    console.log('Found inputs:', inputs.length);
+    
+    if (inputs.length >= 2) {
+      await inputs[0].fill('admin');
+      await inputs[1].fill('admin123');
+    } else {
+      // Try alternative selectors
+      await page.locator('input[name="username"], input[type="text"]').first().fill('admin').catch(() => {});
+      await page.locator('input[name="password"], input[type="password"]').first().fill('admin123').catch(() => {});
+    }
+    
+    await page.locator('button[type="submit"]').click();
+    await page.waitForTimeout(3000);
+    
+    const token = await page.evaluate(() => localStorage.getItem('auth_token'));
+    console.log('Token after login:', token ? token.substring(0, 30) + '...' : 'NULL');
+    expect(token).toBeTruthy();
+  });
 
-test('API positions endpoint (correct path: /api/position/positions)', async ({ page }) => {
-  const response = await page.request.get(`${BASE_URL}/api/position/positions`);
-  expect(response.status()).toBe(200);
-  const body = await response.json();
-  expect(body.positions).toBeDefined();
-});
+  test('Protected API → 200 with valid token', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/login`, { waitUntil: 'networkidle', timeout: 15000 });
+    await page.waitForTimeout(2000);
+    
+    const inputs = await page.locator('input').all();
+    if (inputs.length >= 2) {
+      await inputs[0].fill('admin');
+      await inputs[1].fill('admin123');
+    }
+    await page.locator('button[type="submit"]').click();
+    await page.waitForTimeout(3000);
+    
+    const token = await page.evaluate(() => localStorage.getItem('auth_token'));
+    
+    const res = await page.evaluate(async ({ tok, url }) => {
+      const r = await fetch(url, { headers: { 'Authorization': `Bearer ${tok}` } });
+      return { status: r.status, data: await r.json() };
+    }, { tok: token, url: `${API_BASE}/api/position/positions` });
+    
+    console.log('API Response:', res.status, JSON.stringify(res.data).substring(0, 100));
+    expect(res.status).toBe(200);
+  });
 
-test('Frontend HTML served at root', async ({ page }) => {
-  const response = await page.goto(`${BASE_URL}/`);
-  expect(response?.status()).toBe(200);
-  const content = await page.content();
-  expect(content).toContain('VeighNa Web');
-  expect(content).toContain('index-hMf8P10i.js');
-});
+  test('Dashboard page loads after login', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/login`, { waitUntil: 'networkidle', timeout: 15000 });
+    await page.waitForTimeout(2000);
+    
+    const inputs = await page.locator('input').all();
+    if (inputs.length >= 2) {
+      await inputs[0].fill('admin');
+      await inputs[1].fill('admin123');
+    }
+    await page.locator('button[type="submit"]').click();
+    await page.waitForTimeout(3000);
+    
+    await page.goto(`${FRONTEND_URL}/dashboard`, { waitUntil: 'networkidle', timeout: 15000 });
+    await page.waitForTimeout(3000);
+    
+    const content = await page.textContent('body');
+    console.log('Dashboard content length:', content?.length, '| URL:', page.url());
+    expect(content?.length).toBeGreaterThan(100);
+  });
 
-test('Frontend /kline route serves HTML', async ({ page }) => {
-  const response = await page.goto(`${BASE_URL}/kline`);
-  expect(response?.status()).toBe(200);
-});
-
-test('Frontend /backtest route serves HTML', async ({ page }) => {
-  const response = await page.goto(`${BASE_URL}/backtest`);
-  expect(response?.status()).toBe(200);
+  test('Positions page loads after login', async ({ page }) => {
+    await page.goto(`${FRONTEND_URL}/login`, { waitUntil: 'networkidle', timeout: 15000 });
+    await page.waitForTimeout(2000);
+    
+    const inputs = await page.locator('input').all();
+    if (inputs.length >= 2) {
+      await inputs[0].fill('admin');
+      await inputs[1].fill('admin123');
+    }
+    await page.locator('button[type="submit"]').click();
+    await page.waitForTimeout(3000);
+    
+    await page.goto(`${FRONTEND_URL}/positions`, { waitUntil: 'networkidle', timeout: 15000 });
+    await page.waitForTimeout(3000);
+    
+    const content = await page.textContent('body');
+    console.log('Positions content length:', content?.length, '| URL:', page.url());
+    expect(content?.length).toBeGreaterThan(100);
+  });
 });

@@ -1,5 +1,13 @@
 import { Component, For, createSignal, onMount, Show } from 'solid-js';
-import { fetchStrategies, startStrategy, stopStrategy, deleteStrategy, updateStrategy, StrategyItem } from '../../hooks/useApi';
+import {
+  fetchStrategies,
+  startStrategy,
+  stopStrategy,
+  deleteStrategy,
+  updateStrategy,
+  StrategyItem,
+} from '../../hooks/useApi';
+import { logger } from '../../lib/logger';
 import { formatPrice } from '../../utils/format';
 import { pnlColor } from '../../utils/color';
 
@@ -116,11 +124,11 @@ const EditDialog: Component<EditDialogProps> = (props) => {
 // ── Main Component ─────────────────────────────────────────
 
 const COLUMNS = [
-  { field: 'name',          header: '策略名称',     width: 140 },
-  { field: 'strategy_type', header: '类型',        width: 100 },
-  { field: 'status',       header: '状态',         width: 80  },
-  { field: 'running_time', header: '运行时长',     width: 90  },
-  { field: 'pnl',          header: '累计盈亏',     width: 100 },
+  { field: 'name', header: '策略名称', width: 140 },
+  { field: 'strategy_type', header: '类型', width: 100 },
+  { field: 'status', header: '状态', width: 80 },
+  { field: 'running_time', header: '运行时长', width: 90 },
+  { field: 'pnl', header: '累计盈亏', width: 100 },
 ];
 
 export const StrategyManager: Component = () => {
@@ -137,7 +145,7 @@ export const StrategyManager: Component = () => {
         setStrategies(res.data.strategies);
       }
     } catch (e) {
-      console.warn('[StrategyManager] fetchStrategies error', e);
+      logger.warn('[StrategyManager] fetchStrategies error', { error: e });
     } finally {
       setLoading(false);
     }
@@ -151,7 +159,7 @@ export const StrategyManager: Component = () => {
       await startStrategy(id);
       await load();
     } catch (e) {
-      console.warn('[StrategyManager] startStrategy error', e);
+      logger.warn('[StrategyManager] startStrategy error', { error: e });
     } finally {
       setActionLoading(null);
     }
@@ -163,7 +171,7 @@ export const StrategyManager: Component = () => {
       await stopStrategy(id);
       await load();
     } catch (e) {
-      console.warn('[StrategyManager] stopStrategy error', e);
+      logger.warn('[StrategyManager] stopStrategy error', { error: e });
     } finally {
       setActionLoading(null);
     }
@@ -176,13 +184,16 @@ export const StrategyManager: Component = () => {
       await deleteStrategy(id);
       await load();
     } catch (e) {
-      console.warn('[StrategyManager] deleteStrategy error', e);
+      logger.warn('[StrategyManager] deleteStrategy error', { error: e });
     } finally {
       setActionLoading(null);
     }
   };
 
-  const handleEditConfirm = async (data: { strategy_type: string; params: Record<string, unknown> }) => {
+  const handleEditConfirm = async (data: {
+    strategy_type: string;
+    params: Record<string, unknown>;
+  }) => {
     const s = editingStrategy();
     if (!s) return;
     try {
@@ -190,7 +201,7 @@ export const StrategyManager: Component = () => {
       setEditingStrategy(null);
       await load();
     } catch (e) {
-      console.warn('[StrategyManager] updateStrategy error', e);
+      logger.warn('[StrategyManager] updateStrategy error', { error: e });
     }
   };
 
@@ -230,13 +241,19 @@ export const StrategyManager: Component = () => {
               </tr>
             </thead>
             <tbody>
-              <For each={strategies()} fallback={
-                <tr>
-                  <td colspan={COLUMNS.length + 1} class="text-center py-12 text-[var(--text-muted)]">
-                    {loading() ? '加载中...' : '暂无策略'}
-                  </td>
-                </tr>
-              }>
+              <For
+                each={strategies()}
+                fallback={
+                  <tr>
+                    <td
+                      colspan={COLUMNS.length + 1}
+                      class="text-center py-12 text-[var(--text-muted)]"
+                    >
+                      {loading() ? '加载中...' : '暂无策略'}
+                    </td>
+                  </tr>
+                }
+              >
                 {(strategy) => (
                   <tr class="border-b border-[var(--border-color)] hover:bg-[var(--bg-hover)] transition-colors">
                     <For each={COLUMNS}>
@@ -245,14 +262,24 @@ export const StrategyManager: Component = () => {
                         if (col.field === 'status') {
                           return (
                             <td class="px-2 py-2.5">
-                              <span class={`inline-flex items-center gap-1.5 text-xs ${
-                                val === 'running' ? 'text-green-400' :
-                                val === 'error' ? 'text-red-400' : 'text-[var(--text-muted)]'
-                              }`}>
-                                <span class={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                                  val === 'running' ? 'bg-green-400 animate-pulse' :
-                                  val === 'error' ? 'bg-red-400' : 'bg-gray-500'
-                                }`} />
+                              <span
+                                class={`inline-flex items-center gap-1.5 text-xs ${
+                                  val === 'running'
+                                    ? 'text-green-400'
+                                    : val === 'error'
+                                      ? 'text-red-400'
+                                      : 'text-[var(--text-muted)]'
+                                }`}
+                              >
+                                <span
+                                  class={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                                    val === 'running'
+                                      ? 'bg-green-400 animate-pulse'
+                                      : val === 'error'
+                                        ? 'bg-red-400'
+                                        : 'bg-gray-500'
+                                  }`}
+                                />
                                 {val === 'running' ? '运行中' : val === 'error' ? '错误' : '已停止'}
                               </span>
                             </td>
@@ -268,8 +295,11 @@ export const StrategyManager: Component = () => {
                         if (col.field === 'pnl') {
                           const pnl = val as number;
                           return (
-                            <td class={`px-2 py-2.5 text-xs font-mono tabular-nums ${pnlColor(pnl)}`}>
-                              {pnl >= 0 ? '+' : ''}{formatPrice(pnl)}
+                            <td
+                              class={`px-2 py-2.5 text-xs font-mono tabular-nums ${pnlColor(pnl)}`}
+                            >
+                              {pnl >= 0 ? '+' : ''}
+                              {formatPrice(pnl)}
                             </td>
                           );
                         }
@@ -330,13 +360,16 @@ export const StrategyManager: Component = () => {
           <h3 class="text-xs font-semibold text-[var(--text-muted)]">最新策略日志</h3>
         </div>
         <div class="h-36 overflow-auto font-mono text-xs">
-          <For each={
-            strategies().flatMap((s) =>
-              (s.logs ?? []).map((log) => ({ ...s, logText: log }))
-            ).slice(-5)
-          } fallback={
-            <div class="flex items-center justify-center h-full text-[var(--text-muted)]">暂无日志</div>
-          }>
+          <For
+            each={strategies()
+              .flatMap((s) => (s.logs ?? []).map((log) => ({ ...s, logText: log })))
+              .slice(-5)}
+            fallback={
+              <div class="flex items-center justify-center h-full text-[var(--text-muted)]">
+                暂无日志
+              </div>
+            }
+          >
             {(item) => (
               <div class="flex gap-3 px-3 py-0.5 border-b border-[var(--border-color)]/50 hover:bg-[var(--bg-hover)]">
                 <span class="text-[var(--text-muted)] whitespace-nowrap">[{item.name}]</span>

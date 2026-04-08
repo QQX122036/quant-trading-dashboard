@@ -56,7 +56,5 @@ export const VolumeChart: Component<Props> = (props) => {
     volSeries.setData(data);
   });
 
-  return (
-    <div ref={containerRef} class="w-full" style={{ height: `${props.height ?? 150}px` }} />
-  );
+  return <div ref={containerRef} class="w-full" style={{ height: `${props.height ?? 150}px` }} />;
 };

@@ -36,7 +36,9 @@ export const StockDashboard: Component = () => {
     if (stockNameCache[code]) return stockNameCache[code];
     try {
       const tsCode = code.startsWith('6') ? `${code}.SH` : `${code}.SZ`;
-      const res = await apiFetch<{ items: StockBasicItem[] }>(`/api/data/stock-basic?ts_code=${tsCode}&limit=1`);
+      const res = await apiFetch<{ items: StockBasicItem[] }>(
+        `/api/data/stock-basic?ts_code=${tsCode}&limit=1`
+      );
       if ((!res.code || res.code === '0' || res.code === 0) && res.data?.items?.length) {
         const name = res.data.items[0].name;
         stockNameCache[code] = name;
@@ -82,9 +84,9 @@ export const StockDashboard: Component = () => {
   return (
     <div class="h-full flex flex-col p-4 gap-4">
       {/* Top Section: Tick Monitor + KLine Chart */}
-      <div class="flex-1 flex gap-4 min-h-0">
+      <div class="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
         {/* Left: Tick Monitor */}
-        <div class="w-80 flex flex-col bg-[#111827]/80 rounded-lg border border-white/10">
+        <div class="w-full lg:w-80 flex flex-col bg-[#111827]/80 rounded-lg border border-white/10">
           <div class="px-4 py-3 border-b border-white/10">
             <h2 class="font-bold">行情监控</h2>
           </div>
@@ -98,12 +100,18 @@ export const StockDashboard: Component = () => {
           {/* Chart Header */}
           <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between">
             <div class="flex items-center gap-4">
-              <h2 class="font-bold">K线图表 - {symbol()} {stockName()} {exchange() === 'SSE' ? '上海' : exchange() === 'SZSE' ? '深圳' : ''}</h2>
+              <h2 class="font-bold">
+                K线图表 - {symbol()} {stockName()}{' '}
+                {exchange() === 'SSE' ? '上海' : exchange() === 'SZSE' ? '深圳' : ''}
+              </h2>
               <div class="flex items-center gap-2">
                 <input
                   type="text"
                   value={searchValue()}
-                  onInput={(e) => { setSearchValue(e.currentTarget.value); setSearchError(''); }}
+                  onInput={(e) => {
+                    setSearchValue(e.currentTarget.value);
+                    setSearchError('');
+                  }}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 border border-white/20 w-24"
                   placeholder="代码"
@@ -172,11 +180,11 @@ export const StockDashboard: Component = () => {
             </div>
             {/* Indicator Chart */}
             <div class="h-[calc(100%-36px)] p-2">
-              <IndicatorChart 
-                type={activeIndicator()} 
-                bars={klineBars() as DailyBar[]} 
-                symbol={symbol()} 
-                exchange={exchange()} 
+              <IndicatorChart
+                type={activeIndicator()}
+                bars={klineBars() as DailyBar[]}
+                symbol={symbol()}
+                exchange={exchange()}
               />
             </div>
           </div>
@@ -206,10 +214,7 @@ export const StockDashboard: Component = () => {
 
       {/* 自定义指标编辑器 */}
       <Show when={showCustomEditor()}>
-        <CustomIndicatorEditor
-          bars={klineBars()}
-          onClose={() => setShowCustomEditor(false)}
-        />
+        <CustomIndicatorEditor bars={klineBars()} onClose={() => setShowCustomEditor(false)} />
       </Show>
     </div>
   );

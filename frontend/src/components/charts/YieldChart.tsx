@@ -1,5 +1,5 @@
 import { Component, onMount, onCleanup, createEffect } from 'solid-js';
-import * as echarts from 'echarts';
+import echarts from '@/lib/echarts';
 
 export interface YieldChartProps {
   equityCurve?: Array<{ date: string; equity: number; benchmark: number }>;
@@ -10,7 +10,7 @@ export const YieldChart: Component<YieldChartProps> = (props) => {
   let containerRef: HTMLDivElement | undefined;
   let chart: echarts.ECharts | undefined;
 
-  const getOption = (): echarts.EChartsOption => {
+  const getOption = (): echarts.EChartsCoreOption => {
     const curve = props.equityCurve;
     if (!curve || curve.length === 0) {
       return getEmptyOption();
@@ -42,14 +42,24 @@ export const YieldChart: Component<YieldChartProps> = (props) => {
         borderColor: 'rgba(255,255,255,0.1)',
         textStyle: { color: '#fff' },
         formatter: (params: unknown) => {
-          const arr = params as Array<{ axisValue: string; seriesName: string; value: number; color: string }>;
+          const arr = params as Array<{
+            axisValue: string;
+            seriesName: string;
+            value: number;
+            color: string;
+          }>;
           if (!arr?.length) return '';
           const date = `<div style="font-size:11px;color:#9CA3AF;margin-bottom:4px">${arr[0].axisValue}</div>`;
-          return date + arr.map((p) => {
-            const color = p.seriesName === '策略收益' ? '#3B82F6' : '#6B7280';
-            const sign = p.value >= 0 ? '+' : '';
-            return `<div style="display:flex;justify-content:space-between;gap:16px"><span style="color:${color}">${p.seriesName}</span><span style="color:${color}">${sign}${p.value}%</span></div>`;
-          }).join('');
+          return (
+            date +
+            arr
+              .map((p) => {
+                const color = p.seriesName === '策略收益' ? '#3B82F6' : '#6B7280';
+                const sign = p.value >= 0 ? '+' : '';
+                return `<div style="display:flex;justify-content:space-between;gap:16px"><span style="color:${color}">${p.seriesName}</span><span style="color:${color}">${sign}${p.value}%</span></div>`;
+              })
+              .join('')
+          );
         },
       },
       legend: {
@@ -104,12 +114,25 @@ export const YieldChart: Component<YieldChartProps> = (props) => {
     };
   };
 
-  const getEmptyOption = (): echarts.EChartsOption => ({
+  const getEmptyOption = (): echarts.EChartsCoreOption => ({
     backgroundColor: 'transparent',
     grid: { left: '5%', right: '5%', top: '10%', bottom: '10%', containLabel: true },
     xAxis: { type: 'category', data: [] },
-    yAxis: { type: 'value', axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }, axisLabel: { color: '#9CA3AF' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } },
-    series: [{ name: '策略收益', type: 'line', smooth: true, data: [], lineStyle: { color: '#3B82F6', width: 2 } }],
+    yAxis: {
+      type: 'value',
+      axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+      axisLabel: { color: '#9CA3AF' },
+      splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
+    },
+    series: [
+      {
+        name: '策略收益',
+        type: 'line',
+        smooth: true,
+        data: [],
+        lineStyle: { color: '#3B82F6', width: 2 },
+      },
+    ],
   });
 
   onMount(() => {

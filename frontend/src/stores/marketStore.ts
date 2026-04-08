@@ -3,8 +3,15 @@
  * 管理 MarketOverview 页面的所有市场数据
  */
 import { createStore } from 'solid-js/store';
+import { logger } from '../lib/logger';
 import * as api from '../hooks/useApi';
-import type { IndexBarItem, SectorItem, HotStockItem, MarketBreadthData, SentimentType } from '../types/api';
+import type {
+  IndexBarItem,
+  SectorItem,
+  HotStockItem,
+  MarketBreadthData,
+  SentimentType,
+} from '../types/api';
 
 // ── Types ───────────────────────────────────────────────────
 
@@ -68,7 +75,11 @@ function formatDate(date: Date): string {
 }
 
 // 计算单日涨跌额（从日K数据）
-function calcChangeFromBars(bars: IndexBarItem[]): { price: number; change: number; changePercent: number } {
+function calcChangeFromBars(bars: IndexBarItem[]): {
+  price: number;
+  change: number;
+  changePercent: number;
+} {
   if (!bars || bars.length === 0) return { price: 0, change: 0, changePercent: 0 };
   const latest = bars[0];
   const prev = bars[1];
@@ -98,36 +109,37 @@ export const marketActions = {
     const idxEntry = api.MAJOR_INDICES.find((i) => i.ts_code === ts_code);
     if (!idxEntry) return;
 
-    setMarketState(
-      'indices',
-      (i) => i.ts_code === ts_code,
-      { loading: true, error: null }
-    );
+    setMarketState('indices', (i) => i.ts_code === ts_code, { loading: true, error: null });
 
     try {
       const res = await api.fetchIndexBars(ts_code, startDate, endDate);
-      if ((res.code === '0' || Number(res.code)===0) && res.data && res.data.items && res.data.items.length > 0) {
+      if (
+        (res.code === '0' || Number(res.code) === 0) &&
+        res.data &&
+        res.data.items &&
+        res.data.items.length > 0
+      ) {
         // 按日期降序排序（最新的在前）
         const bars = res.data.items.sort((a, b) => b.trade_date.localeCompare(a.trade_date));
         const { price, change, changePercent } = calcChangeFromBars(bars);
-        setMarketState(
-          'indices',
-          (i) => i.ts_code === ts_code,
-          { price, change, changePercent, loading: false, error: null }
-        );
+        setMarketState('indices', (i) => i.ts_code === ts_code, {
+          price,
+          change,
+          changePercent,
+          loading: false,
+          error: null,
+        });
       } else {
-        setMarketState(
-          'indices',
-          (i) => i.ts_code === ts_code,
-          { loading: false, error: '暂无数据' }
-        );
+        setMarketState('indices', (i) => i.ts_code === ts_code, {
+          loading: false,
+          error: '暂无数据',
+        });
       }
     } catch (e: unknown) {
-      setMarketState(
-        'indices',
-        (i) => i.ts_code === ts_code,
-        { loading: false, error: getErrorMsg(e) }
-      );
+      setMarketState('indices', (i) => i.ts_code === ts_code, {
+        loading: false,
+        error: getErrorMsg(e),
+      });
     }
   },
 
@@ -140,11 +152,7 @@ export const marketActions = {
     const indices = api.MAJOR_INDICES;
     // 先标记所有为 loading
     for (const idx of indices) {
-      setMarketState(
-        'indices',
-        (i) => i.ts_code === idx.ts_code,
-        { loading: true, error: null }
-      );
+      setMarketState('indices', (i) => i.ts_code === idx.ts_code, { loading: true, error: null });
     }
     // 逐个加载（串行 + 错时）
     for (let i = 0; i < indices.length; i++) {
@@ -162,11 +170,11 @@ export const marketActions = {
   async loadSectorRanking() {
     try {
       const res = await api.fetchSectorRanking(undefined);
-      if ((res.code === '0' || Number(res.code)===0) && res.data) {
+      if ((res.code === '0' || Number(res.code) === 0) && res.data) {
         setMarketState('sectors', res.data.items);
       }
     } catch (e) {
-      console.warn('[MarketStore] Failed to load sector ranking:', e);
+      logger.warn('[MarketStore] Failed to load sector ranking', { error: e });
     }
   },
 
@@ -174,11 +182,11 @@ export const marketActions = {
   async loadHotStocks() {
     try {
       const res = await api.fetchHotStocks(undefined);
-      if ((res.code === '0' || Number(res.code)===0) && res.data) {
+      if ((res.code === '0' || Number(res.code) === 0) && res.data) {
         setMarketState('hotStocks', res.data.items);
       }
     } catch (e) {
-      console.warn('[MarketStore] Failed to load hot stocks:', e);
+      logger.warn('[MarketStore] Failed to load hot stocks', { error: e });
     }
   },
 
@@ -186,12 +194,12 @@ export const marketActions = {
   async loadMarketBreadth() {
     try {
       const res = await api.fetchMarketBreadth();
-      if ((res.code === '0' || Number(res.code)===0) && res.data) {
+      if ((res.code === '0' || Number(res.code) === 0) && res.data) {
         setMarketState('marketBreadth', res.data);
         setMarketState('sentiment', api.calcSentiment(res.data.up_ratio));
       }
     } catch (e) {
-      console.warn('[MarketStore] Failed to load market breadth:', e);
+      logger.warn('[MarketStore] Failed to load market breadth', { error: e });
     }
   },
 
@@ -206,7 +214,7 @@ export const marketActions = {
         marketActions.loadMarketBreadth(),
       ]);
     } catch (e) {
-      console.error('[MarketStore] Failed to load all data:', e);
+      logger.error('[MarketStore] Failed to load all data', { error: e });
     } finally {
       setMarketState('loading', false);
       setMarketState('lastUpdate', new Date().toLocaleTimeString('zh-CN'));
@@ -215,10 +223,7 @@ export const marketActions = {
 
   /** 刷新单类数据（定时调用） */
   async refresh() {
-    await Promise.allSettled([
-      marketActions.loadAllIndices(),
-      marketActions.loadMarketBreadth(),
-    ]);
+    await Promise.allSettled([marketActions.loadAllIndices(), marketActions.loadMarketBreadth()]);
     setMarketState('lastUpdate', new Date().toLocaleTimeString('zh-CN'));
   },
 };

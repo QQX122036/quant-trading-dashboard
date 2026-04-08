@@ -2,22 +2,14 @@
  * useWebVitals — Core Web Vitals 监控 Hook
  *
  * 监控指标：LCP / FID(INP) / CLS / FCP / TTFB
- * - Dev 模式：console.log 输出
- * - Prod 模式：上报到后端 /api/metrics/web-vitals（POST JSON body）
- * - 异常不上报（try/catch 包裹）
+ * - 全部模式：console.log 输出（Prod 上报待后端实现 /api/metrics/web-vitals）
  */
 
 import { onMount } from 'solid-js';
+import { logger } from '../lib/logger';
 import { onCLS, onFCP, onLCP, onTTFB, type Metric } from 'web-vitals';
-// Note: web-vitals v5 用 onINP 替代了 onFID（INP = Interaction to Next Paint，是 FID 的升级指标）
 // @ts-ignore
 import { onINP } from 'web-vitals';
-
-const METRICS_ENDPOINT = '/api/metrics/web-vitals';
-
-function isDev(): boolean {
-  return import.meta.env.DEV;
-}
 
 function getRating(value: number, name: string): 'good' | 'needs-improvement' | 'poor' {
   const thresholds: Record<string, [number, number]> = {
@@ -40,37 +32,14 @@ function getRating(value: number, name: string): 'good' | 'needs-improvement' | 
 }
 
 async function reportMetric(metric: Metric): Promise<void> {
-  if (isDev()) {
-    const rating = getRating(metric.value, metric.name);
-    console.log(
-      `[WebVitals] ${metric.name}: ${metric.value.toFixed(2)} (${rating})`,
-      'delta:', metric.delta,
-      'id:', metric.id,
-    );
-    return;
-  }
+  const rating = getRating(metric.value, metric.name);
+  const msg = `[WebVitals] ${metric.name}: ${metric.value.toFixed(2)} (${rating})`;
 
-  try {
-    const payload = {
-      name: metric.name,
-      value: metric.value,
-      delta: metric.delta,
-      id: metric.id,
-      rating: getRating(metric.value, metric.name),
-      url: window.location.href,
-      userAgent: navigator.userAgent,
-      timestamp: Date.now(),
-    };
-
-    await fetch(METRICS_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      keepalive: true,
-    });
-  } catch {
-    // 异常不上报，静默忽略
-  }
+  logger.debug(`[WebVitals] ${metric.name}: ${metric.value.toFixed(2)} (${rating})`, {
+    delta: metric.delta.toFixed(2),
+    id: metric.id,
+    rating,
+  });
 }
 
 function onWebVital(metric: Metric): void {

@@ -22,7 +22,12 @@ export const DrawingsPanel: Component<DrawingsPanelProps> = (props) => {
               <Show when={d.type === 'alertline'}>
                 <span class="text-gray-400">¥{(d as AlertLine).price.toFixed(2)}</span>
               </Show>
-              <button class="text-red-400 hover:text-red-300 ml-1" onClick={() => props.onDelete(d.id)}>✕</button>
+              <button
+                class="text-red-400 hover:text-red-300 ml-1"
+                onClick={() => props.onDelete(d.id)}
+              >
+                ✕
+              </button>
             </div>
           )}
         </For>

@@ -153,27 +153,29 @@ export const DataManager: Component = () => {
 
       {/* Tab Bar */}
       <div class="flex gap-1 border-b border-[var(--border-color)]">
-        {(['import', 'export', 'progress'] as Tab[]).map((tab) => (
-          <button
-            class={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab() === tab
-                ? 'border-[var(--border-focus)] text-[var(--text-primary)]'
-                : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-            }`}
-            onClick={() => {
-              setActiveTab(tab);
-              if (tab === 'progress') loadProgress();
-            }}
-          >
-            {tab === 'import' ? '📤 导入' : tab === 'export' ? '📥 导出' : '📊 采集进度'}
-          </button>
-        ))}
+        <For each={['import', 'export', 'progress'] as Tab[]}>
+          {(tab) => (
+            <button
+              class={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab() === tab
+                  ? 'border-[var(--border-focus)] text-[var(--text-primary)]'
+                  : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              }`}
+              onClick={() => {
+                setActiveTab(tab);
+                if (tab === 'progress') loadProgress();
+              }}
+            >
+              {tab === 'import' ? '📤 导入' : tab === 'export' ? '📥 导出' : '📊 采集进度'}
+            </button>
+          )}
+        </For>
       </div>
 
       {/* ── Import Tab ────────────────────────────────────── */}
       <Show when={activeTab() === 'import'}>
         <div class="flex-1 flex flex-col gap-4">
-          <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-5 space-y-4 max-w-xl">
+          <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4 sm:p-5 space-y-4 w-full">
             <div class="form-group">
               <label class="form-label">目标数据表</label>
               <select
@@ -189,8 +191,10 @@ export const DataManager: Component = () => {
 
             <div class="form-group">
               <label class="form-label">选择文件</label>
-              <div class="border-2 border-dashed border-[var(--border-color)] rounded-lg p-6 text-center hover:border-[var(--border-focus)] transition-colors cursor-pointer"
-                onClick={() => document.getElementById('file-input')?.click()}>
+              <div
+                class="border-2 border-dashed border-[var(--border-color)] rounded-lg p-6 text-center hover:border-[var(--border-focus)] transition-colors cursor-pointer"
+                onClick={() => document.getElementById('file-input')?.click()}
+              >
                 <input
                   id="file-input"
                   type="file"
@@ -218,9 +222,13 @@ export const DataManager: Component = () => {
             </div>
 
             <Show when={importMsg()}>
-              <div class={`text-sm px-3 py-2 rounded ${
-                importMsg().startsWith('✅') ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'
-              }`}>
+              <div
+                class={`text-sm px-3 py-2 rounded ${
+                  importMsg().startsWith('✅')
+                    ? 'text-green-400 bg-green-500/10'
+                    : 'text-red-400 bg-red-500/10'
+                }`}
+              >
                 {importMsg()}
               </div>
             </Show>
@@ -248,7 +256,7 @@ export const DataManager: Component = () => {
       {/* ── Export Tab ────────────────────────────────────── */}
       <Show when={activeTab() === 'export'}>
         <div class="flex-1 flex flex-col gap-4">
-          <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-5 space-y-4 max-w-xl">
+          <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4 sm:p-5 space-y-4 w-full">
             <div class="form-group">
               <label class="form-label">选择数据表</label>
               <select
@@ -263,18 +271,18 @@ export const DataManager: Component = () => {
             </div>
 
             <Show when={exportMsg()}>
-              <div class={`text-sm px-3 py-2 rounded ${
-                exportMsg().startsWith('✅') ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'
-              }`}>
+              <div
+                class={`text-sm px-3 py-2 rounded ${
+                  exportMsg().startsWith('✅')
+                    ? 'text-green-400 bg-green-500/10'
+                    : 'text-red-400 bg-red-500/10'
+                }`}
+              >
                 {exportMsg()}
               </div>
             </Show>
 
-            <button
-              class="btn btn-primary w-full"
-              onClick={handleExport}
-              disabled={exporting()}
-            >
+            <button class="btn btn-primary w-full" onClick={handleExport} disabled={exporting()}>
               {exporting() ? '导出中…' : '导出 CSV'}
             </button>
 
@@ -294,10 +302,12 @@ export const DataManager: Component = () => {
       {/* ── Progress Tab ───────────────────────────────────── */}
       <Show when={activeTab() === 'progress'}>
         <div class="flex-1 flex flex-col gap-4">
-          <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-5 space-y-6 max-w-2xl">
+          <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4 sm:p-5 space-y-6 w-full">
             {/* Header */}
             <div class="flex items-center justify-between">
-              <h3 class="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">日K数据采集进度</h3>
+              <h3 class="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">
+                日K数据采集进度
+              </h3>
               <button
                 class="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] px-2 py-1 rounded border border-[var(--border-color)] hover:border-[var(--border-focus)] transition-colors"
                 onClick={loadProgress}
@@ -308,11 +318,14 @@ export const DataManager: Component = () => {
             </div>
 
             {/* Progress Info */}
-            <Show when={progress()} fallback={
-              <div class="text-center py-8 text-[var(--text-muted)]">
-                {progressLoading() ? '加载中…' : '暂无采集数据'}
-              </div>
-            }>
+            <Show
+              when={progress()}
+              fallback={
+                <div class="text-center py-8 text-[var(--text-muted)]">
+                  {progressLoading() ? '加载中…' : '暂无采集数据'}
+                </div>
+              }
+            >
               {(prog) => (
                 <div class="space-y-5">
                   {/* Stats Row */}
@@ -330,11 +343,17 @@ export const DataManager: Component = () => {
                       <div class="text-xs text-[var(--text-muted)] mt-1">目标总数</div>
                     </div>
                     <div class="bg-[#1f2937] rounded-lg p-4 text-center">
-                      <div class={`text-2xl font-bold tabular-nums ${
-                        prog().status === 'running' ? 'text-green-400' :
-                        prog().status === 'error' ? 'text-red-400' :
-                        prog().status === 'paused' ? 'text-yellow-400' : 'text-[var(--text-primary)]'
-                      }`}>
+                      <div
+                        class={`text-2xl font-bold tabular-nums ${
+                          prog().status === 'running'
+                            ? 'text-green-400'
+                            : prog().status === 'error'
+                              ? 'text-red-400'
+                              : prog().status === 'paused'
+                                ? 'text-yellow-400'
+                                : 'text-[var(--text-primary)]'
+                        }`}
+                      >
                         {prog().progress_pct.toFixed(1)}%
                       </div>
                       <div class="text-xs text-[var(--text-muted)] mt-1">
@@ -347,7 +366,9 @@ export const DataManager: Component = () => {
                   <div class="space-y-2">
                     <div class="flex justify-between text-xs text-[var(--text-muted)]">
                       <span>采集进度</span>
-                      <span>{prog().collected_stocks} / {prog().total_stocks}</span>
+                      <span>
+                        {prog().collected_stocks} / {prog().total_stocks}
+                      </span>
                     </div>
                     <div class="h-3 bg-[#1f2937] rounded-full overflow-hidden">
                       <div
@@ -359,11 +380,17 @@ export const DataManager: Component = () => {
 
                   {/* Status Message */}
                   <div class="text-xs text-[var(--text-muted)] flex items-center gap-2">
-                    <span class={`w-2 h-2 rounded-full ${
-                      prog().status === 'running' ? 'bg-green-400 animate-pulse' :
-                      prog().status === 'error' ? 'bg-red-400' :
-                      prog().status === 'paused' ? 'bg-yellow-400' : 'bg-gray-500'
-                    }`} />
+                    <span
+                      class={`w-2 h-2 rounded-full ${
+                        prog().status === 'running'
+                          ? 'bg-green-400 animate-pulse'
+                          : prog().status === 'error'
+                            ? 'bg-red-400'
+                            : prog().status === 'paused'
+                              ? 'bg-yellow-400'
+                              : 'bg-gray-500'
+                      }`}
+                    />
                     <span>{prog().message}</span>
                     <Show when={prog().last_updated}>
                       <span class="ml-auto">最后更新: {prog().last_updated}</span>
@@ -377,9 +404,17 @@ export const DataManager: Component = () => {
             <div class="text-xs text-[var(--text-muted)] space-y-1 border-t border-white/10 pt-4">
               <p>📊 数据库 DuckDB 表格:</p>
               <ul class="list-disc list-inside space-y-0.5 ml-2">
-                <li><span class="font-mono text-[var(--text-secondary)]">daily_bar</span> — A股日K线数据</li>
-                <li><span class="font-mono text-[var(--text-secondary)]">positions</span> — 当前持仓记录</li>
-                <li><span class="font-mono text-[var(--text-secondary)]">orders</span> — 历史委托记录</li>
+                <li>
+                  <span class="font-mono text-[var(--text-secondary)]">daily_bar</span> —
+                  A股日K线数据
+                </li>
+                <li>
+                  <span class="font-mono text-[var(--text-secondary)]">positions</span> —
+                  当前持仓记录
+                </li>
+                <li>
+                  <span class="font-mono text-[var(--text-secondary)]">orders</span> — 历史委托记录
+                </li>
               </ul>
             </div>
           </div>

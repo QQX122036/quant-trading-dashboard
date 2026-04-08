@@ -4,7 +4,7 @@
  * - 持仓收益分布饼图（按行业/按个股）
  */
 import { Component, createSignal, onMount, onCleanup } from 'solid-js';
-import * as echarts from 'echarts';
+import echarts from '@/lib/echarts';
 
 export const DashboardCharts: Component = () => {
   let lineRef: HTMLDivElement | undefined;
@@ -54,45 +54,55 @@ export const DashboardCharts: Component = () => {
   function renderLineChart() {
     if (!lineChart) return;
     const { dates, values } = getEquityCurve();
-    lineChart.setOption({
-      backgroundColor: 'transparent',
-      grid: { top: 10, right: 10, bottom: 24, left: 50 },
-      tooltip: {
-        trigger: 'axis',
-        backgroundColor: '#1f2937',
-        borderColor: '#374151',
-        textStyle: { color: '#e5e7eb', fontSize: 11 },
-        formatter: (params: unknown) => {
-          const p = (params as Array<{ name: string; value: number }>)[0];
-          return `${p.name}<br/><strong>¥${p.value.toLocaleString()}</strong>`;
+    lineChart.setOption(
+      {
+        backgroundColor: 'transparent',
+        grid: { top: 10, right: 10, bottom: 24, left: 50 },
+        tooltip: {
+          trigger: 'axis',
+          backgroundColor: '#1f2937',
+          borderColor: '#374151',
+          textStyle: { color: '#e5e7eb', fontSize: 11 },
+          formatter: (params: unknown) => {
+            const p = (params as Array<{ name: string; value: number }>)[0];
+            return `${p.name}<br/><strong>¥${p.value.toLocaleString()}</strong>`;
+          },
         },
-      },
-      xAxis: {
-        type: 'category', data: dates,
-        axisLine: { lineStyle: { color: '#374151' } },
-        axisLabel: { color: '#6b7280', fontSize: 9, interval: 4 },
-        splitLine: { show: false },
-      },
-      yAxis: {
-        type: 'value',
-        axisLine: { show: false },
-        axisLabel: { color: '#6b7280', fontSize: 9, formatter: (v: number) => `¥${(v / 10000).toFixed(0)}w` },
-        splitLine: { lineStyle: { color: '#1f2937' } },
-      },
-      series: [{
-        type: 'line',
-        data: values,
-        smooth: true,
-        symbol: 'none',
-        lineStyle: { color: '#3b82f6', width: 2 },
-        areaStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(59,130,246,0.3)' },
-            { offset: 1, color: 'rgba(59,130,246,0)' },
-          ]),
+        xAxis: {
+          type: 'category',
+          data: dates,
+          axisLine: { lineStyle: { color: '#374151' } },
+          axisLabel: { color: '#6b7280', fontSize: 9, interval: 4 },
+          splitLine: { show: false },
         },
-      }],
-    }, true);
+        yAxis: {
+          type: 'value',
+          axisLine: { show: false },
+          axisLabel: {
+            color: '#6b7280',
+            fontSize: 9,
+            formatter: (v: number) => `¥${(v / 10000).toFixed(0)}w`,
+          },
+          splitLine: { lineStyle: { color: '#1f2937' } },
+        },
+        series: [
+          {
+            type: 'line',
+            data: values,
+            smooth: true,
+            symbol: 'none',
+            lineStyle: { color: '#3b82f6', width: 2 },
+            areaStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: 'rgba(59,130,246,0.3)' },
+                { offset: 1, color: 'rgba(59,130,246,0)' },
+              ]),
+            },
+          },
+        ],
+      },
+      true
+    );
   }
 
   function renderPieChart() {
@@ -105,27 +115,32 @@ export const DashboardCharts: Component = () => {
       { name: '房地产', value: 12 },
       { name: '其他', value: 18 },
     ];
-    pieChart.setOption({
-      backgroundColor: 'transparent',
-      tooltip: {
-        trigger: 'item',
-        backgroundColor: '#1f2937',
-        borderColor: '#374151',
-        textStyle: { color: '#e5e7eb', fontSize: 11 },
-        formatter: '{b}: {d}%',
+    pieChart.setOption(
+      {
+        backgroundColor: 'transparent',
+        tooltip: {
+          trigger: 'item',
+          backgroundColor: '#1f2937',
+          borderColor: '#374151',
+          textStyle: { color: '#e5e7eb', fontSize: 11 },
+          formatter: '{b}: {d}%',
+        },
+        series: [
+          {
+            type: 'pie',
+            radius: ['40%', '70%'],
+            center: ['50%', '50%'],
+            label: { show: true, fontSize: 9, color: '#9ca3af', formatter: '{b} {d}%' },
+            labelLine: { show: true },
+            data: pieData.map((d, i) => ({
+              ...d,
+              itemStyle: { color: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][i] },
+            })),
+          },
+        ],
       },
-      series: [{
-        type: 'pie',
-        radius: ['40%', '70%'],
-        center: ['50%', '50%'],
-        label: { show: true, fontSize: 9, color: '#9ca3af', formatter: '{b} {d}%' },
-        labelLine: { show: true },
-        data: pieData.map((d, i) => ({
-          ...d,
-          itemStyle: { color: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][i] },
-        })),
-      }],
-    }, true);
+      true
+    );
   }
 
   return (
@@ -134,15 +149,27 @@ export const DashboardCharts: Component = () => {
       <div class="flex items-center px-3 pt-1.5 pb-1 gap-1 flex-shrink-0">
         <button
           class="px-2 py-0.5 rounded text-[10px] font-medium"
-          classList={{ 'bg-blue-600 text-white': mode() === 'line', 'bg-white/5 text-gray-400': mode() !== 'line' }}
-          onClick={() => { setMode('line'); setTimeout(() => lineChart?.resize(), 10); }}
+          classList={{
+            'bg-blue-600 text-white': mode() === 'line',
+            'bg-white/5 text-gray-400': mode() !== 'line',
+          }}
+          onClick={() => {
+            setMode('line');
+            setTimeout(() => lineChart?.resize(), 10);
+          }}
         >
           收益走势
         </button>
         <button
           class="px-2 py-0.5 rounded text-[10px] font-medium"
-          classList={{ 'bg-blue-600 text-white': mode() === 'pie', 'bg-white/5 text-gray-400': mode() !== 'pie' }}
-          onClick={() => { setMode('pie'); setTimeout(() => pieChart?.resize(), 10); }}
+          classList={{
+            'bg-blue-600 text-white': mode() === 'pie',
+            'bg-white/5 text-gray-400': mode() !== 'pie',
+          }}
+          onClick={() => {
+            setMode('pie');
+            setTimeout(() => pieChart?.resize(), 10);
+          }}
         >
           持仓分布
         </button>
@@ -151,8 +178,16 @@ export const DashboardCharts: Component = () => {
 
       {/* Charts */}
       <div class="flex-1 relative min-h-0">
-        <div ref={lineRef} class="absolute inset-0" style={{ display: mode() === 'line' ? 'block' : 'none' }} />
-        <div ref={pieRef} class="absolute inset-0" style={{ display: mode() === 'pie' ? 'block' : 'none' }} />
+        <div
+          ref={lineRef}
+          class="absolute inset-0"
+          style={{ display: mode() === 'line' ? 'block' : 'none' }}
+        />
+        <div
+          ref={pieRef}
+          class="absolute inset-0"
+          style={{ display: mode() === 'pie' ? 'block' : 'none' }}
+        />
       </div>
     </div>
   );

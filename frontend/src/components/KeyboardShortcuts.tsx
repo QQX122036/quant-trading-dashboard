@@ -2,7 +2,7 @@
  * KeyboardShortcuts.tsx — 全局键盘快捷键
  * 使用 useEffect 监听 keydown，映射到对应动作
  */
-import { Component, onMount, onCleanup, createSignal, Show } from 'solid-js';
+import { Component, onMount, onCleanup, createSignal, Show, For } from 'solid-js';
 import { state, actions } from '../stores';
 
 interface ShortcutItem {
@@ -57,7 +57,7 @@ export const KeyboardShortcuts: Component = () => {
     // Ctrl+? or Ctrl+/ -> toggle help
     if (ctrl && (key === '?' || key === '/')) {
       e.preventDefault();
-      setShowHelp(prev => !prev);
+      setShowHelp((prev) => !prev);
       return;
     }
 
@@ -112,7 +112,9 @@ export const KeyboardShortcuts: Component = () => {
       <Show when={showHelp()}>
         <div
           class="fixed inset-0 z-[200] flex items-center justify-center bg-black/50"
-          onClick={(e) => { if (e.target === e.currentTarget) setShowHelp(false); }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowHelp(false);
+          }}
         >
           <div class="bg-[#1f2937] border border-white/10 rounded-xl shadow-2xl w-96 overflow-hidden">
             <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between">
@@ -125,14 +127,16 @@ export const KeyboardShortcuts: Component = () => {
               </button>
             </div>
             <div class="p-4 space-y-1">
-              {SHORTCUTS.map((s) => (
-                <div class="flex items-center justify-between py-1.5">
-                  <span class="text-sm text-[var(--text-secondary)]">{s.label}</span>
-                  <kbd class="px-2 py-0.5 bg-[#111827] border border-white/20 rounded text-xs font-mono text-[var(--text-primary)]">
-                    {s.key}
-                  </kbd>
-                </div>
-              ))}
+              <For each={SHORTCUTS}>
+                {(s) => (
+                  <div class="flex items-center justify-between py-1.5">
+                    <span class="text-sm text-[var(--text-secondary)]">{s.label}</span>
+                    <kbd class="px-2 py-0.5 bg-[#111827] border border-white/20 rounded text-xs font-mono text-[var(--text-primary)]">
+                      {s.key}
+                    </kbd>
+                  </div>
+                )}
+              </For>
             </div>
             <div class="px-5 py-3 border-t border-white/10 text-xs text-[var(--text-muted)] text-center">
               按 Esc 关闭此面板

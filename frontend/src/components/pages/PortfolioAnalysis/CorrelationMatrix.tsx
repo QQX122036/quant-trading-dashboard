@@ -3,7 +3,7 @@
  * ECharts heatmap: 正相关(蓝) / 负相关(红) / 中性(白)
  */
 import { Component, createSignal, onMount, onCleanup, createEffect } from 'solid-js';
-import * as echarts from 'echarts';
+import echarts from '@/lib/echarts';
 import { marketState } from '../../../stores/marketStore';
 
 interface CorrelationData {
@@ -31,7 +31,7 @@ function generateMockCorrelation(symbols: string[]): CorrelationData {
       // 利用 symbol 字符串的 char code 生成稳定 seed
       const seed = (symbols[i].charCodeAt(0) + symbols[j].charCodeAt(0)) % 100;
       // 生成 [0.3, 0.95] 正相关 或 [-0.9, -0.3] 负相关
-      const isNeg = (seed % 7 === 0) && i !== j;
+      const isNeg = seed % 7 === 0 && i !== j;
       if (isNeg) {
         return parseFloat((-0.3 - ((seed * 7) % 60) / 100).toFixed(4));
       }
@@ -50,9 +50,20 @@ function generateMockCorrelation(symbols: string[]): CorrelationData {
 }
 
 // ── 从 positions 生成 symbols ────────────────────────────────
-function extractSymbols(positions?: Array<{ symbol: string; name?: string; value?: number }>): string[] {
+function extractSymbols(
+  positions?: Array<{ symbol: string; name?: string; value?: number }>
+): string[] {
   if (!positions || positions.length === 0) {
-    return ['平安银行', '万科A', '宁德时代', '比亚迪', '美的集团', '格力电器', '中国平安', '招商银行'];
+    return [
+      '平安银行',
+      '万科A',
+      '宁德时代',
+      '比亚迪',
+      '美的集团',
+      '格力电器',
+      '中国平安',
+      '招商银行',
+    ];
   }
   return positions.map((p) => p.symbol);
 }
@@ -75,7 +86,7 @@ export const CorrelationMatrix: Component<CorrelationMatrixProps> = (props) => {
       // 优先尝试 API
       const resp = await fetch('/api/risk/correlation');
       if (resp.ok) {
-        const json = await resp.json() as CorrelationData;
+        const json = (await resp.json()) as CorrelationData;
         setData(json);
         return;
       }
@@ -87,13 +98,15 @@ export const CorrelationMatrix: Component<CorrelationMatrixProps> = (props) => {
     const symbols = props.symbols ?? extractSymbols(props.positions);
     // 从 marketState 注入的持仓信息中取真实数据（兜底）
     const positions = props.positions ?? [];
-    const realSymbols = props.symbols ?? (positions.length > 0 ? positions.map((p: { symbol: string }) => p.symbol) : symbols);
+    const realSymbols =
+      props.symbols ??
+      (positions.length > 0 ? positions.map((p: { symbol: string }) => p.symbol) : symbols);
     const result = generateMockCorrelation(realSymbols.length > 0 ? realSymbols : symbols);
     setData(result);
   };
 
   // ── ECharts 配置 ────────────────────────────────────────────
-  const buildOption = (corr: CorrelationData): echarts.EChartsOption => {
+  const buildOption = (corr: CorrelationData): echarts.EChartsCoreOption => {
     const { stocks, matrix } = corr;
     const n = stocks.length;
 
@@ -173,41 +186,53 @@ export const CorrelationMatrix: Component<CorrelationMatrixProps> = (props) => {
         textStyle: { color: '#D1D5DB', fontSize: 10 },
         // 蓝(-1负相关) → 白(0中性) → 红(1正相关)
         inRange: {
-          color: ['#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE', '#F3F4F6', '#FCA5A5', '#F87171', '#EF4444', '#DC2626'],
+          color: [
+            '#3B82F6',
+            '#60A5FA',
+            '#93C5FD',
+            '#BFDBFE',
+            '#F3F4F6',
+            '#FCA5A5',
+            '#F87171',
+            '#EF4444',
+            '#DC2626',
+          ],
         },
         formatter: (v: number) => {
           const sign = v >= 0 ? '+' : '';
           return `${sign}${v.toFixed(1)}`;
         },
       },
-      series: [{
-        type: 'heatmap',
-        data: heatmapData,
-        label: {
-          show: true,
-          formatter: (p: { data: [number, number, number] }) => {
-            const v = p.data[2];
-            return `${v >= 0 ? '+' : ''}${v.toFixed(2)}`;
+      series: [
+        {
+          type: 'heatmap',
+          data: heatmapData,
+          label: {
+            show: true,
+            formatter: (p: { data: [number, number, number] }) => {
+              const v = p.data[2];
+              return `${v >= 0 ? '+' : ''}${v.toFixed(2)}`;
+            },
+            fontSize: 9,
+            color: '#fff',
+            fontWeight: 'bold',
           },
-          fontSize: 9,
-          color: '#fff',
-          fontWeight: 'bold',
-        },
-        itemStyle: {
-          borderWidth: 1.5,
-          borderColor: 'rgba(17,24,39,0.8)',
-          borderRadius: 2,
-        },
-        emphasis: {
           itemStyle: {
-            shadowBlur: 8,
-            shadowColor: 'rgba(0,0,0,0.6)',
-            borderColor: '#fff',
-            borderWidth: 2,
+            borderWidth: 1.5,
+            borderColor: 'rgba(17,24,39,0.8)',
+            borderRadius: 2,
+          },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 8,
+              shadowColor: 'rgba(0,0,0,0.6)',
+              borderColor: '#fff',
+              borderWidth: 2,
+            },
           },
         },
-      }],
-    } as unknown as echarts.EChartsOption;
+      ],
+    } as unknown as echarts.EChartsCoreOption;
   };
 
   // ── 生命周期 ────────────────────────────────────────────────
@@ -246,9 +271,7 @@ export const CorrelationMatrix: Component<CorrelationMatrixProps> = (props) => {
       <div class="flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
           <h3 class="text-sm font-semibold text-gray-200">相关性矩阵</h3>
-          {loading() && (
-            <span class="text-xs text-blue-400 animate-pulse">计算中...</span>
-          )}
+          {loading() && <span class="text-xs text-blue-400 animate-pulse">计算中...</span>}
         </div>
         <button
           class="text-xs text-gray-400 hover:text-gray-200 px-2 py-1 rounded bg-white/5 hover:bg-white/10 transition-colors"
@@ -268,11 +291,7 @@ export const CorrelationMatrix: Component<CorrelationMatrixProps> = (props) => {
       )}
 
       {/* Chart */}
-      <div
-        ref={chartRef}
-        class="flex-1 w-full min-h-0"
-        style="min-height: 280px"
-      />
+      <div ref={chartRef} class="flex-1 w-full min-h-0" style={{ 'min-height': '280px' }} />
 
       {/* Legend hint */}
       <div class="flex items-center justify-center gap-4 shrink-0 text-xs text-gray-500">

@@ -41,7 +41,9 @@ export const DashboardHome: Component = () => {
   const totalBalance = createMemo(() => accounts().reduce((s, a) => s + (a.balance || 0), 0));
 
   const marginUsed = createMemo(() => accounts().reduce((s, a) => s + (a.frozen || 0), 0));
-  const marginUsageRate = createMemo(() => totalBalance() > 0 ? (marginUsed() / totalBalance()) * 100 : 0);
+  const marginUsageRate = createMemo(() =>
+    totalBalance() > 0 ? (marginUsed() / totalBalance()) * 100 : 0
+  );
 
   const top3Concentration = createMemo(() => {
     const posList = positions();
@@ -66,11 +68,7 @@ export const DashboardHome: Component = () => {
   const wsStatus = createMemo(() => state.connection.wsStatus);
 
   onMount(async () => {
-    await Promise.allSettled([
-      marketActions.loadAllIndices(),
-      loadAccounts(),
-      loadPositions(),
-    ]);
+    await Promise.allSettled([marketActions.loadAllIndices(), loadAccounts(), loadPositions()]);
   });
 
   async function loadAccounts() {
@@ -104,7 +102,8 @@ export const DashboardHome: Component = () => {
           <div>
             <div class="text-[10px] text-gray-500 leading-none mb-0.5">当日盈亏</div>
             <div class={`text-xl font-bold tabular-nums leading-none ${pnlColor(totalPnl())}`}>
-              {totalPnl() >= 0 ? '+' : ''}{formatAmount(totalPnl())}
+              {totalPnl() >= 0 ? '+' : ''}
+              {formatAmount(totalPnl())}
             </div>
           </div>
           <div class="w-px h-8 bg-white/10" />
@@ -133,10 +132,14 @@ export const DashboardHome: Component = () => {
             {(idx) => (
               <div class="text-center">
                 <div class="text-[10px] text-gray-500 leading-none mb-0.5">{idx.displayName}</div>
-                <div class={`text-sm font-bold tabular-nums leading-none ${idx.changePercent >= 0 ? 'text-[#EF4444]' : 'text-[#22C55E]'}`}>
+                <div
+                  class={`text-sm font-bold tabular-nums leading-none ${idx.changePercent >= 0 ? 'text-[#EF4444]' : 'text-[#22C55E]'}`}
+                >
                   {idx.price > 0 ? formatPrice(idx.price) : '—'}
                 </div>
-                <div class={`text-[10px] tabular-nums leading-none ${idx.changePercent >= 0 ? 'text-[#EF4444]/70' : 'text-[#22C55E]/70'}`}>
+                <div
+                  class={`text-[10px] tabular-nums leading-none ${idx.changePercent >= 0 ? 'text-[#EF4444]/70' : 'text-[#22C55E]/70'}`}
+                >
                   {idx.changePercent !== 0 ? formatPercent(idx.changePercent) : '—'}
                 </div>
               </div>
@@ -147,9 +150,17 @@ export const DashboardHome: Component = () => {
         {/* 右侧: WS状态 + 时间 */}
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-1.5">
-            <div class={`w-2 h-2 rounded-full transition-colors ${wsStatus() === 'connected' ? 'bg-green-400 animate-pulse' : wsStatus() === 'reconnecting' ? 'bg-yellow-400 animate-pulse' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]'}`} />
-            <span class={`text-xs transition-colors ${wsStatus() === 'connected' ? 'text-gray-400' : wsStatus() === 'reconnecting' ? 'text-yellow-400' : 'text-red-400 font-medium'}`}>
-              {wsStatus() === 'connected' ? '已连接' : wsStatus() === 'reconnecting' ? '重连中' : '未连接'}
+            <div
+              class={`w-2 h-2 rounded-full transition-colors ${wsStatus() === 'connected' ? 'bg-green-400 animate-pulse' : wsStatus() === 'reconnecting' ? 'bg-yellow-400 animate-pulse' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]'}`}
+            />
+            <span
+              class={`text-xs transition-colors ${wsStatus() === 'connected' ? 'text-gray-400' : wsStatus() === 'reconnecting' ? 'text-yellow-400' : 'text-red-400 font-medium'}`}
+            >
+              {wsStatus() === 'connected'
+                ? '已连接'
+                : wsStatus() === 'reconnecting'
+                  ? '重连中'
+                  : '未连接'}
             </span>
           </div>
           <div class="text-xs text-gray-500 tabular-nums">
@@ -161,10 +172,12 @@ export const DashboardHome: Component = () => {
       {/* ── Main Content ──────────────────────────────────── */}
       <div class="flex-1 flex min-h-0">
         {/* 左侧: 自选股列表 (可折叠) */}
-        <div class={`flex-shrink-0 transition-all duration-200 ${leftCollapsed() ? 'w-10' : 'w-72'}`}>
+        <div
+          class={`flex-shrink-0 transition-all duration-200 ${leftCollapsed() ? 'w-10' : 'w-72'}`}
+        >
           <WatchListPanel
             collapsed={leftCollapsed()}
-            onToggleCollapse={() => setLeftCollapsed(v => !v)}
+            onToggleCollapse={() => setLeftCollapsed((v) => !v)}
             selectedSymbol={selectedSymbol()}
           />
         </div>
@@ -190,7 +203,9 @@ export const DashboardHome: Component = () => {
               <div>
                 <div class="flex justify-between text-[10px] text-gray-500 mb-1">
                   <span>资金使用率</span>
-                  <span class={marginUsageRate() > 80 ? 'text-red-400' : 'text-gray-400'}>{marginUsageRate().toFixed(1)}%</span>
+                  <span class={marginUsageRate() > 80 ? 'text-red-400' : 'text-gray-400'}>
+                    {marginUsageRate().toFixed(1)}%
+                  </span>
                 </div>
                 <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
                   <div
@@ -204,7 +219,9 @@ export const DashboardHome: Component = () => {
               <div>
                 <div class="flex justify-between text-[10px] text-gray-500 mb-1">
                   <span>Top3 集中度</span>
-                  <span class={top3Concentration() > 60 ? 'text-orange-400' : 'text-gray-400'}>{top3Concentration().toFixed(1)}%</span>
+                  <span class={top3Concentration() > 60 ? 'text-orange-400' : 'text-gray-400'}>
+                    {top3Concentration().toFixed(1)}%
+                  </span>
                 </div>
                 <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
                   <div
@@ -218,7 +235,9 @@ export const DashboardHome: Component = () => {
               <div class="grid grid-cols-2 gap-2 mt-2">
                 <div class="bg-white/5 rounded p-1.5">
                   <div class="text-[9px] text-gray-500 leading-none mb-0.5">当日最大回撤</div>
-                  <div class={`text-xs font-bold tabular-nums leading-none ${pnlColor(maxDrawdown())}`}>
+                  <div
+                    class={`text-xs font-bold tabular-nums leading-none ${pnlColor(maxDrawdown())}`}
+                  >
                     {maxDrawdown() !== 0 ? formatAmount(maxDrawdown()) : '—'}
                   </div>
                 </div>

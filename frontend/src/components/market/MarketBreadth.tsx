@@ -12,9 +12,9 @@ export const MarketBreadth: Component<MarketBreadthProps> = (props) => {
     return Math.max(1, props.data.up_count + props.data.down_count + props.data.equal_count);
   };
 
-  const upPercent = () => ((props.data?.up_count ?? 0) / total() * 100).toFixed(1);
-  const downPercent = () => ((props.data?.down_count ?? 0) / total() * 100).toFixed(1);
-  const equalPercent = () => ((props.data?.equal_count ?? 0) / total() * 100).toFixed(1);
+  const upPercent = () => (((props.data?.up_count ?? 0) / total()) * 100).toFixed(1);
+  const downPercent = () => (((props.data?.down_count ?? 0) / total()) * 100).toFixed(1);
+  const equalPercent = () => (((props.data?.equal_count ?? 0) / total()) * 100).toFixed(1);
 
   return (
     <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4">
@@ -54,7 +54,9 @@ export const MarketBreadth: Component<MarketBreadthProps> = (props) => {
           <div class="flex items-center gap-2">
             <div class="w-3 h-3 rounded bg-[#EF4444]" />
             <span class="text-gray-400">上涨</span>
-            <span class="font-bold text-[#EF4444]">{props.data?.up_count.toLocaleString() ?? 0}</span>
+            <span class="font-bold text-[#EF4444]">
+              {props.data?.up_count.toLocaleString() ?? 0}
+            </span>
           </div>
           <div class="flex items-center gap-2">
             <div class="w-3 h-3 rounded bg-[#6B7280]" />
@@ -64,7 +66,9 @@ export const MarketBreadth: Component<MarketBreadthProps> = (props) => {
           <div class="flex items-center gap-2">
             <div class="w-3 h-3 rounded bg-[#22C55E]" />
             <span class="text-gray-400">下跌</span>
-            <span class="font-bold text-[#22C55E]">{props.data?.down_count.toLocaleString() ?? 0}</span>
+            <span class="font-bold text-[#22C55E]">
+              {props.data?.down_count.toLocaleString() ?? 0}
+            </span>
           </div>
         </div>
 

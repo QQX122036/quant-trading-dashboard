@@ -86,19 +86,25 @@ export const BacktestConfig: Component<BacktestConfigProps> = (props) => {
             {(sym) => (
               <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-500/20 border border-blue-500/40 rounded text-xs text-blue-300">
                 {sym}
-                <button class="hover:text-white" onClick={() => removeSymbol(sym)}>✕</button>
+                <button class="hover:text-white" onClick={() => removeSymbol(sym)}>
+                  ✕
+                </button>
               </span>
             )}
           </For>
         </div>
         <div class="flex gap-2">
           <input
+            id="bt-symbol"
             type="text"
             class="flex-1 bg-[#0A0E17] border border-white/10 rounded px-3 py-2 text-sm placeholder-gray-500"
             placeholder="输入股票代码，如 600519.SH"
             value={symbolInput()}
             onInput={(e) => setSymbolInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') addSymbol(symbolInput()); }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') addSymbol(symbolInput());
+            }}
+            aria-label="回测标的股票代码"
           />
           <button
             class="px-3 py-2 bg-white/10 hover:bg-white/20 rounded text-sm transition-colors"
@@ -154,7 +160,10 @@ export const BacktestConfig: Component<BacktestConfigProps> = (props) => {
               <span class="text-blue-400 font-mono">{period1()} 天</span>
             </div>
             <input
-              type="range" min="2" max="60" step="1"
+              type="range"
+              min="2"
+              max="60"
+              step="1"
               class="w-full accent-blue-500"
               value={period1()}
               onInput={(e) => setPeriod1(Number(e.target.value))}
@@ -167,7 +176,10 @@ export const BacktestConfig: Component<BacktestConfigProps> = (props) => {
               <span class="text-blue-400 font-mono">{period2()} 天</span>
             </div>
             <input
-              type="range" min="5" max="120" step="1"
+              type="range"
+              min="5"
+              max="120"
+              step="1"
               class="w-full accent-blue-500"
               value={period2()}
               onInput={(e) => setPeriod2(Number(e.target.value))}
@@ -180,7 +192,10 @@ export const BacktestConfig: Component<BacktestConfigProps> = (props) => {
               <span class="text-blue-400 font-mono">{(threshold() * 100).toFixed(1)}%</span>
             </div>
             <input
-              type="range" min="0" max="0.1" step="0.001"
+              type="range"
+              min="0"
+              max="0.1"
+              step="0.001"
               class="w-full accent-blue-500"
               value={threshold()}
               onInput={(e) => setThreshold(Number(e.target.value))}
@@ -193,7 +208,10 @@ export const BacktestConfig: Component<BacktestConfigProps> = (props) => {
               <span class="text-blue-400 font-mono">{holdDays()} 天</span>
             </div>
             <input
-              type="range" min="1" max="30" step="1"
+              type="range"
+              min="1"
+              max="30"
+              step="1"
               class="w-full accent-blue-500"
               value={holdDays()}
               onInput={(e) => setHoldDays(Number(e.target.value))}
@@ -206,7 +224,10 @@ export const BacktestConfig: Component<BacktestConfigProps> = (props) => {
               <span class="text-blue-400 font-mono">{positionPct()}%</span>
             </div>
             <input
-              type="range" min="10" max="100" step="5"
+              type="range"
+              min="10"
+              max="100"
+              step="5"
               class="w-full accent-blue-500"
               value={positionPct()}
               onInput={(e) => setPositionPct(Number(e.target.value))}
@@ -220,8 +241,11 @@ export const BacktestConfig: Component<BacktestConfigProps> = (props) => {
         <h3 class="font-bold mb-3 text-sm text-gray-300">回测设置</h3>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs text-gray-400 mb-1">开始日期</label>
+            <label class="block text-xs text-gray-400 mb-1" for="bt-start-date">
+              开始日期
+            </label>
             <input
+              id="bt-start-date"
               type="date"
               class="w-full bg-[#0A0E17] border border-white/10 rounded px-3 py-2 text-sm"
               value={startDate()}
@@ -229,8 +253,11 @@ export const BacktestConfig: Component<BacktestConfigProps> = (props) => {
             />
           </div>
           <div>
-            <label class="block text-xs text-gray-400 mb-1">结束日期</label>
+            <label class="block text-xs text-gray-400 mb-1" for="bt-end-date">
+              结束日期
+            </label>
             <input
+              id="bt-end-date"
               type="date"
               class="w-full bg-[#0A0E17] border border-white/10 rounded px-3 py-2 text-sm"
               value={endDate()}
@@ -239,12 +266,16 @@ export const BacktestConfig: Component<BacktestConfigProps> = (props) => {
           </div>
         </div>
         <div class="mt-3">
-          <label class="block text-xs text-gray-400 mb-1">初始资金 (元)</label>
+          <label class="block text-xs text-gray-400 mb-1" for="bt-capital">
+            初始资金 (元)
+          </label>
           <input
+            id="bt-capital"
             type="number"
             class="w-full bg-[#0A0E17] border border-white/10 rounded px-3 py-2 text-sm"
             value={initialCapital()}
             onInput={(e) => setInitialCapital(Number(e.target.value))}
+            aria-label="回测初始资金"
           />
         </div>
       </div>

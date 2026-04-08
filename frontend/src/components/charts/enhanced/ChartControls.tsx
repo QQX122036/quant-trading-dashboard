@@ -40,33 +40,42 @@ export const ChartControls: Component<ChartControlsProps> = (props) => {
 
   return (
     <div class="flex items-center gap-2 p-2 border-b border-white/10 flex-wrap">
-
       {/* Adjust type */}
       <div class="flex gap-1">
-        {(['none', 'forward', 'backward'] as AdjustType[]).map((t) => (
-          <button
-            class={`px-2 py-1 text-xs rounded transition-colors ${props.adjustType === t ? 'bg-blue-600 text-white' : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}
-            onClick={() => props.onAdjustChange(t)}
-            title={t === 'none' ? '不复权' : t === 'forward' ? '前复权：以最新价为基准向前拉伸' : '后复权：以历史价为基准向后拉伸'}
-          >
-            {t === 'none' ? '不复权' : t === 'forward' ? '前复权' : '后复权'}
-          </button>
-        ))}
+        <For each={['none', 'forward', 'backward'] as AdjustType[]}>
+          {(t) => (
+            <button
+              class={`px-2 py-1 text-xs rounded transition-colors ${props.adjustType === t ? 'bg-blue-600 text-white' : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}
+              onClick={() => props.onAdjustChange(t)}
+              title={
+                t === 'none'
+                  ? '不复权'
+                  : t === 'forward'
+                    ? '前复权：以最新价为基准向前拉伸'
+                    : '后复权：以历史价为基准向后拉伸'
+              }
+            >
+              {t === 'none' ? '不复权' : t === 'forward' ? '前复权' : '后复权'}
+            </button>
+          )}
+        </For>
       </div>
 
       <div class="w-px h-4 bg-white/20" />
 
       {/* Drawing tools */}
       <div class="flex gap-1">
-        {tools.map(({ tool, label, icon, title }) => (
-          <button
-            class={`px-2 py-1 text-xs rounded transition-colors ${props.activeTool === tool ? (tool === 'alertline' ? 'bg-red-600 text-white' : 'bg-blue-600 text-white') : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}
-            onClick={() => props.onToolChange(props.activeTool === tool ? null : tool)}
-            title={title}
-          >
-            {icon} {label}
-          </button>
-        ))}
+        <For each={tools}>
+          {({ tool, label, icon, title }) => (
+            <button
+              class={`px-2 py-1 text-xs rounded transition-colors ${props.activeTool === tool ? (tool === 'alertline' ? 'bg-red-600 text-white' : 'bg-blue-600 text-white') : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}
+              onClick={() => props.onToolChange(props.activeTool === tool ? null : tool)}
+              title={title}
+            >
+              {icon} {label}
+            </button>
+          )}
+        </For>
       </div>
 
       <div class="w-px h-4 bg-white/20" />
@@ -123,10 +132,17 @@ export const ChartControls: Component<ChartControlsProps> = (props) => {
       <Show when={props.showCompare}>
         <select
           class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 border border-white/20"
-          onChange={(e) => { const v = e.currentTarget.value; if (v) props.onAddComparedStock(v); }}
+          onChange={(e) => {
+            const v = e.currentTarget.value;
+            if (v) props.onAddComparedStock(v);
+          }}
         >
           <option value="">添加对比...</option>
-          <For each={MAJOR_INDICES.filter((i) => !props.comparedStocks.some((s) => s.ts_code === i.ts_code))}>
+          <For
+            each={MAJOR_INDICES.filter(
+              (i) => !props.comparedStocks.some((s) => s.ts_code === i.ts_code)
+            )}
+          >
             {(idx) => <option value={idx.ts_code}>{idx.name}</option>}
           </For>
         </select>
@@ -141,7 +157,10 @@ export const ChartControls: Component<ChartControlsProps> = (props) => {
 
       {/* Clear drawings */}
       <Show when={props.drawingsCount > 0}>
-        <button class="px-2 py-1 text-xs rounded bg-red-900/60 text-red-300 hover:bg-red-900/80" onClick={props.onClearDrawings}>
+        <button
+          class="px-2 py-1 text-xs rounded bg-red-900/60 text-red-300 hover:bg-red-900/80"
+          onClick={props.onClearDrawings}
+        >
           🗑 清空绘图
         </button>
       </Show>

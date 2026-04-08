@@ -34,8 +34,9 @@ export interface CustomIndicatorEditorProps {
 function sma(values: number[], period: number): number[] {
   const result: number[] = [];
   for (let i = 0; i < values.length; i++) {
-    if (i < period - 1) { result.push(NaN); }
-    else {
+    if (i < period - 1) {
+      result.push(NaN);
+    } else {
       let sum = 0;
       for (let j = 0; j < period; j++) sum += values[i - j];
       result.push(sum / period);
@@ -48,8 +49,9 @@ function ema(values: number[], period: number): number[] {
   const result: number[] = [];
   const multiplier = 2 / (period + 1);
   for (let i = 0; i < values.length; i++) {
-    if (i === 0) { result.push(values[0]); }
-    else if (i < period - 1) {
+    if (i === 0) {
+      result.push(values[0]);
+    } else if (i < period - 1) {
       let sum = 0;
       for (let j = 0; j <= i; j++) sum += values[j];
       result.push(sum / (i + 1));
@@ -67,8 +69,9 @@ function ema(values: number[], period: number): number[] {
 function stdDev(values: number[], period: number): number[] {
   const result: number[] = [];
   for (let i = 0; i < values.length; i++) {
-    if (i < period - 1) { result.push(NaN); }
-    else {
+    if (i < period - 1) {
+      result.push(NaN);
+    } else {
       let sum = 0;
       for (let j = 0; j < period; j++) sum += values[i - j];
       const mean = sum / period;
@@ -80,28 +83,42 @@ function stdDev(values: number[], period: number): number[] {
   return result;
 }
 
-
 function calculateRSI(closes: number[], period = 14): number[] {
   const rsi: number[] = [];
   for (let i = 0; i < closes.length; i++) {
-    if (i < period) { rsi.push(NaN); continue; }
-    let avgGain = 0, avgLoss = 0;
+    if (i < period) {
+      rsi.push(NaN);
+      continue;
+    }
+    let avgGain = 0,
+      avgLoss = 0;
     for (let j = 1; j <= period; j++) {
       const change = closes[i - j + 1] - closes[i - j];
-      if (change > 0) avgGain += change; else avgLoss += Math.abs(change);
+      if (change > 0) avgGain += change;
+      else avgLoss += Math.abs(change);
     }
-    avgGain /= period; avgLoss /= period;
-    if (avgLoss === 0) { rsi.push(100); }
-    else { const rs = avgGain / avgLoss; rsi.push(100 - 100 / (1 + rs)); }
+    avgGain /= period;
+    avgLoss /= period;
+    if (avgLoss === 0) {
+      rsi.push(100);
+    } else {
+      const rs = avgGain / avgLoss;
+      rsi.push(100 - 100 / (1 + rs));
+    }
   }
   return rsi;
 }
 
 function calculateKDJ(highs: number[], lows: number[], closes: number[], period = 9) {
-  const k: number[] = [], d: number[] = [], j: number[] = [];
+  const k: number[] = [],
+    d: number[] = [],
+    j: number[] = [];
   for (let i = 0; i < closes.length; i++) {
-    if (i < period - 1) { k.push(NaN); d.push(NaN); j.push(NaN); }
-    else {
+    if (i < period - 1) {
+      k.push(NaN);
+      d.push(NaN);
+      j.push(NaN);
+    } else {
       const lowMin = Math.min(...lows.slice(i - period + 1, i + 1));
       const highMax = Math.max(...highs.slice(i - period + 1, i + 1));
       const rsv = highMax === lowMin ? 50 : ((closes[i] - lowMin) / (highMax - lowMin)) * 100;
@@ -110,7 +127,9 @@ function calculateKDJ(highs: number[], lows: number[], closes: number[], period 
       const kVal = (2 / 3) * prevK + (1 / 3) * rsv;
       const dVal = (2 / 3) * prevD + (1 / 3) * kVal;
       const jVal = 3 * kVal - 2 * dVal;
-      k.push(kVal); d.push(dVal); j.push(jVal);
+      k.push(kVal);
+      d.push(dVal);
+      j.push(jVal);
     }
   }
   return { k, d, j };
@@ -119,50 +138,69 @@ function calculateKDJ(highs: number[], lows: number[], closes: number[], period 
 function calculateBOLL(closes: number[], period = 20, stdDev_mult = 2) {
   const middle = sma(closes, period);
   const std = stdDev(closes, period);
-  const upper = middle.map((m, i) => (m !== undefined && !isNaN(m) && std[i] !== undefined ? m + stdDev_mult * std[i] : NaN));
-  const lower = middle.map((m, i) => (m !== undefined && !isNaN(m) && std[i] !== undefined ? m - stdDev_mult * std[i] : NaN));
+  const upper = middle.map((m, i) =>
+    m !== undefined && !isNaN(m) && std[i] !== undefined ? m + stdDev_mult * std[i] : NaN
+  );
+  const lower = middle.map((m, i) =>
+    m !== undefined && !isNaN(m) && std[i] !== undefined ? m - stdDev_mult * std[i] : NaN
+  );
   return { upper, middle, lower };
 }
 
 // ── Indicator configs ────────────────────────────────────────────────────────
 
-const INDICATOR_CONFIGS: Record<IndicatorType, { label: string; params: { key: string; label: string; default: number; min?: number }[] }> = {
-  MA:    { label: 'MA (均线)',     params: [{ key: 'period', label: '周期', default: 5, min: 1 }] },
-  EMA:   { label: 'EMA (指数均线)', params: [{ key: 'period', label: '周期', default: 12, min: 1 }] },
-  RSI:   { label: 'RSI (相对强弱)', params: [{ key: 'period', label: '周期', default: 14, min: 1 }] },
-  MACD:  {
+const INDICATOR_CONFIGS: Record<
+  IndicatorType,
+  { label: string; params: { key: string; label: string; default: number; min?: number }[] }
+> = {
+  MA: { label: 'MA (均线)', params: [{ key: 'period', label: '周期', default: 5, min: 1 }] },
+  EMA: { label: 'EMA (指数均线)', params: [{ key: 'period', label: '周期', default: 12, min: 1 }] },
+  RSI: { label: 'RSI (相对强弱)', params: [{ key: 'period', label: '周期', default: 14, min: 1 }] },
+  MACD: {
     label: 'MACD',
     params: [
-      { key: 'fast',   label: '快线周期',   default: 12, min: 1 },
-      { key: 'slow',   label: '慢线周期',   default: 26, min: 1 },
-      { key: 'signal', label: '信号线周期', default: 9,  min: 1 },
+      { key: 'fast', label: '快线周期', default: 12, min: 1 },
+      { key: 'slow', label: '慢线周期', default: 26, min: 1 },
+      { key: 'signal', label: '信号线周期', default: 9, min: 1 },
     ],
   },
-  KDJ:   { label: 'KDJ (随机指标)', params: [{ key: 'period', label: '周期', default: 9, min: 1 }] },
-  BOLL:  {
+  KDJ: { label: 'KDJ (随机指标)', params: [{ key: 'period', label: '周期', default: 9, min: 1 }] },
+  BOLL: {
     label: 'BOLL (布林带)',
     params: [
-      { key: 'period',    label: '周期',     default: 20, min: 1 },
+      { key: 'period', label: '周期', default: 20, min: 1 },
       { key: 'stdDev_mult', label: '标准差倍数', default: 2, min: 0.1 },
     ],
   },
 };
 
 const DEFAULT_COLORS: Record<IndicatorType, string> = {
-  MA:   '#3B82F6',
-  EMA:  '#F59E0B',
-  RSI:  '#8B5CF6',
+  MA: '#3B82F6',
+  EMA: '#F59E0B',
+  RSI: '#8B5CF6',
   MACD: '#EC4899',
-  KDJ:  '#10B981',
+  KDJ: '#10B981',
   BOLL: '#6B7280',
 };
 
 // ── Color palette for color picker ──────────────────────────────────────────
 
 const COLOR_PALETTE = [
-  '#3B82F6', '#F59E0B', '#EF4444', '#22C55E', '#8B5CF6',
-  '#EC4899', '#10B981', '#6B7280', '#F97316', '#06B6D4',
-  '#84CC16', '#A855F7', '#14B8A6', '#E11D48', '#0EA5E9',
+  '#3B82F6',
+  '#F59E0B',
+  '#EF4444',
+  '#22C55E',
+  '#8B5CF6',
+  '#EC4899',
+  '#10B981',
+  '#6B7280',
+  '#F97316',
+  '#06B6D4',
+  '#84CC16',
+  '#A855F7',
+  '#14B8A6',
+  '#E11D48',
+  '#0EA5E9',
 ];
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -195,8 +233,8 @@ export const CustomIndicatorEditor: Component<CustomIndicatorEditorProps> = (pro
 
   function buildIndicatorData(type: IndicatorType, p: Record<string, number>, bars: DailyBar[]) {
     const closes = bars.map((b) => b.close);
-    const highs  = bars.map((b) => b.high);
-    const lows   = bars.map((b) => b.low);
+    const highs = bars.map((b) => b.high);
+    const lows = bars.map((b) => b.low);
     const times: Time[] = bars.map((b) => b.trade_date as Time);
 
     if (type === 'MA') {
@@ -289,10 +327,8 @@ export const CustomIndicatorEditor: Component<CustomIndicatorEditorProps> = (pro
 
         {/* Body: two-column layout */}
         <div class="flex flex-1 overflow-hidden min-h-0">
-
           {/* Left: editor form */}
           <div class="w-64 shrink-0 border-r border-[rgba(255,255,255,0.07)] flex flex-col p-4 gap-4 overflow-y-auto">
-
             {/* Indicator type */}
             <div class="form-group">
               <label class="form-label text-xs text-white/50 mb-1.5 block">指标类型</label>
@@ -364,17 +400,15 @@ export const CustomIndicatorEditor: Component<CustomIndicatorEditorProps> = (pro
             <div class="rounded-lg p-3 bg-white/5 border border-white/8">
               <p class="text-xs text-white/40 mb-1">📌 指标预览</p>
               <div class="flex items-center gap-2">
-                <div
-                  class="w-4 h-0.5 rounded-full"
-                  style={{ background: selectedColor() }}
-                />
+                <div class="w-4 h-0.5 rounded-full" style={{ background: selectedColor() }} />
                 <span class="text-xs text-white/60">{config().label}</span>
               </div>
               <div class="mt-1.5 space-y-0.5">
                 <For each={config().params}>
                   {(p) => (
                     <p class="text-xs text-white/35">
-                      {p.label}: <span class="text-white/60 font-mono">{params()[p.key] ?? p.default}</span>
+                      {p.label}:{' '}
+                      <span class="text-white/60 font-mono">{params()[p.key] ?? p.default}</span>
                     </p>
                   )}
                 </For>
@@ -382,17 +416,13 @@ export const CustomIndicatorEditor: Component<CustomIndicatorEditorProps> = (pro
             </div>
 
             {/* Add button */}
-            <button
-              class="btn btn-primary w-full text-sm mt-auto"
-              onClick={handleAdd}
-            >
+            <button class="btn btn-primary w-full text-sm mt-auto" onClick={handleAdd}>
               ➕ 添加指标
             </button>
           </div>
 
           {/* Right: indicator list + preview */}
           <div class="flex-1 flex flex-col p-4 overflow-y-auto gap-3">
-
             {/* Active indicators list */}
             <div class="shrink-0">
               <p class="text-xs text-white/50 font-medium uppercase tracking-wider mb-2">
@@ -484,17 +514,20 @@ export const CustomIndicatorEditor: Component<CustomIndicatorEditorProps> = (pro
 
         {/* Footer */}
         <div class="flex items-center justify-between px-5 py-3 border-t border-[rgba(255,255,255,0.08)] shrink-0">
-          <p class="text-xs text-white/25">
-            共 {indicators().length} 个自定义指标
-          </p>
+          <p class="text-xs text-white/25">共 {indicators().length} 个自定义指标</p>
           <div class="flex gap-2">
-            <button class="btn btn-secondary text-xs" onClick={() => {
-              // Clear all
-              indicators().forEach((ind) => {
-                window.dispatchEvent(new CustomEvent('custom-indicator-remove', { detail: { id: ind.id } }));
-              });
-              setIndicators([]);
-            }}>
+            <button
+              class="btn btn-secondary text-xs"
+              onClick={() => {
+                // Clear all
+                indicators().forEach((ind) => {
+                  window.dispatchEvent(
+                    new CustomEvent('custom-indicator-remove', { detail: { id: ind.id } })
+                  );
+                });
+                setIndicators([]);
+              }}
+            >
               清空全部
             </button>
             <button class="btn btn-primary text-xs" onClick={props.onClose}>

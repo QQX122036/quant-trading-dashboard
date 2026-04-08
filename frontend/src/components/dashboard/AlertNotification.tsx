@@ -26,14 +26,21 @@ export const AlertNotification: Component = () => {
   const [activeTab, setActiveTab] = createSignal<NotifType | 'all'>('all');
   const ws = getWsInstance();
 
-  function addNotif(type: NotifType, message: string, detail?: string, level: Notification['level'] = 'blue') {
+  function addNotif(
+    type: NotifType,
+    message: string,
+    detail?: string,
+    level: Notification['level'] = 'blue'
+  ) {
     const notif: Notification = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      type, message, detail,
+      type,
+      message,
+      detail,
       timestamp: new Date().toLocaleTimeString('zh-CN'),
       level,
     };
-    setNotifications(prev => [notif, ...prev].slice(0, 100));
+    setNotifications((prev) => [notif, ...prev].slice(0, 100));
   }
 
   // 系统通知处理
@@ -52,7 +59,7 @@ export const AlertNotification: Component = () => {
         'trade',
         `成交 ${isBuy ? '买入' : '卖出'} ${t.symbol} × ${t.volume}`,
         `价格: ${t.price} | 时间: ${t.datetime}`,
-        isBuy ? 'green' : 'red',
+        isBuy ? 'green' : 'red'
       );
     }
   };
@@ -118,7 +125,7 @@ export const AlertNotification: Component = () => {
     const tab = activeTab();
     const all = notifications();
     if (tab === 'all') return all;
-    return all.filter(n => n.type === tab);
+    return all.filter((n) => n.type === tab);
   });
 
   const tabs: Array<{ key: NotifType | 'all'; label: string; color: string }> = [
@@ -161,16 +168,27 @@ export const AlertNotification: Component = () => {
 
       {/* Notification list */}
       <div class="flex-1 overflow-auto">
-        <For each={filtered()} fallback={
-          <div class="flex items-center justify-center h-full text-xs text-gray-600">暂无通知</div>
-        }>
+        <For
+          each={filtered()}
+          fallback={
+            <div class="flex items-center justify-center h-full text-xs text-gray-600">
+              暂无通知
+            </div>
+          }
+        >
           {(notif) => (
-            <div class={`flex items-start gap-2 px-3 py-1.5 border-b border-white/5 border-l-2 ${levelColors[notif.level]}`}>
+            <div
+              class={`flex items-start gap-2 px-3 py-1.5 border-b border-white/5 border-l-2 ${levelColors[notif.level]}`}
+            >
               <div class="flex-1 min-w-0">
                 <div class="text-[11px] text-gray-200 truncate">{notif.message}</div>
-                {notif.detail && <div class="text-[10px] text-gray-500 truncate">{notif.detail}</div>}
+                {notif.detail && (
+                  <div class="text-[10px] text-gray-500 truncate">{notif.detail}</div>
+                )}
               </div>
-              <div class="text-[9px] text-gray-600 whitespace-nowrap flex-shrink-0 mt-0.5">{notif.timestamp}</div>
+              <div class="text-[9px] text-gray-600 whitespace-nowrap flex-shrink-0 mt-0.5">
+                {notif.timestamp}
+              </div>
             </div>
           )}
         </For>

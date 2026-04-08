@@ -2,7 +2,7 @@
  * KlineChart.tsx — K线图组件
  * 对接真实数据，支持 MA5/10/20、因子信号标记、十字光标同步
  */
-import { Component, createSignal, createEffect, onMount, onCleanup } from 'solid-js';
+import { Component, createSignal, createEffect, onMount, onCleanup, For } from 'solid-js';
 import {
   createChart,
   IChartApi,
@@ -17,6 +17,7 @@ import {
 } from 'lightweight-charts';
 import { fetchDailyBar, type DailyBar, isSuccessCode } from '../../hooks/useApi';
 import { calculateMACD } from './IndicatorChart';
+import { logger } from '../../lib/logger';
 
 interface Signal {
   time: Time;
@@ -76,7 +77,14 @@ function calcSignals(bars: DailyBar[]): Signal[] {
   if (bars.length < 5) return signals;
 
   const closes = bars.map((b) => b.close);
-  const times = bars.map((b) => b.trade_date as Time);
+  // 将 ISO 格式日期转换为 yyyy-mm-dd 格式
+  const times = bars.map((b) => {
+    const dateStr = b.trade_date;
+    if (dateStr.includes('T')) {
+      return dateStr.split('T')[0] as unknown as Time;
+    }
+    return dateStr as unknown as Time;
+  });
 
   // 计算 MA5/MA10
   const ma5 = closes.map((_, i) => {
@@ -95,11 +103,23 @@ function calcSignals(bars: DailyBar[]): Signal[] {
     // 金叉：MA5 上穿 MA10
     if (!isNaN(ma5[prev]) && !isNaN(ma10[prev]) && !isNaN(ma5[i]) && !isNaN(ma10[i])) {
       if (ma5[prev] <= ma10[prev] && ma5[i] > ma10[i]) {
-        signals.push({ time: times[i], position: 'belowBar', shape: 'arrowUp', color: '#EF4444', text: '★买入' });
+        signals.push({
+          time: times[i],
+          position: 'belowBar',
+          shape: 'arrowUp',
+          color: '#EF4444',
+          text: '★买入',
+        });
       }
       // 死叉：MA5 下穿 MA10
       if (ma5[prev] >= ma10[prev] && ma5[i] < ma10[i]) {
-        signals.push({ time: times[i], position: 'aboveBar', shape: 'arrowDown', color: '#22C55E', text: '☆卖出' });
+        signals.push({
+          time: times[i],
+          position: 'aboveBar',
+          shape: 'arrowDown',
+          color: '#22C55E',
+          text: '☆卖出',
+        });
       }
     }
     // 放量突破：成交量 > 前日2倍 且 涨幅 > 2%
@@ -107,7 +127,13 @@ function calcSignals(bars: DailyBar[]): Signal[] {
       const volRatio = bars[i].volume / Math.max(bars[i - 1].volume, 1);
       const priceChange = (bars[i].close - bars[i - 1].close) / bars[i - 1].close;
       if (volRatio > 2 && priceChange > 0.02) {
-        signals.push({ time: times[i], position: 'aboveBar', shape: 'circle', color: '#F59E0B', text: '▲放量突破' });
+        signals.push({
+          time: times[i],
+          position: 'aboveBar',
+          shape: 'circle',
+          color: '#F59E0B',
+          text: '▲放量突破',
+        });
       }
     }
   }
@@ -142,7 +168,7 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
         const toTime = visibleRange.to;
         const allBars = bars();
         const visible = allBars.filter((b: DailyBar) => {
-          const t = (b.trade_date as unknown as number); // Time = number in this context
+          const t = b.trade_date as unknown as number; // Time = number in this context
           return Number(t) >= Number(fromTime) && Number(t) <= Number(toTime);
         }).length;
         setVisibleCount(visible);
@@ -161,7 +187,7 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
     const sym = props.symbol || '600519';
     const exch = props.exchange || 'SSE';
     const ts_code = `${sym}.${exch}`;
-    
+
     setLoading(true);
     setError(null);
     try {
@@ -183,7 +209,15 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
     if (!chart || !candleSeries) return;
 
     const closes = data.map((b) => b.close);
-    const times = data.map((b) => b.trade_date as Time);
+    // 将 ISO 格式日期转换为 yyyy-mm-dd 格式
+    const times = data.map((b) => {
+      const dateStr = b.trade_date;
+      // 如果是 ISO 格式 (包含 T),提取日期部分
+      if (dateStr.includes('T')) {
+        return dateStr.split('T')[0] as unknown as Time;
+      }
+      return dateStr as unknown as Time;
+    });
 
     // K 线数据
     candleSeries.setData(data.map(barToCandle));
@@ -210,42 +244,42 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
     const ts = chart.timeScale();
     const visibleRange = ts.getVisibleRange();
     if (!visibleRange) return;
-    
-    console.log('zoomIn before:', visibleRange);
-    
+
+    logger.debug('[KlineChart] zoomIn before', { visibleRange });
+
     // 放大：减少可见范围（看到更少但更详细的数据）
     const from = new Date(visibleRange.from as string).getTime();
     const to = new Date(visibleRange.to as string).getTime();
     const currentWidth = Math.abs(to - from);
-    
+
     // 最小宽度限制（至少1天）
     const minWidth = 24 * 60 * 60 * 1000; // 1天
     if (currentWidth <= minWidth) {
-      console.log('zoomIn: 已达到最小缩放级别');
+      logger.debug('[KlineChart] zoomIn: already at min zoom');
       return;
     }
-    
+
     const center = (from + to) / 2;
     const newWidth = currentWidth * 0.7; // 缩小到 70%
-    
+
     // 确保新的开始日期小于结束日期
     const newFrom = center - newWidth / 2;
     const newTo = center + newWidth / 2;
-    
+
     // 转换回字符串日期格式
     const newFromStr = new Date(newFrom).toISOString().split('T')[0];
     let newToStr = new Date(newTo).toISOString().split('T')[0];
-    
+
     // 确保开始日期小于结束日期
     if (newFromStr >= newToStr) {
-      console.log('zoomIn: 开始日期大于等于结束日期，调整');
+      logger.debug('[KlineChart] zoomIn: adjusting date range');
       const newToDate = new Date(newFromStr);
       newToDate.setDate(newToDate.getDate() + 1);
       newToStr = newToDate.toISOString().split('T')[0];
     }
-    
-    console.log('zoomIn after:', { from: newFromStr, to: newToStr });
-    
+
+    logger.debug('[KlineChart] zoomIn after', { from: newFromStr, to: newToStr });
+
     ts.setVisibleRange({
       from: newFromStr as Time,
       to: newToStr as Time,
@@ -257,25 +291,25 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
     const ts = chart.timeScale();
     const visibleRange = ts.getVisibleRange();
     if (!visibleRange) return;
-    
-    console.log('zoomOut before:', visibleRange);
-    
+
+    logger.debug('[KlineChart] zoomOut before', { visibleRange });
+
     // 缩小：增加可见范围（看到更多历史数据）
     const from = new Date(visibleRange.from as string).getTime();
     const to = new Date(visibleRange.to as string).getTime();
     const center = (from + to) / 2;
     const currentWidth = Math.abs(to - from);
     const newWidth = currentWidth * 1.4; // 扩大到 140%
-    
+
     const newFrom = center - newWidth / 2;
     const newTo = center + newWidth / 2;
-    
+
     // 转换回字符串日期格式
     const newFromStr = new Date(newFrom).toISOString().split('T')[0];
     const newToStr = new Date(newTo).toISOString().split('T')[0];
-    
-    console.log('zoomOut after:', { from: newFromStr, to: newToStr });
-    
+
+    logger.debug('[KlineChart] zoomOut after', { from: newFromStr, to: newToStr });
+
     ts.setVisibleRange({
       from: newFromStr as Time,
       to: newToStr as Time,
@@ -283,209 +317,282 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
   }
 
   onMount(() => {
-    if (!containerRef) return;
+    try {
+      if (!containerRef) return;
 
-    chart = createChart(containerRef, {
-      layout: {
-        background: { color: '#0A0E17' },
-        textColor: '#9CA3AF',
-      },
-      grid: {
-        vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
-        horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
-      },
-      crosshair: {
-        mode: CrosshairMode.Normal,
-        vertLine: {
-          width: 1,
-          color: 'rgba(255, 255, 255, 0.3)',
-          style: 2,
-          labelBackgroundColor: '#3B82F6',
+      chart = createChart(containerRef, {
+        layout: {
+          background: { color: '#0A0E17' },
+          textColor: '#9CA3AF',
         },
-        horzLine: {
-          width: 1,
-          color: 'rgba(255, 255, 255, 0.3)',
-          style: 2,
-          labelBackgroundColor: '#3B82F6',
+        grid: {
+          vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
+          horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
         },
-      },
-      rightPriceScale: {
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-      },
-      timeScale: {
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        timeVisible: true,
-        secondsVisible: false,
-        minBarSpacing: 2,  // 最小 K 线间距，允许缩小
-      },
-      handleScroll: {
-        mouseWheel: true,  // 启用鼠标滚轮缩放
-        pressedMouseMove: true,  // 启用鼠标拖动
-        horzTouchDrag: true,  // 启用水平触摸拖动
-        vertTouchDrag: false,  // 禁用垂直触摸拖动
-      },
-      handleScale: {
-        mouseWheel: true,  // 启用鼠标滚轮缩放
-        pinch: true,  // 启用手势缩放
-        axisPressedMouseMove: {
-          time: true,  // 允许在时间轴上拖动
-          price: true,  // 允许在价格轴上拖动
+        crosshair: {
+          mode: CrosshairMode.Normal,
+          vertLine: {
+            width: 1,
+            color: 'rgba(255, 255, 255, 0.3)',
+            style: 2,
+            labelBackgroundColor: '#3B82F6',
+          },
+          horzLine: {
+            width: 1,
+            color: 'rgba(255, 255, 255, 0.3)',
+            style: 2,
+            labelBackgroundColor: '#3B82F6',
+          },
         },
-      },
-    });
+        rightPriceScale: {
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+        },
+        timeScale: {
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+          timeVisible: true,
+          secondsVisible: false,
+          minBarSpacing: 2, // 最小 K 线间距，允许缩小
+        },
+        handleScroll: {
+          mouseWheel: true, // 启用鼠标滚轮缩放
+          pressedMouseMove: true, // 启用鼠标拖动
+          horzTouchDrag: true, // 启用水平触摸拖动
+          vertTouchDrag: false, // 禁用垂直触摸拖动
+        },
+        handleScale: {
+          mouseWheel: true, // 启用鼠标滚轮缩放
+          pinch: true, // 启用手势缩放
+          axisPressedMouseMove: {
+            time: true, // 允许在时间轴上拖动
+            price: true, // 允许在价格轴上拖动
+          },
+        },
+      });
 
-    candleSeries = chart.addCandlestickSeries({
-      upColor: UP_COLOR,
-      downColor: DOWN_COLOR,
-      borderUpColor: UP_COLOR,
-      borderDownColor: DOWN_COLOR,
-      wickUpColor: UP_COLOR,
-      wickDownColor: DOWN_COLOR,
-    });
+      candleSeries = chart.addCandlestickSeries({
+        upColor: UP_COLOR,
+        downColor: DOWN_COLOR,
+        borderUpColor: UP_COLOR,
+        borderDownColor: DOWN_COLOR,
+        wickUpColor: UP_COLOR,
+        wickDownColor: DOWN_COLOR,
+      });
 
-    ma5Series = chart.addLineSeries({ color: MA5_COLOR, lineWidth: 1, title: 'MA5', priceLineVisible: false });
-    ma10Series = chart.addLineSeries({ color: MA10_COLOR, lineWidth: 1, title: 'MA10', priceLineVisible: false });
-    ma20Series = chart.addLineSeries({ color: MA20_COLOR, lineWidth: 1, title: 'MA20', priceLineVisible: false });
+      ma5Series = chart.addLineSeries({
+        color: MA5_COLOR,
+        lineWidth: 1,
+        title: 'MA5',
+        priceLineVisible: false,
+      });
+      ma10Series = chart.addLineSeries({
+        color: MA10_COLOR,
+        lineWidth: 1,
+        title: 'MA10',
+        priceLineVisible: false,
+      });
+      ma20Series = chart.addLineSeries({
+        color: MA20_COLOR,
+        lineWidth: 1,
+        title: 'MA20',
+        priceLineVisible: false,
+      });
 
-    // ── Custom indicator series management ──────────────────────────
-    const customSeriesMap = new Map<string, { main: ISeriesApi<'Line'>; dif?: ISeriesApi<'Line'>; dea?: ISeriesApi<'Line'>; hist?: ISeriesApi<'Histogram'> }>();
+      // ── Custom indicator series management ──────────────────────────
+      const customSeriesMap = new Map<
+        string,
+        {
+          main: ISeriesApi<'Line'>;
+          dif?: ISeriesApi<'Line'>;
+          dea?: ISeriesApi<'Line'>;
+          hist?: ISeriesApi<'Histogram'>;
+        }
+      >();
 
-    // MACD recalculation (needs closes + times from current bars)
-    function getChartBars() { return bars(); }
-
-    function handleCustomIndicatorAdd(e: Event) {
-      if (!chart) return;
-      const ind = (e as CustomEvent).detail as { id: string; type: string; params: Record<string, number>; color: string; seriesData: any[] };
-      const chartBars = getChartBars();
-      if (chartBars.length === 0) return;
-
-      // Remove existing if present
-      if (customSeriesMap.has(ind.id)) {
-        const existing = customSeriesMap.get(ind.id)!;
-        chart.removeSeries(existing.main);
-        existing.dif && chart.removeSeries(existing.dif);
-        existing.dea && chart.removeSeries(existing.dea);
-        existing.hist && chart.removeSeries(existing.hist);
-        customSeriesMap.delete(ind.id);
+      // MACD recalculation (needs closes + times from current bars)
+      function getChartBars() {
+        return bars();
       }
 
-      const closes = chartBars.map((b) => b.close);
-      const times: Time[] = chartBars.map((b) => b.trade_date as Time);
+      function handleCustomIndicatorAdd(e: Event) {
+        if (!chart) return;
+        const ind = (e as CustomEvent).detail as {
+          id: string;
+          type: string;
+          params: Record<string, number>;
+          color: string;
+          seriesData: any[];
+        };
+        const chartBars = getChartBars();
+        if (chartBars.length === 0) return;
 
-      if (ind.type === 'MACD') {
-        const { dif, dea, histogram } = calculateMACD(closes);
-        const difSeries = chart.addLineSeries({ color: ind.color, lineWidth: 1, priceLineVisible: false, title: `DIF(${ind.id.slice(-4)})` });
-        const deaSeries = chart.addLineSeries({ color: 'rgba(255,255,255,0.5)', lineWidth: 1, priceLineVisible: false, title: `DEA(${ind.id.slice(-4)})` });
-        const histSeries = chart.addHistogramSeries({ priceLineVisible: false, title: `MACD(${ind.id.slice(-4)})` });
-        const difData: LineData<Time>[] = times.map((t, i) => ({ time: t, value: dif[i] })).filter((d) => !isNaN(d.value));
-        const deaData: LineData<Time>[] = times.map((t, i) => ({ time: t, value: dea[i] })).filter((d) => !isNaN(d.value));
-        const histData: HistogramData<Time>[] = times.map((t, i) => {
-          if (isNaN(histogram[i])) return null;
-          return { time: t, value: histogram[i], color: histogram[i] >= 0 ? 'rgba(239,68,68,0.7)' : 'rgba(34,197,94,0.7)' };
-        }).filter(Boolean) as HistogramData<Time>[];
-        difSeries.setData(difData);
-        deaSeries.setData(deaData);
-        histSeries.setData(histData);
-        customSeriesMap.set(ind.id, { main: difSeries, dif: difSeries, dea: deaSeries, hist: histSeries });
-      } else {
-        const mainSeries = chart.addLineSeries({
-          color: ind.color,
-          lineWidth: 1,
-          priceLineVisible: false,
-          title: `${ind.type}(${ind.id.slice(-4)})`,
-        });
-        mainSeries.setData(ind.seriesData);
-        customSeriesMap.set(ind.id, { main: mainSeries });
+        // Remove existing if present
+        if (customSeriesMap.has(ind.id)) {
+          const existing = customSeriesMap.get(ind.id)!;
+          chart.removeSeries(existing.main);
+          existing.dif && chart.removeSeries(existing.dif);
+          existing.dea && chart.removeSeries(existing.dea);
+          existing.hist && chart.removeSeries(existing.hist);
+          customSeriesMap.delete(ind.id);
+        }
+
+        const closes = chartBars.map((b) => b.close);
+        const times: Time[] = chartBars.map((b) => b.trade_date as Time);
+
+        if (ind.type === 'MACD') {
+          const { dif, dea, histogram } = calculateMACD(closes);
+          const difSeries = chart.addLineSeries({
+            color: ind.color,
+            lineWidth: 1,
+            priceLineVisible: false,
+            title: `DIF(${ind.id.slice(-4)})`,
+          });
+          const deaSeries = chart.addLineSeries({
+            color: 'rgba(255,255,255,0.5)',
+            lineWidth: 1,
+            priceLineVisible: false,
+            title: `DEA(${ind.id.slice(-4)})`,
+          });
+          const histSeries = chart.addHistogramSeries({
+            priceLineVisible: false,
+            title: `MACD(${ind.id.slice(-4)})`,
+          });
+          const difData: LineData<Time>[] = times
+            .map((t, i) => ({ time: t, value: dif[i] }))
+            .filter((d) => !isNaN(d.value));
+          const deaData: LineData<Time>[] = times
+            .map((t, i) => ({ time: t, value: dea[i] }))
+            .filter((d) => !isNaN(d.value));
+          const histData: HistogramData<Time>[] = times
+            .map((t, i) => {
+              if (isNaN(histogram[i])) return null;
+              return {
+                time: t,
+                value: histogram[i],
+                color: histogram[i] >= 0 ? 'rgba(239,68,68,0.7)' : 'rgba(34,197,94,0.7)',
+              };
+            })
+            .filter(Boolean) as HistogramData<Time>[];
+          difSeries.setData(difData);
+          deaSeries.setData(deaData);
+          histSeries.setData(histData);
+          customSeriesMap.set(ind.id, {
+            main: difSeries,
+            dif: difSeries,
+            dea: deaSeries,
+            hist: histSeries,
+          });
+        } else {
+          const mainSeries = chart.addLineSeries({
+            color: ind.color,
+            lineWidth: 1,
+            priceLineVisible: false,
+            title: `${ind.type}(${ind.id.slice(-4)})`,
+          });
+          mainSeries.setData(ind.seriesData);
+          customSeriesMap.set(ind.id, { main: mainSeries });
+        }
       }
-    }
 
-    function handleCustomIndicatorRemove(e: Event) {
-      if (!chart) return;
-      const { id } = (e as CustomEvent).detail as { id: string };
-      const entry = customSeriesMap.get(id);
-      if (entry) {
-        chart.removeSeries(entry.main);
-        entry.dif && chart.removeSeries(entry.dif);
-        entry.dea && chart.removeSeries(entry.dea);
-        entry.hist && chart.removeSeries(entry.hist);
-        customSeriesMap.delete(id);
+      function handleCustomIndicatorRemove(e: Event) {
+        if (!chart) return;
+        const { id } = (e as CustomEvent).detail as { id: string };
+        const entry = customSeriesMap.get(id);
+        if (entry) {
+          chart.removeSeries(entry.main);
+          entry.dif && chart.removeSeries(entry.dif);
+          entry.dea && chart.removeSeries(entry.dea);
+          entry.hist && chart.removeSeries(entry.hist);
+          customSeriesMap.delete(id);
+        }
       }
-    }
 
-    window.addEventListener('custom-indicator-add', handleCustomIndicatorAdd);
-    window.addEventListener('custom-indicator-remove', handleCustomIndicatorRemove);
+      window.addEventListener('custom-indicator-add', handleCustomIndicatorAdd);
+      window.addEventListener('custom-indicator-remove', handleCustomIndicatorRemove);
 
-    // 十字光标同步 + 更新可见范围指示器
-    chart.subscribeCrosshairMove((param) => {
-      const t = param.time as Time | undefined;
-      internalCrosshairTime = t || null;
-      props.onCrosshairMove?.(internalCrosshairTime);
-      updateVisibleRange();
-    });
+      // 十字光标同步 + 更新可见范围指示器
+      chart.subscribeCrosshairMove((param) => {
+        const t = param.time as Time | undefined;
+        internalCrosshairTime = t || null;
+        props.onCrosshairMove?.(internalCrosshairTime);
+        updateVisibleRange();
+      });
 
-    // 初始空数据
-    candleSeries.setData([]);
-    chart.timeScale().fitContent();
+      // 初始空数据
+      candleSeries.setData([]);
+      chart.timeScale().fitContent();
 
-    // ResizeObserver
-    const resizeObserver = new ResizeObserver(() => {
-      if (chart && containerRef) {
-        chart.applyOptions({ width: containerRef.clientWidth, height: containerRef.clientHeight });
+      // ResizeObserver
+      const resizeObserver = new ResizeObserver(() => {
+        if (chart && containerRef) {
+          chart.applyOptions({
+            width: containerRef.clientWidth,
+            height: containerRef.clientHeight,
+          });
+          updateVisibleRange();
+        }
+      });
+      resizeObserver.observe(containerRef);
+
+      // 键盘快捷键：Left/Right 平移，+/- 缩放
+      function handleKeyDown(e: KeyboardEvent) {
+        if (!chart) return;
+        const timeScale = chart.timeScale();
+        const scrollStep = Math.max(1, Math.floor(totalCount() / 20)); // 每次滚动约5%
+
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const pos = timeScale.scrollPosition();
+          timeScale.scrollToPosition(Math.max(0, pos - scrollStep), true);
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          const pos = timeScale.scrollPosition();
+          timeScale.scrollToPosition(pos + scrollStep, true);
+        } else if (e.key === '+' || e.key === '=') {
+          e.preventDefault();
+          // 放大：减少可见范围
+          const range = timeScale.getVisibleRange();
+          if (range) {
+            const mid = ((range.from as number) + (range.to as number)) / 2;
+            const half = ((range.to as number) - (range.from as number)) * 0.4;
+            timeScale.setVisibleRange({ from: (mid - half) as Time, to: (mid + half) as Time });
+          }
+        } else if (e.key === '-' || e.key === '_') {
+          e.preventDefault();
+          // 缩小：增加可见范围
+          const range = timeScale.getVisibleRange();
+          if (range) {
+            const mid = ((range.from as number) + (range.to as number)) / 2;
+            const half = ((range.to as number) - (range.from as number)) * 0.8;
+            timeScale.setVisibleRange({ from: (mid - half) as Time, to: (mid + half) as Time });
+          }
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          timeScale.scrollToPosition(0, true);
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          timeScale.scrollToRealTime();
+        }
         updateVisibleRange();
       }
-    });
-    resizeObserver.observe(containerRef);
 
-    // 键盘快捷键：Left/Right 平移，+/- 缩放
-    function handleKeyDown(e: KeyboardEvent) {
-      if (!chart) return;
-      const timeScale = chart.timeScale();
-      const scrollStep = Math.max(1, Math.floor(totalCount() / 20)); // 每次滚动约5%
+      window.addEventListener('keydown', handleKeyDown);
 
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        const pos = timeScale.scrollPosition(); timeScale.scrollToPosition(Math.max(0, pos - scrollStep), true);
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        const pos = timeScale.scrollPosition(); timeScale.scrollToPosition(pos + scrollStep, true);
-      } else if (e.key === '+' || e.key === '=') {
-        e.preventDefault();
-        // 放大：减少可见范围
-        const range = timeScale.getVisibleRange();
-        if (range) {
-          const mid = ((range.from as number) + (range.to as number)) / 2;
-          const half = ((range.to as number) - (range.from as number)) * 0.4;
-          timeScale.setVisibleRange({ from: (mid - half) as Time, to: (mid + half) as Time });
+      onCleanup(() => {
+        resizeObserver.disconnect();
+        window.removeEventListener('keydown', handleKeyDown);
+        window.removeEventListener('custom-indicator-add', handleCustomIndicatorAdd);
+        window.removeEventListener('custom-indicator-remove', handleCustomIndicatorRemove);
+        if (chart) {
+          try {
+            chart.remove();
+          } catch (e) {
+            console.debug('[KlineChart] Chart already disposed in cleanup');
+          }
         }
-      } else if (e.key === '-' || e.key === '_') {
-        e.preventDefault();
-        // 缩小：增加可见范围
-        const range = timeScale.getVisibleRange();
-        if (range) {
-          const mid = ((range.from as number) + (range.to as number)) / 2;
-          const half = ((range.to as number) - (range.from as number)) * 0.8;
-          timeScale.setVisibleRange({ from: (mid - half) as Time, to: (mid + half) as Time });
-        }
-      } else if (e.key === 'Home') {
-        e.preventDefault();
-        timeScale.scrollToPosition(0, true);
-      } else if (e.key === 'End') {
-        e.preventDefault();
-        timeScale.scrollToRealTime();
-      }
-      updateVisibleRange();
+      });
+    } catch (err) {
+      logger.error('[KlineChart] onMount error', { error: err });
     }
-
-
-    window.addEventListener('keydown', handleKeyDown);
-
-    onCleanup(() => {
-      resizeObserver.disconnect();
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('custom-indicator-add', handleCustomIndicatorAdd);
-      window.removeEventListener('custom-indicator-remove', handleCustomIndicatorRemove);
-      chart?.remove();
-    });
   });
 
   // 外部传入 bars 时优先使用
@@ -582,7 +689,15 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
             class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
             onClick={() => {
               if (!chart) return;
-              chart.timeScale().scrollToPosition(Math.max(0, chart.timeScale().scrollPosition() - Math.max(1, Math.floor(totalCount() / 20))), true);
+              chart
+                .timeScale()
+                .scrollToPosition(
+                  Math.max(
+                    0,
+                    chart.timeScale().scrollPosition() - Math.max(1, Math.floor(totalCount() / 20))
+                  ),
+                  true
+                );
               updateVisibleRange();
             }}
             title="向左平移 (←)"
@@ -593,7 +708,12 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
             class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
             onClick={() => {
               if (!chart) return;
-              chart.timeScale().scrollToPosition(chart.timeScale().scrollPosition() + Math.max(1, Math.floor(totalCount() / 20)), true);
+              chart
+                .timeScale()
+                .scrollToPosition(
+                  chart.timeScale().scrollPosition() + Math.max(1, Math.floor(totalCount() / 20)),
+                  true
+                );
               updateVisibleRange();
             }}
             title="向右平移 (→)"
@@ -615,14 +735,16 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
 
         {/* Timeframe selector */}
         <div class="flex gap-1">
-          {(['1D', '1W', '1M'] as const).map((tf) => (
-            <button
-              class={`px-2 py-1 text-xs rounded transition-colors ${timeframe() === tf ? 'bg-blue-600 text-white' : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}
-              onClick={() => setTimeframe(tf)}
-            >
-              {tf === '1D' ? '日线' : tf === '1W' ? '周线' : '月线'}
-            </button>
-          ))}
+          <For each={['1D', '1W', '1M'] as const}>
+            {(tf) => (
+              <button
+                class={`px-2 py-1 text-xs rounded transition-colors ${timeframe() === tf ? 'bg-blue-600 text-white' : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}
+                onClick={() => setTimeframe(tf)}
+              >
+                {tf === '1D' ? '日线' : tf === '1W' ? '周线' : '月线'}
+              </button>
+            )}
+          </For>
         </div>
 
         {/* 自定义指标编辑器入口 */}

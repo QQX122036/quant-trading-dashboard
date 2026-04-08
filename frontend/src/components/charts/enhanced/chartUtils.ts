@@ -29,10 +29,22 @@ export function adjustBars(bars: DailyBar[], type: 'none' | 'forward' | 'backwar
   return bars.map((bar) => {
     if (type === 'forward') {
       const ratio = lastBar.close / bar.close;
-      return { ...bar, open: bar.open * ratio, high: bar.high * ratio, low: bar.low * ratio, close: bar.close * ratio };
+      return {
+        ...bar,
+        open: bar.open * ratio,
+        high: bar.high * ratio,
+        low: bar.low * ratio,
+        close: bar.close * ratio,
+      };
     } else {
       const ratio = bar.close / lastBar.close;
-      return { ...bar, open: bar.open * ratio, high: bar.high * ratio, low: bar.low * ratio, close: bar.close * ratio };
+      return {
+        ...bar,
+        open: bar.open * ratio,
+        high: bar.high * ratio,
+        low: bar.low * ratio,
+        close: bar.close * ratio,
+      };
     }
   });
 }
@@ -85,7 +97,12 @@ export interface RangeStats {
   indexChangePct?: number;
 }
 
-export function computeRangeStats(bars: DailyBar[], fromIdx: number, toIdx: number, indexBars?: DailyBar[]): RangeStats | null {
+export function computeRangeStats(
+  bars: DailyBar[],
+  fromIdx: number,
+  toIdx: number,
+  indexBars?: DailyBar[]
+): RangeStats | null {
   if (fromIdx < 0 || toIdx >= bars.length || fromIdx >= toIdx) return null;
   const rangeBars = bars.slice(fromIdx, toIdx + 1);
   const first = rangeBars[0];

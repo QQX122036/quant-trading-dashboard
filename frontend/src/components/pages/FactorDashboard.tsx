@@ -3,10 +3,14 @@
  * IC时间序列折线图、IR柱状图、相关性热力图
  */
 import { Component, createSignal, onMount, onCleanup, For, Show } from 'solid-js';
-import * as echarts from 'echarts';
+import echarts from '@/lib/echarts';
 import {
-  fetchFactorIC, fetchFactorIR, fetchFactorCorrelation,
-  type FactorICItem, type FactorIRItem, type FactorCorrelationItem
+  fetchFactorIC,
+  fetchFactorIR,
+  fetchFactorCorrelation,
+  type FactorICItem,
+  type FactorIRItem,
+  type FactorCorrelationItem,
 } from '../../hooks/useApi';
 
 interface FactorDashboardProps {
@@ -32,7 +36,7 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
   const IC_THRESHOLD = 0.03;
 
   // ── IC Chart ────────────────────────────────────────────────
-  const buildICOption = (data: FactorICItem[]): echarts.EChartsOption => {
+  const buildICOption = (data: FactorICItem[]): echarts.EChartsCoreOption => {
     const dates = data.map((d) => d.date);
     const icValues = data.map((d) => d.ic);
     const rankIcValues = data.map((d) => d.ic_rank);
@@ -46,14 +50,24 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
         borderColor: 'rgba(255,255,255,0.1)',
         textStyle: { color: '#fff' },
         formatter: (params: unknown) => {
-          const arr = params as Array<{ axisValue: string; seriesName: string; value: number; color: string }>;
+          const arr = params as Array<{
+            axisValue: string;
+            seriesName: string;
+            value: number;
+            color: string;
+          }>;
           if (!arr?.length) return '';
           const date = `<div style="font-size:11px;color:#9CA3AF;margin-bottom:4px">${arr[0].axisValue}</div>`;
-          return date + arr.map((p) => {
-            const color = p.value >= 0 ? '#3B82F6' : '#EF4444';
-            const sign = p.value >= 0 ? '+' : '';
-            return `<div style="display:flex;justify-content:space-between;gap:16px"><span style="color:${color}">${p.seriesName}</span><span style="color:${color}">${sign}${p.value.toFixed(4)}</span></div>`;
-          }).join('');
+          return (
+            date +
+            arr
+              .map((p) => {
+                const color = p.value >= 0 ? '#3B82F6' : '#EF4444';
+                const sign = p.value >= 0 ? '+' : '';
+                return `<div style="display:flex;justify-content:space-between;gap:16px"><span style="color:${color}">${p.seriesName}</span><span style="color:${color}">${sign}${p.value.toFixed(4)}</span></div>`;
+              })
+              .join('')
+          );
         },
       },
       legend: {
@@ -78,8 +92,14 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
             symbol: 'none',
             lineStyle: { color: '#6B7280', type: 'dashed', width: 1 },
             data: [
-              { yAxis: IC_THRESHOLD, label: { formatter: `+${IC_THRESHOLD}`, color: '#6B7280', fontSize: 9 } },
-              { yAxis: -IC_THRESHOLD, label: { formatter: `${-IC_THRESHOLD}`, color: '#6B7280', fontSize: 9 } },
+              {
+                yAxis: IC_THRESHOLD,
+                label: { formatter: `+${IC_THRESHOLD}`, color: '#6B7280', fontSize: 9 },
+              },
+              {
+                yAxis: -IC_THRESHOLD,
+                label: { formatter: `${-IC_THRESHOLD}`, color: '#6B7280', fontSize: 9 },
+              },
             ],
           },
         },
@@ -108,11 +128,11 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
           itemStyle: { color: '#8B5CF6' },
         },
       ],
-    } as unknown as echarts.EChartsOption;
+    } as unknown as echarts.EChartsCoreOption;
   };
 
   // ── IR Bar Chart ───────────────────────────────────────────
-  const buildIROption = (data: FactorIRItem[]): echarts.EChartsOption => {
+  const buildIROption = (data: FactorIRItem[]): echarts.EChartsCoreOption => {
     const factors = data.map((d) => d.factor_name);
     const irValues = data.map((d) => d.ir);
 
@@ -129,8 +149,10 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
           if (!arr?.length) return '';
           const item = arr[0];
           const sign = item.value >= 0 ? '+' : '';
-          return `<div><span style="color:#9CA3AF">因子: </span><span style="color:white">${item.name}</span><br/>` +
-            `<span style="color:#9CA3AF">IR: </span><span style="color:${item.value >= 0 ? '#22C55E' : '#EF4444'}">${sign}${item.value.toFixed(3)}</span></div>`;
+          return (
+            `<div><span style="color:#9CA3AF">因子: </span><span style="color:white">${item.name}</span><br/>` +
+            `<span style="color:#9CA3AF">IR: </span><span style="color:${item.value >= 0 ? '#22C55E' : '#EF4444'}">${sign}${item.value.toFixed(3)}</span></div>`
+          );
         },
       },
       xAxis: {
@@ -151,30 +173,39 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
           data: [{ xAxis: 0.5 }],
         },
       },
-      series: [{
-        type: 'bar',
-        data: irValues.map((v) => ({
-          value: v,
-          itemStyle: {
-            color: v >= 0
-              ? new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#22C55E' }, { offset: 1, color: '#16A34A' }])
-              : new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#EF4444' }, { offset: 1, color: '#DC2626' }]),
+      series: [
+        {
+          type: 'bar',
+          data: irValues.map((v) => ({
+            value: v,
+            itemStyle: {
+              color:
+                v >= 0
+                  ? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                      { offset: 0, color: '#22C55E' },
+                      { offset: 1, color: '#16A34A' },
+                    ])
+                  : new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                      { offset: 0, color: '#EF4444' },
+                      { offset: 1, color: '#DC2626' },
+                    ]),
+            },
+          })),
+          barMaxWidth: 40,
+          label: {
+            show: true,
+            position: 'top',
+            formatter: (p: { value: number }) => `${p.value >= 0 ? '+' : ''}${p.value.toFixed(2)}`,
+            fontSize: 9,
+            color: '#9CA3AF',
           },
-        })),
-        barMaxWidth: 40,
-        label: {
-          show: true,
-          position: 'top',
-          formatter: (p: { value: number }) => `${p.value >= 0 ? '+' : ''}${p.value.toFixed(2)}`,
-          fontSize: 9,
-          color: '#9CA3AF',
         },
-      }],
-    } as unknown as echarts.EChartsOption;
+      ],
+    } as unknown as echarts.EChartsCoreOption;
   };
 
   // ── Correlation Heatmap ────────────────────────────────────
-  const buildCorrOption = (data: FactorCorrelationItem[]): echarts.EChartsOption => {
+  const buildCorrOption = (data: FactorCorrelationItem[]): echarts.EChartsCoreOption => {
     if (!data.length) return {};
 
     const allFactors = Array.from(new Set(data.map((d) => d.factor_1)));
@@ -182,7 +213,9 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
       Array.from({ length: allFactors.length }, () => 0)
     );
     const idx: Record<string, number> = {};
-    allFactors.forEach((f, i) => { idx[f] = i; });
+    allFactors.forEach((f, i) => {
+      idx[f] = i;
+    });
     data.forEach((d) => {
       const r = idx[d.factor_1];
       const c = idx[d.factor_2];
@@ -219,17 +252,38 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
           return `<div>${p.data.name[0]} × ${p.data.name[1]}<br/>相关性: <span style="color:${p.data.value >= 0 ? '#22C55E' : '#EF4444'}">${p.data.value.toFixed(3)}</span></div>`;
         },
       },
-      xAxis: { type: 'category', data: allFactors, axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }, axisLabel: { color: '#9CA3AF', fontSize: 9, rotate: 30 } },
-      yAxis: { type: 'category', data: allFactors, axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }, axisLabel: { color: '#9CA3AF', fontSize: 9 } },
+      xAxis: {
+        type: 'category',
+        data: allFactors,
+        axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+        axisLabel: { color: '#9CA3AF', fontSize: 9, rotate: 30 },
+      },
+      yAxis: {
+        type: 'category',
+        data: allFactors,
+        axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+        axisLabel: { color: '#9CA3AF', fontSize: 9 },
+      },
       visualMap,
-      series: [{
-        type: 'heatmap',
-        data: matrix.map((row, i) => row.map((v, j) => ({ value: v, name: [allFactors[i], allFactors[j]] }))).flat(),
-        label: { show: true, formatter: (p: { value: number }) => p.value.toFixed(2), fontSize: 8, color: '#fff' },
-        itemStyle: { borderWidth: 1, borderColor: '#1f2937' },
-        emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' } },
-      }],
-    } as unknown as echarts.EChartsOption;
+      series: [
+        {
+          type: 'heatmap',
+          data: matrix
+            .map((row, i) =>
+              row.map((v, j) => ({ value: v, name: [allFactors[i], allFactors[j]] }))
+            )
+            .flat(),
+          label: {
+            show: true,
+            formatter: (p: { value: number }) => p.value.toFixed(2),
+            fontSize: 8,
+            color: '#fff',
+          },
+          itemStyle: { borderWidth: 1, borderColor: '#1f2937' },
+          emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' } },
+        },
+      ],
+    } as unknown as echarts.EChartsCoreOption;
   };
 
   const loadData = async () => {
@@ -320,12 +374,18 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
           <div class="flex items-center justify-between mb-2">
             <h3 class="text-sm font-bold text-gray-300">IC 时间序列</h3>
             <div class="flex gap-3 text-xs text-gray-400">
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>IC</span>
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-purple-500 inline-block"></span>Rank IC</span>
+              <span class="flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-blue-500 inline-block" />
+                IC
+              </span>
+              <span class="flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-purple-500 inline-block" />
+                Rank IC
+              </span>
               <span class="text-gray-500">|IC| &gt; {IC_THRESHOLD} 显著</span>
             </div>
           </div>
-          <div ref={icRef} class="w-full flex-1" style="min-height:220px" />
+          <div ref={icRef} class="w-full flex-1" style={{ 'min-height': '220px' }} />
         </div>
 
         {/* IR 柱状图 */}
@@ -337,7 +397,7 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
               <span class="text-red-400">● 负 IR</span>
             </div>
           </div>
-          <div ref={irRef} class="w-full flex-1" style="min-height:220px" />
+          <div ref={irRef} class="w-full flex-1" style={{ 'min-height': '220px' }} />
         </div>
 
         {/* 相关性热力图 */}
@@ -345,7 +405,7 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
           <div class="flex items-center justify-between mb-2">
             <h3 class="text-sm font-bold text-gray-300">因子相关性矩阵</h3>
           </div>
-          <div ref={corrRef} class="w-full flex-1" style="min-height:220px" />
+          <div ref={corrRef} class="w-full flex-1" style={{ 'min-height': '220px' }} />
         </div>
       </div>
     </div>

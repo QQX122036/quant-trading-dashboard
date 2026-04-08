@@ -8,10 +8,10 @@ import { apiFetch } from '../../hooks/useApi';
 
 interface SectorFlowItem {
   sector_name: string;
-  net_inflow: number;     // 净流入（亿元）
-  inflow_rate: number;    // 流入比率%
-  change_pct?: number;    // 涨跌幅%（可选）
-  amount?: number;        // 成交额（亿元）（可选）
+  net_inflow: number; // 净流入（亿元）
+  inflow_rate: number; // 流入比率%
+  change_pct?: number; // 涨跌幅%（可选）
+  amount?: number; // 成交额（亿元）（可选）
   up_count: number;
   down_count: number;
   leading_stocks?: Array<{ ts_code: string; name: string; net_inflow: number; change_pct: number }>;
@@ -84,9 +84,7 @@ export const SectorMoneyFlow: Component<SectorMoneyFlowProps> = (props) => {
         </div>
       </div>
 
-      {error() && (
-        <div class="text-xs text-red-400 mb-2">{error()}</div>
-      )}
+      {error() && <div class="text-xs text-red-400 mb-2">{error()}</div>}
 
       <div class="overflow-x-auto">
         <table class="w-full text-xs">
@@ -106,17 +104,27 @@ export const SectorMoneyFlow: Component<SectorMoneyFlowProps> = (props) => {
                   when={loading()}
                   fallback={
                     <tr>
-                      <td colspan="4" class="text-center text-gray-600 py-6">暂无数据</td>
+                      <td colspan="4" class="text-center text-gray-600 py-6">
+                        暂无数据
+                      </td>
                     </tr>
                   }
                 >
                   <For each={[1, 2, 3, 4, 5]}>
                     {() => (
                       <tr class="border-b border-white/5">
-                        <td class="py-2 pr-4"><div class="h-4 w-24 bg-white/5 rounded animate-pulse" /></td>
-                        <td class="py-2 px-3"><div class="h-4 w-16 bg-white/5 rounded animate-pulse ml-auto" /></td>
-                        <td class="py-2 px-3"><div class="h-4 w-12 bg-white/5 rounded animate-pulse ml-auto" /></td>
-                        <td class="py-2 px-3"><div class="h-4 w-16 bg-white/5 rounded animate-pulse ml-auto" /></td>
+                        <td class="py-2 pr-4">
+                          <div class="h-4 w-24 bg-white/5 rounded animate-pulse" />
+                        </td>
+                        <td class="py-2 px-3">
+                          <div class="h-4 w-16 bg-white/5 rounded animate-pulse ml-auto" />
+                        </td>
+                        <td class="py-2 px-3">
+                          <div class="h-4 w-12 bg-white/5 rounded animate-pulse ml-auto" />
+                        </td>
+                        <td class="py-2 px-3">
+                          <div class="h-4 w-16 bg-white/5 rounded animate-pulse ml-auto" />
+                        </td>
                       </tr>
                     )}
                   </For>
@@ -132,15 +140,23 @@ export const SectorMoneyFlow: Component<SectorMoneyFlowProps> = (props) => {
                     >
                       <td class="py-2.5 pr-4">
                         <div class="flex items-center gap-2">
-                          <span class="text-gray-400">{expandedSector() === sector.sector_name ? '▼' : '▶'}</span>
+                          <span class="text-gray-400">
+                            {expandedSector() === sector.sector_name ? '▼' : '▶'}
+                          </span>
                           <span class="text-gray-200 font-medium">{sector.sector_name}</span>
                         </div>
                       </td>
-                      <td class={`py-2.5 px-3 text-right font-mono font-medium ${netColor(sector.net_inflow)}`}>
+                      <td
+                        class={`py-2.5 px-3 text-right font-mono font-medium ${netColor(sector.net_inflow)}`}
+                      >
                         {formatNet(sector.net_inflow)}
                       </td>
-                      <td class={`py-2.5 px-3 text-right font-mono ${changeColor(sector.change_pct ?? 0)}`}>
-                        {sector.change_pct != null ? ((sector.change_pct >= 0 ? '+' : '') + sector.change_pct.toFixed(2) + '%') : '—'}
+                      <td
+                        class={`py-2.5 px-3 text-right font-mono ${changeColor(sector.change_pct ?? 0)}`}
+                      >
+                        {sector.change_pct != null
+                          ? (sector.change_pct >= 0 ? '+' : '') + sector.change_pct.toFixed(2) + '%'
+                          : '—'}
                       </td>
                       <td class="py-2.5 px-3 text-right text-gray-400 font-mono">
                         {sector.amount != null ? sector.amount.toFixed(0) + '亿' : '—'}
@@ -151,8 +167,8 @@ export const SectorMoneyFlow: Component<SectorMoneyFlowProps> = (props) => {
                       <tr class="bg-[#1f2937]/60">
                         <td colspan="4" class="px-6 py-3">
                           <div class="text-xs text-gray-500 mb-2">
-                            上涨 <span class="text-[#EF4444]">{sector.up_count}</span> 家 /
-                            下跌 <span class="text-[#22C55E]">{sector.down_count}</span> 家
+                            上涨 <span class="text-[#EF4444]">{sector.up_count}</span> 家 / 下跌{' '}
+                            <span class="text-[#22C55E]">{sector.down_count}</span> 家
                           </div>
                           <Show when={sector.leading_stocks && sector.leading_stocks.length > 0}>
                             <div class="space-y-1">
@@ -166,11 +182,16 @@ export const SectorMoneyFlow: Component<SectorMoneyFlowProps> = (props) => {
                                 {(stock) => (
                                   <div class="text-xs grid grid-cols-4 gap-2 px-2 py-1 hover:bg-white/5 rounded">
                                     <span class="text-gray-300">{stock.name}</span>
-                                    <span class={`text-right font-mono ${netColor(stock.net_inflow)}`}>
+                                    <span
+                                      class={`text-right font-mono ${netColor(stock.net_inflow)}`}
+                                    >
                                       {formatNet(stock.net_inflow)}
                                     </span>
-                                    <span class={`text-right font-mono ${changeColor(stock.change_pct)}`}>
-                                      {(stock.change_pct ?? 0) >= 0 ? '+' : ''}{(stock.change_pct ?? 0).toFixed(2)}%
+                                    <span
+                                      class={`text-right font-mono ${changeColor(stock.change_pct)}`}
+                                    >
+                                      {(stock.change_pct ?? 0) >= 0 ? '+' : ''}
+                                      {(stock.change_pct ?? 0).toFixed(2)}%
                                     </span>
                                     <span class="text-right text-gray-600">—</span>
                                   </div>

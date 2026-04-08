@@ -1,4 +1,4 @@
-import { Component, createSignal } from 'solid-js';
+import { Component, createSignal, For } from 'solid-js';
 import { actions } from '../../stores';
 
 // SIM参数默认值
@@ -15,8 +15,6 @@ const DEFAULT_RISK = {
 
 // 本地存储键名
 const SETTINGS_KEY = 'app_settings';
-
-
 
 // 保存设置到本地存储
 function saveSettingsLocal(settings: Record<string, unknown>) {
@@ -46,41 +44,47 @@ export const GlobalDialog: Component = () => {
     setSaving(true);
     setMsg('');
     try {
-    const settings = {
-      theme: theme(),
-      simSlippage: simSlippage(),
-      simCommission: simCommission(),
-      maxPosition: maxPosition(),
-      maxDailyLoss: maxDailyLoss(),
-    };
-    
-    if (saveSettingsLocal(settings)) {
-      document.documentElement.setAttribute('data-theme', theme());
-      setMsg('✅ 设置已保存');
-      setTimeout(close, 800);
-    } else {
-      setMsg('❌ 保存失败');
+      const settings = {
+        theme: theme(),
+        simSlippage: simSlippage(),
+        simCommission: simCommission(),
+        maxPosition: maxPosition(),
+        maxDailyLoss: maxDailyLoss(),
+      };
+
+      if (saveSettingsLocal(settings)) {
+        document.documentElement.setAttribute('data-theme', theme());
+        setMsg('✅ 设置已保存');
+        setTimeout(close, 800);
+      } else {
+        setMsg('❌ 保存失败');
+      }
+    } catch (e) {
+      setMsg('❌ 保存失败: ' + (e as Error).message);
+    } finally {
+      setSaving(false);
     }
-  } catch (e) {
-    setMsg('❌ 保存失败: ' + (e as Error).message);
-  } finally {
-    setSaving(false);
-  }
   }
 
   return (
     <div class="dialog-overlay" onClick={(e) => e.target === e.currentTarget && close()}>
-      <div class="dialog-panel" style={{ 'min-width': '460px' }}>
+      <div class="dialog-panel">
         <div class="dialog-header">
           <span class="text-sm font-bold text-[var(--text-primary)]">⚙️ 全局设置</span>
-          <button class="text-[var(--text-muted)] hover:text-[var(--text-primary)] text-lg leading-none" onClick={close}>×</button>
+          <button
+            class="text-[var(--text-muted)] hover:text-[var(--text-primary)] text-lg leading-none"
+            onClick={close}
+          >
+            ×
+          </button>
         </div>
 
         <div class="dialog-body space-y-6">
-
           {/* ── SIM 参数 ── */}
           <section>
-            <h3 class="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-3">SIM 参数</h3>
+            <h3 class="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-3">
+              SIM 参数
+            </h3>
             <div class="grid grid-cols-2 gap-4">
               <div class="form-group">
                 <label class="form-label">滑点 (tick)</label>
@@ -110,7 +114,9 @@ export const GlobalDialog: Component = () => {
 
           {/* ── 风控参数 ── */}
           <section>
-            <h3 class="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-3">风控参数</h3>
+            <h3 class="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-3">
+              风控参数
+            </h3>
             <div class="grid grid-cols-2 gap-4">
               <div class="form-group">
                 <label class="form-label">最大仓位 (手)</label>
@@ -139,35 +145,45 @@ export const GlobalDialog: Component = () => {
 
           {/* ── 界面主题 ── */}
           <section>
-            <h3 class="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-3">界面主题</h3>
+            <h3 class="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-3">
+              界面主题
+            </h3>
             <div class="flex gap-3">
-              {(['dark', 'light'] as const).map((t) => (
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="theme"
-                    value={t}
-                    checked={theme() === t}
-                    onChange={() => setTheme(t)}
-                    class="accent-[var(--border-focus)]"
-                  />
-                  <span class={`text-sm ${theme() === t ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
-                    {t === 'dark' ? '🌙 深色' : '☀️ 浅色'}
-                  </span>
-                </label>
-              ))}
+              <For each={['dark', 'light'] as const}>
+                {(t) => (
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="theme"
+                      value={t}
+                      checked={theme() === t}
+                      onChange={() => setTheme(t)}
+                      class="accent-[var(--border-focus)]"
+                    />
+                    <span
+                      class={`text-sm ${theme() === t ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}
+                    >
+                      {t === 'dark' ? '🌙 深色' : '☀️ 浅色'}
+                    </span>
+                  </label>
+                )}
+              </For>
             </div>
           </section>
 
           {msg() && (
-            <div class={`text-sm px-3 py-2 rounded ${msg().startsWith('✅') ? 'text-[var(--color-pnl-pos)]' : 'text-[var(--color-pnl-neg)]'}`}>
+            <div
+              class={`text-sm px-3 py-2 rounded ${msg().startsWith('✅') ? 'text-[var(--color-pnl-pos)]' : 'text-[var(--color-pnl-neg)]'}`}
+            >
               {msg()}
             </div>
           )}
         </div>
 
         <div class="dialog-footer">
-          <button class="btn btn-secondary" onClick={close}>取消</button>
+          <button class="btn btn-secondary" onClick={close}>
+            取消
+          </button>
           <button class="btn btn-primary" onClick={handleSave} disabled={saving()}>
             {saving() ? '保存中…' : '保存设置'}
           </button>

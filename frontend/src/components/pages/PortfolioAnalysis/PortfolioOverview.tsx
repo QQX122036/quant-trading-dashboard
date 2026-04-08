@@ -3,7 +3,7 @@
  * 行业分布饼图 | 市值分布柱状图 | 风格暴露雷达图
  */
 import { Component, createSignal, createMemo, onMount, onCleanup, Show, For } from 'solid-js';
-import * as echarts from 'echarts';
+import echarts from '@/lib/echarts';
 import { fetchPositions, fetchAccounts } from '../../../hooks/useApi';
 import type { PositionData, AccountData } from '../../../types/vnpy';
 
@@ -18,17 +18,29 @@ const BAR_DOM = 'portfolio-bar';
 const RADAR_DOM = 'portfolio-radar';
 
 // ── Market cap thresholds (CNY) ────────────────────────────
-const LARGE_CAP = 500e8;   // > 500亿
-const MID_CAP   = 50e8;   // 50亿 ~ 500亿
+const LARGE_CAP = 500e8; // > 500亿
+const MID_CAP = 50e8; // 50亿 ~ 500亿
 
 // ── Style dimension labels ──────────────────────────────────
 const STYLE_DIMS = ['价值', '成长', '动量', '质量', '低波'];
 
 // ── Sector colors ───────────────────────────────────────────
 const SECTOR_COLORS = [
-  '#60A5FA', '#34D399', '#FBBF24', '#F87171', '#A78BFA',
-  '#38BDF8', '#FB923C', '#E879F9', '#4ADE80', '#F472B6',
-  '#FBBF24', '#6366F1', '#14B8A6', '#F97316', '#8B5CF6',
+  '#60A5FA',
+  '#34D399',
+  '#FBBF24',
+  '#F87171',
+  '#A78BFA',
+  '#38BDF8',
+  '#FB923C',
+  '#E879F9',
+  '#4ADE80',
+  '#F472B6',
+  '#FBBF24',
+  '#6366F1',
+  '#14B8A6',
+  '#F97316',
+  '#8B5CF6',
 ];
 
 // ── Helpers ─────────────────────────────────────────────────
@@ -42,18 +54,17 @@ function formatMarketCap(v: number): string {
 // In production these would come from real fundamental data.
 function calcStyleExposure(_positions: PositionData[]): number[] {
   // Weighted random simulation seeded from position count to be stable across re-renders
-  const seed = (p: PositionData[]) =>
-    p.reduce((a, x) => a + x.volume * (x.price || 1), 0) % 100;
+  const seed = (p: PositionData[]) => p.reduce((a, x) => a + x.volume * (x.price || 1), 0) % 100;
 
   const base = seed(_positions);
   const rand = (offset: number) => Math.min(100, Math.max(10, (base * 17 + offset * 31) % 100));
 
   return [
-    rand(1),   // 价值
-    rand(2),   // 成长
-    rand(3),   // 动量
-    rand(4),   // 质量
-    rand(5),   // 低波
+    rand(1), // 价值
+    rand(2), // 成长
+    rand(3), // 动量
+    rand(4), // 质量
+    rand(5), // 低波
   ];
 }
 
@@ -65,7 +76,8 @@ function initPieChart(el: HTMLElement, data: { name: string; value: number }[]) 
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'item',
-      formatter: (p: any) => `${p.name}<br/>市值: ${formatMarketCap(p.value)}<br/>占比: ${p.percent}%`,
+      formatter: (p: any) =>
+        `${p.name}<br/>市值: ${formatMarketCap(p.value)}<br/>占比: ${p.percent}%`,
       backgroundColor: 'rgba(17,24,39,0.9)',
       borderColor: 'rgba(255,255,255,0.1)',
       textStyle: { color: '#E5E7EB' },
@@ -78,19 +90,24 @@ function initPieChart(el: HTMLElement, data: { name: string; value: number }[]) 
       itemWidth: 10,
       itemHeight: 10,
     },
-    series: [{
-      type: 'pie',
-      radius: ['42%', '70%'],
-      center: ['38%', '50%'],
-      avoidLabelOverlap: true,
-      itemStyle: { borderRadius: 4, borderColor: '#111827', borderWidth: 2 },
-      label: { show: false },
-      emphasis: {
-        itemStyle: { shadowBlur: 12, shadowColor: 'rgba(0,0,0,0.4)' },
-        label: { show: true, fontSize: 13, fontWeight: 'bold', color: '#F3F4F6' },
+    series: [
+      {
+        type: 'pie',
+        radius: ['42%', '70%'],
+        center: ['38%', '50%'],
+        avoidLabelOverlap: true,
+        itemStyle: { borderRadius: 4, borderColor: '#111827', borderWidth: 2 },
+        label: { show: false },
+        emphasis: {
+          itemStyle: { shadowBlur: 12, shadowColor: 'rgba(0,0,0,0.4)' },
+          label: { show: true, fontSize: 13, fontWeight: 'bold', color: '#F3F4F6' },
+        },
+        data: data.map((d, i) => ({
+          ...d,
+          itemStyle: { color: SECTOR_COLORS[i % SECTOR_COLORS.length] },
+        })),
       },
-      data: data.map((d, i) => ({ ...d, itemStyle: { color: SECTOR_COLORS[i % SECTOR_COLORS.length] } })),
-    }],
+    ],
   });
 }
 
@@ -110,7 +127,7 @@ function initBarChart(el: HTMLElement, data: { name: string; value: number; colo
     grid: { left: '5%', right: '8%', top: '8%', bottom: '8%', containLabel: true },
     xAxis: {
       type: 'category',
-      data: data.map(d => d.name),
+      data: data.map((d) => d.name),
       axisLabel: { color: '#9CA3AF', fontSize: 12 },
       axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
     },
@@ -119,18 +136,23 @@ function initBarChart(el: HTMLElement, data: { name: string; value: number; colo
       axisLabel: { color: '#9CA3AF', fontSize: 11, formatter: (v: number) => formatMarketCap(v) },
       splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
     },
-    series: [{
-      type: 'bar',
-      data: data.map(d => ({ value: d.value, itemStyle: { color: d.color, borderRadius: [4, 4, 0, 0] } })),
-      barWidth: '55%',
-      label: {
-        show: true,
-        position: 'top',
-        formatter: (p: any) => formatMarketCap(p.value),
-        color: '#D1D5DB',
-        fontSize: 11,
+    series: [
+      {
+        type: 'bar',
+        data: data.map((d) => ({
+          value: d.value,
+          itemStyle: { color: d.color, borderRadius: [4, 4, 0, 0] },
+        })),
+        barWidth: '55%',
+        label: {
+          show: true,
+          position: 'top',
+          formatter: (p: any) => formatMarketCap(p.value),
+          color: '#D1D5DB',
+          fontSize: 11,
+        },
       },
-    }],
+    ],
   });
 }
 
@@ -147,7 +169,7 @@ function initRadarChart(el: HTMLElement, values: number[]) {
       formatter: (p: any) => `${p.name}: ${p.value[0].toFixed(1)}`,
     },
     radar: {
-      indicator: STYLE_DIMS.map(dim => ({ name: dim, max: 100 })),
+      indicator: STYLE_DIMS.map((dim) => ({ name: dim, max: 100 })),
       radius: '65%',
       center: ['50%', '50%'],
       splitNumber: 4,
@@ -156,13 +178,20 @@ function initRadarChart(el: HTMLElement, values: number[]) {
       splitArea: { areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(255,255,255,0.06)'] } },
       axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
     },
-    series: [{
-      type: 'radar',
-      data: [{ value: values, name: '风格暴露', areaStyle: { color: 'rgba(96,165,250,0.25)' },
-        lineStyle: { color: '#60A5FA', width: 2 },
-        itemStyle: { color: '#60A5FA' },
-      }],
-    }],
+    series: [
+      {
+        type: 'radar',
+        data: [
+          {
+            value: values,
+            name: '风格暴露',
+            areaStyle: { color: 'rgba(96,165,250,0.25)' },
+            lineStyle: { color: '#60A5FA', width: 2 },
+            itemStyle: { color: '#60A5FA' },
+          },
+        ],
+      },
+    ],
   });
 }
 
@@ -184,24 +213,28 @@ export const PortfolioOverview: Component = () => {
     positions().reduce((sum, p) => sum + p.volume * (p.price || 0), 0)
   );
 
-  const totalPnl = createMemo(() =>
-    positions().reduce((sum, p) => sum + (p.pnl || 0), 0)
-  );
+  const totalPnl = createMemo(() => positions().reduce((sum, p) => sum + (p.pnl || 0), 0));
 
-  const accountBalance = createMemo(() =>
-    accounts().reduce((sum, a) => sum + (a.balance || 0), 0)
-  );
+  const accountBalance = createMemo(() => accounts().reduce((sum, a) => sum + (a.balance || 0), 0));
 
   // ── Industry distribution ─────────────────────────────────
   // Map stock code prefix to sector (simplified)
   function inferSector(symbol: string): string {
     const s2s: Record<string, string> = {
-      '600': '金融', '601': '金融', '603': '金融', '605': '金融',
-      '000': '消费', '001': '消费',
-      '002': '科技', '003': '科技',
-      '300': '医药', '301': '医药',
-      '688': '科技', '688001': '科技',
-      '600519': '白酒', '600036': '银行',
+      '600': '金融',
+      '601': '金融',
+      '603': '金融',
+      '605': '金融',
+      '000': '消费',
+      '001': '消费',
+      '002': '科技',
+      '003': '科技',
+      '300': '医药',
+      '301': '医药',
+      '688': '科技',
+      '688001': '科技',
+      '600519': '白酒',
+      '600036': '银行',
     };
     return s2s[symbol] ?? '其他';
   }
@@ -225,7 +258,7 @@ export const PortfolioOverview: Component = () => {
     for (const p of positions()) {
       const mv = p.volume * (p.price || 0);
       // Simulate total market cap from position MV (random factor 1x–8x)
-      const seed = p.symbol.charCodeAt(0) % 8 + 1;
+      const seed = (p.symbol.charCodeAt(0) % 8) + 1;
       const totalCap = mv * seed;
       if (totalCap > LARGE_CAP) map.large += mv;
       else if (totalCap > MID_CAP) map.mid += mv;
@@ -233,7 +266,7 @@ export const PortfolioOverview: Component = () => {
     }
     return [
       { name: '大盘', value: map.large, color: '#60A5FA' },
-      { name: '中盘', value: map.mid,   color: '#34D399' },
+      { name: '中盘', value: map.mid, color: '#34D399' },
       { name: '小盘', value: map.small, color: '#FBBF24' },
     ];
   });
@@ -246,10 +279,7 @@ export const PortfolioOverview: Component = () => {
     setLoading(true);
     setError(null);
     try {
-      const [posRes, accRes] = await Promise.all([
-        fetchPositions(),
-        fetchAccounts(),
-      ]);
+      const [posRes, accRes] = await Promise.all([fetchPositions(), fetchAccounts()]);
       setPositions(posRes.data?.positions ?? []);
       setAccounts(accRes.data?.accounts ?? []);
     } catch (e: any) {
@@ -284,22 +314,25 @@ export const PortfolioOverview: Component = () => {
 
   // Watch positions → re-render charts
   createMemo(() => {
-    positions(); accounts();
+    positions();
+    accounts();
     setTimeout(renderCharts, 0);
   });
 
   // ── Summary cards ─────────────────────────────────────────
   const cards = createMemo(() => [
     { label: '持仓市值', value: formatMarketCap(totalMarketValue()) },
-    { label: '累计盈亏', value: `${totalPnl() >= 0 ? '+' : ''}${totalPnl().toFixed(0)}`,
-      color: totalPnl() >= 0 ? 'text-[#22C55E]' : 'text-[#EF4444]' },
+    {
+      label: '累计盈亏',
+      value: `${totalPnl() >= 0 ? '+' : ''}${totalPnl().toFixed(0)}`,
+      color: totalPnl() >= 0 ? 'text-[#22C55E]' : 'text-[#EF4444]',
+    },
     { label: '账户余额', value: formatMarketCap(accountBalance()) },
     { label: '持仓股票', value: `${positions().length} 只` },
   ]);
 
   return (
     <div class="h-full flex flex-col p-4 gap-4 overflow-auto">
-
       {/* Loading overlay */}
       <Show when={loading()}>
         <div class="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 pointer-events-none">
@@ -311,7 +344,7 @@ export const PortfolioOverview: Component = () => {
       </Show>
 
       {/* Summary cards */}
-      <div class="grid grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <For each={cards()}>
           {(card) => (
             <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4 flex flex-col gap-1">
@@ -332,14 +365,15 @@ export const PortfolioOverview: Component = () => {
       </Show>
 
       {/* Charts row */}
-      <div class="flex-1 grid grid-cols-3 gap-4 min-h-0">
-
+      <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 min-h-0">
         {/* Industry pie chart */}
         <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4 flex flex-col">
           <h3 class="font-bold text-sm mb-3 text-gray-300">行业分布</h3>
           <div id={PIE_DOM} class="flex-1 min-h-0" />
           <Show when={!loading() && industryData().length === 0}>
-            <div class="flex-1 flex items-center justify-center text-sm text-gray-600">暂无行业数据</div>
+            <div class="flex-1 flex items-center justify-center text-sm text-gray-600">
+              暂无行业数据
+            </div>
           </Show>
         </div>
 
@@ -348,9 +382,18 @@ export const PortfolioOverview: Component = () => {
           <h3 class="font-bold text-sm mb-3 text-gray-300">市值分布</h3>
           <div id={BAR_DOM} class="flex-1 min-h-0" />
           <div class="flex justify-center gap-4 mt-2 text-xs text-gray-500">
-            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#60A5FA]" />大盘 &gt;500亿</span>
-            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#34D399]" />中盘 50-500亿</span>
-            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#FBBF24]" />小盘 ≤50亿</span>
+            <span class="flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-[#60A5FA]" />
+              大盘 &gt;500亿
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-[#34D399]" />
+              中盘 50-500亿
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-[#FBBF24]" />
+              小盘 ≤50亿
+            </span>
           </div>
         </div>
 
@@ -362,7 +405,8 @@ export const PortfolioOverview: Component = () => {
             <For each={STYLE_DIMS}>
               {(dim, i) => (
                 <span class="px-2 py-0.5 rounded bg-white/5 text-gray-400">
-                  {dim} <span class="text-blue-400 font-medium">{styleExposure()[i()].toFixed(0)}</span>
+                  {dim}{' '}
+                  <span class="text-blue-400 font-medium">{styleExposure()[i()].toFixed(0)}</span>
                 </span>
               )}
             </For>
@@ -374,7 +418,9 @@ export const PortfolioOverview: Component = () => {
       <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4 flex flex-col">
         <h3 class="font-bold text-sm mb-3 text-gray-300">持仓明细</h3>
         <Show when={!loading() && positions().length === 0}>
-          <div class="flex-1 flex items-center justify-center py-8 text-sm text-gray-600">暂无持仓</div>
+          <div class="flex-1 flex items-center justify-center py-8 text-sm text-gray-600">
+            暂无持仓
+          </div>
         </Show>
         <Show when={positions().length > 0}>
           <div class="overflow-auto max-h-48">
@@ -399,10 +445,14 @@ export const PortfolioOverview: Component = () => {
                       <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
                         <td class="py-2 font-mono text-xs text-gray-400">{pos.symbol}</td>
                         <td class="py-2 text-xs text-gray-300">—</td>
-                        <td class={`py-2 text-right text-xs font-medium ${(String(pos.direction) === '多' || String(pos.direction) === 'long') ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
+                        <td
+                          class={`py-2 text-right text-xs font-medium ${String(pos.direction) === '多' || String(pos.direction) === 'long' ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}
+                        >
                           {pos.direction}
                         </td>
-                        <td class="py-2 text-right tabular-nums text-xs">{pos.volume.toLocaleString()}</td>
+                        <td class="py-2 text-right tabular-nums text-xs">
+                          {pos.volume.toLocaleString()}
+                        </td>
                         <td class="py-2 text-right tabular-nums text-xs text-gray-400">
                           {pos.price > 0 ? pos.price.toFixed(2) : '—'}
                         </td>
@@ -410,10 +460,13 @@ export const PortfolioOverview: Component = () => {
                         <td class="py-2 text-right tabular-nums text-xs font-medium">
                           {mv > 0 ? formatMarketCap(mv) : '—'}
                         </td>
-                        <td class={`py-2 text-right tabular-nums text-xs font-bold ${
-                          (pos.pnl ?? 0) >= 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'
-                        }`}>
-                          {(pos.pnl ?? 0) >= 0 ? '+' : ''}{(pos.pnl ?? 0).toFixed(0)}
+                        <td
+                          class={`py-2 text-right tabular-nums text-xs font-bold ${
+                            (pos.pnl ?? 0) >= 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'
+                          }`}
+                        >
+                          {(pos.pnl ?? 0) >= 0 ? '+' : ''}
+                          {(pos.pnl ?? 0).toFixed(0)}
                         </td>
                       </tr>
                     );

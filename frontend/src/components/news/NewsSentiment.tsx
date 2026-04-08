@@ -7,8 +7,14 @@
  * - WebSocket 实时推送 news.sentiment
  */
 import { Component, createSignal, createMemo, onMount, onCleanup, For, Show } from 'solid-js';
-import * as echarts from 'echarts';
-import { fetchNewsSentiment, fetchAnnouncements, type NewsItem, type SentimentSummary, type AnnouncementItem } from './api';
+import echarts from '@/lib/echarts';
+import {
+  fetchNewsSentiment,
+  fetchAnnouncements,
+  type NewsItem,
+  type SentimentSummary,
+  type AnnouncementItem,
+} from './api';
 import { getWsInstance } from '../../hooks/useWebSocket';
 
 const CARD = 'bg-[#1f2937]/80 rounded-lg border border-white/10';
@@ -17,7 +23,7 @@ function SentimentGaugeChart(props: { index: number }) {
   let ref!: HTMLDivElement;
   let chart: echarts.ECharts | undefined;
 
-  const option = createMemo((): echarts.EChartsOption => {
+  const option = createMemo((): echarts.EChartsCoreOption => {
     const v = Math.round(props.index);
     const color = v > 60 ? '#22C55E' : v < 40 ? '#EF4444' : '#F59E0B';
     return {
@@ -69,7 +75,10 @@ function SentimentGaugeChart(props: { index: number }) {
     chart.setOption(option());
     const ro = new ResizeObserver(() => chart?.resize());
     ro.observe(ref);
-    onCleanup(() => { ro.disconnect(); chart?.dispose(); });
+    onCleanup(() => {
+      ro.disconnect();
+      chart?.dispose();
+    });
   });
 
   // Update chart when index changes
@@ -101,25 +110,46 @@ function NewsItemRow(props: { item: NewsItem }) {
   const sentimentConfig = createMemo(() => {
     switch (props.item.sentiment) {
       case 'bullish':
-        return { label: '看涨', bg: 'bg-red-500/10', border: 'border-red-500/30', text: 'text-red-400' };
+        return {
+          label: '看涨',
+          bg: 'bg-red-500/10',
+          border: 'border-red-500/30',
+          text: 'text-red-400',
+        };
       case 'bearish':
-        return { label: '看跌', bg: 'bg-green-500/10', border: 'border-green-500/30', text: 'text-green-400' };
+        return {
+          label: '看跌',
+          bg: 'bg-green-500/10',
+          border: 'border-green-500/30',
+          text: 'text-green-400',
+        };
       default:
-        return { label: '中性', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30', text: 'text-yellow-400' };
+        return {
+          label: '中性',
+          bg: 'bg-yellow-500/10',
+          border: 'border-yellow-500/30',
+          text: 'text-yellow-400',
+        };
     }
   });
 
   return (
-    <div class={`flex items-start gap-3 p-3 rounded border ${sentimentConfig().border} ${sentimentConfig().bg} hover:bg-white/5 transition-colors cursor-pointer`}>
+    <div
+      class={`flex items-start gap-3 p-3 rounded border ${sentimentConfig().border} ${sentimentConfig().bg} hover:bg-white/5 transition-colors cursor-pointer`}
+    >
       <div class="flex-1 min-w-0">
-        <div class="text-sm font-medium text-gray-100 leading-snug line-clamp-2">{props.item.title}</div>
+        <div class="text-sm font-medium text-gray-100 leading-snug line-clamp-2">
+          {props.item.title}
+        </div>
         <div class="flex items-center gap-2 mt-1">
           <span class="text-xs text-gray-500">{props.item.source}</span>
           <span class="text-xs text-gray-600">·</span>
           <span class="text-xs text-gray-500">{props.item.publish_time}</span>
         </div>
       </div>
-      <div class={`shrink-0 text-xs px-2 py-0.5 rounded border ${sentimentConfig().bg} ${sentimentConfig().border} ${sentimentConfig().text} font-medium`}>
+      <div
+        class={`shrink-0 text-xs px-2 py-0.5 rounded border ${sentimentConfig().bg} ${sentimentConfig().border} ${sentimentConfig().text} font-medium`}
+      >
         {sentimentConfig().label}
       </div>
     </div>
@@ -137,9 +167,13 @@ function AnnouncementItemRow(props: { item: AnnouncementItem }) {
   });
 
   return (
-    <div class={`flex items-start gap-3 p-3 rounded border border-white/5 hover:bg-white/5 transition-colors ${props.item.is_important ? 'bg-red-500/5 border-red-500/20' : ''}`}>
+    <div
+      class={`flex items-start gap-3 p-3 rounded border border-white/5 hover:bg-white/5 transition-colors ${props.item.is_important ? 'bg-red-500/5 border-red-500/20' : ''}`}
+    >
       <Show when={props.item.is_important}>
-        <span class="shrink-0 text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded font-medium">!</span>
+        <span class="shrink-0 text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded font-medium">
+          !
+        </span>
       </Show>
       <div class="flex-1 min-w-0">
         <div class="text-sm text-gray-100 leading-snug line-clamp-2">{props.item.title}</div>
@@ -159,18 +193,30 @@ function RealtimeToast(props: { news: NewsItem | null; onClose: () => void }) {
   return (
     <Show when={props.news}>
       <div class="fixed top-4 right-4 z-[9999] animate-slide-in-right">
-        <div class={`max-w-sm rounded-lg border ${props.news!.sentiment === 'bullish' ? 'bg-red-900/90 border-red-500/50' : props.news!.sentiment === 'bearish' ? 'bg-green-900/90 border-green-500/50' : 'bg-yellow-900/90 border-yellow-500/50'} backdrop-blur-sm shadow-2xl p-4`}>
+        <div
+          class={`max-w-sm rounded-lg border ${props.news!.sentiment === 'bullish' ? 'bg-red-900/90 border-red-500/50' : props.news!.sentiment === 'bearish' ? 'bg-green-900/90 border-green-500/50' : 'bg-yellow-900/90 border-yellow-500/50'} backdrop-blur-sm shadow-2xl p-4`}
+        >
           <div class="flex items-start gap-3">
             <div class="shrink-0 mt-0.5">
-              <div class={`w-2 h-2 rounded-full ${props.news!.sentiment === 'bullish' ? 'bg-red-400' : props.news!.sentiment === 'bearish' ? 'bg-green-400' : 'bg-yellow-400'} animate-pulse`} />
+              <div
+                class={`w-2 h-2 rounded-full ${props.news!.sentiment === 'bullish' ? 'bg-red-400' : props.news!.sentiment === 'bearish' ? 'bg-green-400' : 'bg-yellow-400'} animate-pulse`}
+              />
             </div>
             <div class="flex-1 min-w-0">
               <div class="text-xs text-gray-300 mb-1">📰 实时舆情</div>
-              <div class="text-sm text-white font-medium leading-snug line-clamp-2">{props.news!.title}</div>
+              <div class="text-sm text-white font-medium leading-snug line-clamp-2">
+                {props.news!.title}
+              </div>
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-xs text-gray-400">{props.news!.source}</span>
-                <span class={`text-xs px-1.5 py-0.5 rounded font-medium ${props.news!.sentiment === 'bullish' ? 'text-red-300 bg-red-500/20' : props.news!.sentiment === 'bearish' ? 'text-green-300 bg-green-500/20' : 'text-yellow-300 bg-yellow-500/20'}`}>
-                  {props.news!.sentiment === 'bullish' ? '看涨' : props.news!.sentiment === 'bearish' ? '看跌' : '中性'}
+                <span
+                  class={`text-xs px-1.5 py-0.5 rounded font-medium ${props.news!.sentiment === 'bullish' ? 'text-red-300 bg-red-500/20' : props.news!.sentiment === 'bearish' ? 'text-green-300 bg-green-500/20' : 'text-yellow-300 bg-yellow-500/20'}`}
+                >
+                  {props.news!.sentiment === 'bullish'
+                    ? '看涨'
+                    : props.news!.sentiment === 'bearish'
+                      ? '看跌'
+                      : '中性'}
                 </span>
               </div>
             </div>
@@ -221,15 +267,20 @@ export const NewsSentiment: Component = () => {
       const handler = (msg: { type: string; data: NewsItem }) => {
         if (msg.type === 'news.sentiment' && msg.data) {
           const incoming = msg.data as NewsItem;
-          setNews(prev => [incoming, ...prev.slice(0, 19)]);
+          setNews((prev) => [incoming, ...prev.slice(0, 19)]);
           if (summary()) {
-            setSummary(prev => prev ? {
-              ...prev,
-              news_count: prev.news_count + 1,
-              sentiment_index: Math.round(
-                (prev.sentiment_index * prev.news_count + incoming.sentiment_score) / (prev.news_count + 1)
-              ),
-            } : null);
+            setSummary((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    news_count: prev.news_count + 1,
+                    sentiment_index: Math.round(
+                      (prev.sentiment_index * prev.news_count + incoming.sentiment_score) /
+                        (prev.news_count + 1)
+                    ),
+                  }
+                : null
+            );
           }
           showToast(incoming);
         }
@@ -326,13 +377,15 @@ export const NewsSentiment: Component = () => {
             type="text"
             value={tsCode()}
             onInput={(e) => setTsCode(e.currentTarget.value)}
-            onKeyDown={(e) => e.key === 'Enter' && (activeTab() === 'news' ? loadData() : loadAnnouncements())}
+            onKeyDown={(e) =>
+              e.key === 'Enter' && (activeTab() === 'news' ? loadData() : loadAnnouncements())
+            }
             placeholder="股票代码，如 600519.SH"
             class="bg-[#1f2937] border border-white/10 rounded px-2 py-1 text-xs text-gray-200 w-36 focus:outline-none focus:border-blue-500/50"
           />
           <button
             class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-xs rounded font-medium transition-colors"
-            onClick={() => activeTab() === 'news' ? loadData() : loadAnnouncements()}
+            onClick={() => (activeTab() === 'news' ? loadData() : loadAnnouncements())}
           >
             查询
           </button>
@@ -340,7 +393,10 @@ export const NewsSentiment: Component = () => {
       </div>
 
       {/* ── Body ── */}
-      <div class="flex-1 overflow-hidden flex" style={{ display: activeTab() === 'news' ? 'flex' : 'none' }}>
+      <div
+        class="flex-1 overflow-hidden flex"
+        style={{ display: activeTab() === 'news' ? 'flex' : 'none' }}
+      >
         <div class="flex-1 flex flex-col overflow-hidden p-3 gap-3">
           {/* 舆情仪表盘 + 指标 */}
           <div class={`${CARD} p-3 flex gap-3 shrink-0`}>
@@ -375,9 +431,10 @@ export const NewsSentiment: Component = () => {
                 </div>
               }
             >
-              <For each={news()} fallback={
-                <div class="text-xs text-gray-600 text-center py-4">暂无新闻数据</div>
-              }>
+              <For
+                each={news()}
+                fallback={<div class="text-xs text-gray-600 text-center py-4">暂无新闻数据</div>}
+              >
                 {(item) => <NewsItemRow item={item} />}
               </For>
             </Show>
@@ -386,7 +443,10 @@ export const NewsSentiment: Component = () => {
       </div>
 
       {/* ── 公告快讯 ── */}
-      <div class="flex-1 overflow-hidden flex" style={{ display: activeTab() === 'announcements' ? 'flex' : 'none' }}>
+      <div
+        class="flex-1 overflow-hidden flex"
+        style={{ display: activeTab() === 'announcements' ? 'flex' : 'none' }}
+      >
         <div class="flex-1 flex flex-col overflow-hidden p-3 gap-3">
           {/* 类型筛选 */}
           <div class={`${CARD} p-3 shrink-0`}>
@@ -396,7 +456,10 @@ export const NewsSentiment: Component = () => {
                 {(t) => (
                   <button
                     class={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${annType() === t ? 'bg-blue-600 text-white' : 'bg-[#1f2937] text-gray-400 border border-white/10 hover:text-white'}`}
-                    onClick={() => { setAnnType(t); loadAnnouncements(); }}
+                    onClick={() => {
+                      setAnnType(t);
+                      loadAnnouncements();
+                    }}
                   >
                     {t || '全部'}
                   </button>
@@ -415,9 +478,10 @@ export const NewsSentiment: Component = () => {
                 </div>
               }
             >
-              <For each={announcements()} fallback={
-                <div class="text-xs text-gray-600 text-center py-4">暂无公告数据</div>
-              }>
+              <For
+                each={announcements()}
+                fallback={<div class="text-xs text-gray-600 text-center py-4">暂无公告数据</div>}
+              >
                 {(item) => <AnnouncementItemRow item={item} />}
               </For>
             </Show>

@@ -3,8 +3,8 @@
  * 显示买卖盘各5档价格/数量
  * 使用 ECharts 实现
  */
-import { Component, createSignal, onMount, onCleanup, createEffect } from 'solid-js';
-import * as echarts from 'echarts';
+import { Component, createSignal, onMount, onCleanup, createEffect, For } from 'solid-js';
+import echarts from '@/lib/echarts';
 
 export interface DepthLevel {
   price: number;
@@ -190,12 +190,17 @@ export const DepthChart: Component<DepthChartProps> = (props) => {
         <div class="flex-1 min-w-0">
           <div class="text-center text-gray-400 mb-1 text-[10px]">卖盘</div>
           <div class="space-y-0.5">
-            {[...data.asks].reverse().map((ask) => (
-              <div class="flex items-center justify-between px-1 py-0.5 rounded" style={{ background: `rgba(34,197,94,${(ask.volume / maxVol) * 0.3})` }}>
-                <span class="text-green-400">{ask.price.toFixed(2)}</span>
-                <span class="text-gray-300">{ask.volume.toLocaleString()}</span>
-              </div>
-            ))}
+            <For each={[...data.asks].reverse()}>
+              {(ask) => (
+                <div
+                  class="flex items-center justify-between px-1 py-0.5 rounded"
+                  style={{ background: `rgba(34,197,94,${(ask.volume / maxVol) * 0.3})` }}
+                >
+                  <span class="text-green-400">{ask.price.toFixed(2)}</span>
+                  <span class="text-gray-300">{ask.volume.toLocaleString()}</span>
+                </div>
+              )}
+            </For>
           </div>
         </div>
 
@@ -219,12 +224,17 @@ export const DepthChart: Component<DepthChartProps> = (props) => {
         <div class="flex-1 min-w-0">
           <div class="text-center text-gray-400 mb-1 text-[10px]">买盘</div>
           <div class="space-y-0.5">
-            {data.bids.map((bid) => (
-              <div class="flex items-center justify-between px-1 py-0.5 rounded" style={{ background: `rgba(239,68,68,${(bid.volume / maxVol) * 0.3})` }}>
-                <span class="text-red-400">{bid.price.toFixed(2)}</span>
-                <span class="text-gray-300">{bid.volume.toLocaleString()}</span>
-              </div>
-            ))}
+            <For each={data.bids}>
+              {(bid) => (
+                <div
+                  class="flex items-center justify-between px-1 py-0.5 rounded"
+                  style={{ background: `rgba(239,68,68,${(bid.volume / maxVol) * 0.3})` }}
+                >
+                  <span class="text-red-400">{bid.price.toFixed(2)}</span>
+                  <span class="text-gray-300">{bid.volume.toLocaleString()}</span>
+                </div>
+              )}
+            </For>
           </div>
         </div>
       </div>
@@ -268,9 +278,7 @@ export const DepthChart: Component<DepthChartProps> = (props) => {
   return (
     <div class="relative w-full h-full flex flex-col">
       {/* 盘口表格 */}
-      <div class="flex-shrink-0 px-2 py-1">
-        {renderOrderBook(depthData())}
-      </div>
+      <div class="flex-shrink-0 px-2 py-1">{renderOrderBook(depthData())}</div>
 
       {/* 深度图 */}
       <div ref={containerRef} class="flex-1 min-h-0 w-full" />

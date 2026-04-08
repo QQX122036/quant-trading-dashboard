@@ -46,7 +46,8 @@ export const MarketSentiment: Component<MarketSentimentProps> = (props) => {
           <div class="text-xs text-gray-500">{config().description}</div>
           {props.upRatio !== undefined && (
             <div class="text-xs text-gray-600 mt-0.5">
-              上涨比 {props.upRatio < 0 ? '' : ''}{(props.upRatio * 100).toFixed(1)}%
+              上涨比 {props.upRatio < 0 ? '' : ''}
+              {(props.upRatio * 100).toFixed(1)}%
             </div>
           )}
         </div>

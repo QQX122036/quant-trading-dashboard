@@ -1,5 +1,13 @@
 import { createStore } from 'solid-js/store';
-import type { TickData, OrderData, TradeData, PositionData, AccountData, LogData, ContractData } from '../types/vnpy';
+import type {
+  TickData,
+  OrderData,
+  TradeData,
+  PositionData,
+  AccountData,
+  LogData,
+  ContractData,
+} from '../types/vnpy';
 
 // ── AppState ────────────────────────────────────────────────
 
@@ -149,7 +157,8 @@ export const actions = {
       setState('ui', 'activeBottomTab', tabId);
     },
     toggleDialog(dialog: 'connect' | 'global' | 'contract' | 'about') {
-      const key = `show${dialog.charAt(0).toUpperCase() + dialog.slice(1)}Dialog` as keyof AppState['ui'];
+      const key =
+        `show${dialog.charAt(0).toUpperCase() + dialog.slice(1)}Dialog` as keyof AppState['ui'];
       setState('ui', key, (v) => !v);
     },
   },

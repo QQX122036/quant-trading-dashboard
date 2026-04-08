@@ -53,7 +53,13 @@ function AnswerChart(props: { chart: NonNullable<AdvisorResponse['charts']>[0] }
     <div class="my-2 p-2 bg-white/5 rounded border border-white/5">
       <div class="text-xs text-gray-400 mb-2">{props.chart.title ?? '图表'}</div>
       <Show when={props.chart.type === 'table'}>
-        <AnswerTable table={{ headers: (props.chart.data as Record<string, string[]>).headers || [], rows: (props.chart.data as Record<string, string[][]>).rows || [], title: props.chart.title }} />
+        <AnswerTable
+          table={{
+            headers: (props.chart.data as Record<string, string[]>).headers || [],
+            rows: (props.chart.data as Record<string, string[][]>).rows || [],
+            title: props.chart.title,
+          }}
+        />
       </Show>
       <Show when={props.chart.type !== 'table'}>
         <div class="text-xs text-gray-500 italic">
@@ -71,33 +77,42 @@ function ChatMessage(props: { msg: Message }) {
   return (
     <div class={`flex gap-3 ${isUser() ? 'flex-row-reverse' : 'flex-row'}`}>
       {/* Avatar */}
-      <div class={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-        isUser() ? 'bg-blue-600 text-white' : isAssistant() ? 'bg-emerald-600 text-white' : 'bg-gray-600 text-gray-300'
-      }`}>
+      <div
+        class={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+          isUser()
+            ? 'bg-blue-600 text-white'
+            : isAssistant()
+              ? 'bg-emerald-600 text-white'
+              : 'bg-gray-600 text-gray-300'
+        }`}
+      >
         {isUser() ? '你' : '🤖'}
       </div>
 
       {/* Bubble */}
       <div class={`flex-1 max-w-[75%] ${isUser() ? 'text-right' : 'text-left'}`}>
-        <div class={`inline-block rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-          isUser()
-            ? 'bg-blue-600/80 text-white rounded-tr-sm'
-            : isAssistant()
-            ? 'bg-[#1f2937]/90 text-gray-100 rounded-tl-sm border border-white/10'
-            : 'bg-gray-800/50 text-gray-400 italic'
-        }`}
-        style={{ "text-align": isUser() ? 'right' : 'left', "max-width": '100%' }}
+        <div
+          class={`inline-block rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+            isUser()
+              ? 'bg-blue-600/80 text-white rounded-tr-sm'
+              : isAssistant()
+                ? 'bg-[#1f2937]/90 text-gray-100 rounded-tl-sm border border-white/10'
+                : 'bg-gray-800/50 text-gray-400 italic'
+          }`}
+          style={{ 'text-align': isUser() ? 'right' : 'left', 'max-width': '100%' }}
         >
           <Show when={props.msg.loading}>
             <span class="inline-flex items-center gap-1">
               <span class="animate-pulse">●</span>
-              <span class="animate-pulse" style={{ "animation-delay": '0.2s' }}>●</span>
-              <span class="animate-pulse" style={{ "animation-delay": '0.4s' }}>●</span>
+              <span class="animate-pulse" style={{ 'animation-delay': '0.2s' }}>
+                ●
+              </span>
+              <span class="animate-pulse" style={{ 'animation-delay': '0.4s' }}>
+                ●
+              </span>
             </span>
           </Show>
-          <Show when={!props.msg.loading}>
-            {props.msg.content}
-          </Show>
+          <Show when={!props.msg.loading}>{props.msg.content}</Show>
         </div>
 
         {/* 表格 */}
@@ -106,7 +121,9 @@ function ChatMessage(props: { msg: Message }) {
             {(t) => (
               <div class={`mt-2 rounded-lg border border-white/10 overflow-hidden ${CARD}`}>
                 <Show when={t.title}>
-                  <div class="px-3 py-2 border-b border-white/5 text-xs text-gray-400 font-medium">{t.title}</div>
+                  <div class="px-3 py-2 border-b border-white/5 text-xs text-gray-400 font-medium">
+                    {t.title}
+                  </div>
                 </Show>
                 <AnswerTable table={t} />
               </div>
@@ -116,9 +133,7 @@ function ChatMessage(props: { msg: Message }) {
 
         {/* 图表 */}
         <Show when={isAssistant() && props.msg.charts?.length}>
-          <For each={props.msg.charts}>
-            {(c) => <AnswerChart chart={c} />}
-          </For>
+          <For each={props.msg.charts}>{(c) => <AnswerChart chart={c} />}</For>
         </Show>
 
         {/* 时间戳 */}
@@ -145,7 +160,8 @@ export const AIAdvisor: Component = () => {
     {
       id: 'welcome',
       role: 'assistant',
-      content: '您好！我是智能投顾助手。请问有什么可以帮您的？您可以问我关于持仓分析、股票风险、市场情绪等任何问题。',
+      content:
+        '您好！我是智能投顾助手。请问有什么可以帮您的？您可以问我关于持仓分析、股票风险、市场情绪等任何问题。',
       timestamp: new Date(),
     },
   ]);
@@ -173,7 +189,7 @@ export const AIAdvisor: Component = () => {
       content: question,
       timestamp: new Date(),
     };
-    setMessages(prev => [...prev, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
     setInput('');
     setLoading(true);
 
@@ -184,12 +200,12 @@ export const AIAdvisor: Component = () => {
       timestamp: new Date(),
       loading: true,
     };
-    setMessages(prev => [...prev, loadingMsg]);
+    setMessages((prev) => [...prev, loadingMsg]);
 
     try {
       const res = await askAIAdvisor(question);
       // 移除加载消息
-      setMessages(prev => prev.filter(m => m.id !== loadingMsg.id));
+      setMessages((prev) => prev.filter((m) => m.id !== loadingMsg.id));
 
       if (res.code === '0' && res.data) {
         const assistantMsg: Message = {
@@ -200,7 +216,7 @@ export const AIAdvisor: Component = () => {
           tables: res.data.tables,
           timestamp: new Date(),
         };
-        setMessages(prev => [...prev, assistantMsg]);
+        setMessages((prev) => [...prev, assistantMsg]);
       } else {
         const errMsg: Message = {
           id: `err-${Date.now()}`,
@@ -208,17 +224,17 @@ export const AIAdvisor: Component = () => {
           content: `⚠️ 抱歉，查询失败: ${res.message || '未知错误'}`,
           timestamp: new Date(),
         };
-        setMessages(prev => [...prev, errMsg]);
+        setMessages((prev) => [...prev, errMsg]);
       }
     } catch {
-      setMessages(prev => prev.filter(m => m.id !== loadingMsg.id));
+      setMessages((prev) => prev.filter((m) => m.id !== loadingMsg.id));
       const errMsg: Message = {
         id: `err-${Date.now()}`,
         role: 'assistant',
         content: '⚠️ 网络错误，请检查后端服务是否正常运行。',
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errMsg]);
+      setMessages((prev) => [...prev, errMsg]);
     } finally {
       setLoading(false);
     }
@@ -260,9 +276,7 @@ export const AIAdvisor: Component = () => {
 
       {/* ── Messages ── */}
       <div class="flex-1 overflow-y-auto p-4 space-y-4">
-        <For each={messages()}>
-          {(msg) => <ChatMessage msg={msg} />}
-        </For>
+        <For each={messages()}>{(msg) => <ChatMessage msg={msg} />}</For>
         <div ref={bottomRef} />
       </div>
 
@@ -277,7 +291,7 @@ export const AIAdvisor: Component = () => {
             placeholder="输入问题，按 Enter 发送，Shift+Enter 换行…"
             rows={1}
             class="flex-1 bg-transparent text-sm text-gray-100 placeholder-gray-600 resize-none focus:outline-none"
-            style={{ "min-height": '36px', "max-height": '120px' }}
+            style={{ 'min-height': '36px', 'max-height': '120px' }}
           />
           <button
             class={`shrink-0 px-4 py-2 rounded font-medium text-sm transition-colors ${
@@ -291,9 +305,7 @@ export const AIAdvisor: Component = () => {
             {loading() ? '…' : '发送'}
           </button>
         </div>
-        <div class="text-xs text-gray-700 mt-1 text-center">
-          AI 助手仅供参考，不构成投资建议
-        </div>
+        <div class="text-xs text-gray-700 mt-1 text-center">AI 助手仅供参考，不构成投资建议</div>
       </div>
     </div>
   );

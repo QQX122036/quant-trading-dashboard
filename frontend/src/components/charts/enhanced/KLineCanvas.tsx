@@ -4,11 +4,23 @@
  */
 import { Component, createEffect, onCleanup, onMount, createSignal } from 'solid-js';
 import {
-  createChart, IChartApi, ISeriesApi, CandlestickData, LineData,
-  Time, CrosshairMode, HistogramData,
+  createChart,
+  IChartApi,
+  ISeriesApi,
+  CandlestickData,
+  LineData,
+  Time,
+  CrosshairMode,
+  HistogramData,
 } from 'lightweight-charts';
 import type { DailyBar } from '../../../hooks/useApi';
-import { barToCandle, calcMA, adjustBars, computeChipDistribution, type ChipDistribution } from './chartUtils';
+import {
+  barToCandle,
+  calcMA,
+  adjustBars,
+  computeChipDistribution,
+  type ChipDistribution,
+} from './chartUtils';
 
 export interface KLineCanvasProps {
   bars: DailyBar[];
@@ -47,8 +59,18 @@ export const KLineCanvas: Component<KLineCanvasProps> = (props) => {
       },
       crosshair: {
         mode: CrosshairMode.Normal,
-        vertLine: { width: 1, color: 'rgba(255, 255, 255, 0.3)', style: 2, labelBackgroundColor: '#3B82F6' },
-        horzLine: { width: 1, color: 'rgba(255, 255, 255, 0.3)', style: 2, labelBackgroundColor: '#3B82F6' },
+        vertLine: {
+          width: 1,
+          color: 'rgba(255, 255, 255, 0.3)',
+          style: 2,
+          labelBackgroundColor: '#3B82F6',
+        },
+        horzLine: {
+          width: 1,
+          color: 'rgba(255, 255, 255, 0.3)',
+          style: 2,
+          labelBackgroundColor: '#3B82F6',
+        },
       },
       rightPriceScale: {
         borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -77,16 +99,21 @@ export const KLineCanvas: Component<KLineCanvasProps> = (props) => {
     });
 
     candleSeries = chart.addCandlestickSeries({
-      upColor: UP_COLOR, downColor: DOWN_COLOR,
-      borderUpColor: UP_COLOR, borderDownColor: DOWN_COLOR,
-      wickUpColor: UP_COLOR, wickDownColor: DOWN_COLOR,
+      upColor: UP_COLOR,
+      downColor: DOWN_COLOR,
+      borderUpColor: UP_COLOR,
+      borderDownColor: DOWN_COLOR,
+      wickUpColor: UP_COLOR,
+      wickDownColor: DOWN_COLOR,
     });
 
     // MA lines
     [5, 10, 20, 60, 120].forEach((period, i) => {
       const s = chart!.addLineSeries({
-        color: MA_COLORS[i % MA_COLORS.length], lineWidth: 1,
-        priceLineVisible: false, title: `MA${period}`,
+        color: MA_COLORS[i % MA_COLORS.length],
+        lineWidth: 1,
+        priceLineVisible: false,
+        title: `MA${period}`,
       });
       maSeriesMap.set(period, s);
     });
@@ -107,7 +134,10 @@ export const KLineCanvas: Component<KLineCanvasProps> = (props) => {
     chart.subscribeClick((param) => {
       if (!param.time || !param.point || !candleSeries) return;
       const price = candleSeries.coordinateToPrice(param.point.y) ?? 0;
-      props.onChartClick?.({ time: param.time, point: { x: param.point.x, y: param.point.y, price } });
+      props.onChartClick?.({
+        time: param.time,
+        point: { x: param.point.x, y: param.point.y, price },
+      });
     });
 
     // Keyboard
@@ -204,9 +234,7 @@ export const KLineCanvas: Component<KLineCanvasProps> = (props) => {
     }
   });
 
-  return (
-    <div class="flex-1 relative" ref={containerRef} />
-  );
+  return <div class="flex-1 relative" ref={containerRef} />;
 };
 
 export { adjustBars };

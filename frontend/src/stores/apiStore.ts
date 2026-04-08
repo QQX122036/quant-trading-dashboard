@@ -6,7 +6,12 @@
 import { createStore } from 'solid-js/store';
 import type { OrderData, TradeData, PositionData, AccountData, ContractData } from '../types/vnpy';
 import type { GatewayInfo, SendOrderReq } from '../types/api';
-import type { BacktestProgress, BacktestResult, BacktestRunReq, BacktestTasksResponse } from '../hooks/useApi';
+import type {
+  BacktestProgress,
+  BacktestResult,
+  BacktestRunReq,
+  BacktestTasksResponse,
+} from '../hooks/useApi';
 import * as api from '../hooks/useApi';
 import { state as wsState, actions as wsActions } from './index';
 
@@ -235,7 +240,11 @@ export const apiActions = {
     try {
       const res = await api.fetchContracts(keyword);
       if (res.code === '0' && res.data) {
-        const d = res.data as unknown as { success: boolean; total: number; contracts: ContractData[] };
+        const d = res.data as unknown as {
+          success: boolean;
+          total: number;
+          contracts: ContractData[];
+        };
         setApiState('contracts', d.contracts || []);
       } else {
         setApiState('contractsError', res.message || '获取合约失败');
