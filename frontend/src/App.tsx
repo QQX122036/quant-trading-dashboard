@@ -11,7 +11,7 @@
  */
 import { Router, Route, Navigate } from '@solidjs/router';
 import { MainLayout } from './components/layout/MainLayout';
-import { lazy, Suspense, Component, ParentProps } from 'solid-js';
+import { Suspense, Component, ParentProps } from 'solid-js';
 import { I18nProvider } from './i18n';
 import { PageErrorBoundary } from './components/common/ErrorBoundary';
 import { RouteGuard } from './components/auth/RouteGuard';
@@ -21,37 +21,32 @@ import { useWebVitals } from './hooks/useWebVitals';
 import { getErrorTracker } from './stores/errorStore';
 import { KeyboardShortcuts } from './components/KeyboardShortcuts';
 
-// ── Lazy Page Components ──────────────────────────────────────────────────────
-// 使用 solid-js 的 lazy 函数
-// 组件使用命名导出，需要重新导出为 default
-const MarketOverview = lazy(() => import('./components/pages/MarketOverview').then(m => ({ default: m.MarketOverview })));
-const StockDashboard = lazy(() => import('./components/pages/StockDashboard').then(m => ({ default: m.StockDashboard })));
-const DashboardHome = lazy(() => import('./components/dashboard/DashboardHome').then(m => ({ default: m.DashboardHome })));
-const BacktestAnalysis = lazy(() => import('./components/pages/BacktestAnalysis').then(m => ({ default: m.BacktestAnalysis })));
-const TradeLog = lazy(() => import('./components/pages/TradeLog').then(m => ({ default: m.TradeLog })));
-const PositionManagement = lazy(() => import('./components/pages/PositionManagement').then(m => ({ default: m.PositionManagement })));
-const DataManager = lazy(() => import('./components/pages/DataManager').then(m => ({ default: m.DataManager })));
-const StrategyManager = lazy(() => import('./components/pages/StrategyManager').then(m => ({ default: m.StrategyManager })));
-const FactorDashboard = lazy(() => import('./components/pages/FactorDashboard').then(m => ({ default: m.FactorDashboard })));
-const MultiFactorChart = lazy(() => import('./components/pages/MultiFactorChart').then(m => ({ default: m.MultiFactorChart })));
-const PortfolioAnalysis = lazy(() => import('./components/pages/PortfolioAnalysis').then(m => ({ default: m.default })));
-const SentimentPage = lazy(() => import('./components/pages/SentimentPage').then(m => ({ default: m.SentimentPage })));
-const NewsSentiment = lazy(() => import('./components/news/NewsSentiment').then(m => ({ default: m.NewsSentiment })));
-const AIAdvisor = lazy(() => import('./components/news/AIAdvisor').then(m => ({ default: m.AIAdvisor })));
-const DerivativesPage = lazy(() => import('./components/pages/Derivatives/DerivativesPage').then(m => ({ default: m.DerivativesPage })));
-const BacktestReport = lazy(() => import('./components/reports/BacktestReport').then(m => ({ default: m.BacktestReport })));
-const StockReport = lazy(() => import('./components/reports/StockReport').then(m => ({ default: m.StockReport })));
-const RiskAlert = lazy(() => import('./components/pages/RiskAlert').then(m => ({ default: m.default })));
-const TestPage = lazy(() => import('./components/pages/TestPage').then(m => ({ default: m.TestPage })));
+// ── Page Components (static imports) ──────────────────────────────────────────
+import { MarketOverview } from './components/pages/MarketOverview';
+import { StockDashboard } from './components/pages/StockDashboard';
+import { DashboardHome } from './components/dashboard/DashboardHome';
+import { BacktestAnalysis } from './components/pages/BacktestAnalysis';
+import { TradeLog } from './components/pages/TradeLog';
+import { PositionManagement } from './components/pages/PositionManagement';
+import { DataManager } from './components/pages/DataManager';
+import { StrategyManager } from './components/pages/StrategyManager';
+import { FactorDashboard } from './components/pages/FactorDashboard';
+import { MultiFactorChart } from './components/pages/MultiFactorChart';
+import PortfolioAnalysis from './components/pages/PortfolioAnalysis';
+import { SentimentPage } from './components/pages/SentimentPage';
+import { NewsSentiment } from './components/news/NewsSentiment';
+import { AIAdvisor } from './components/news/AIAdvisor';
+import { DerivativesPage } from './components/pages/Derivatives/DerivativesPage';
+import { BacktestReport } from './components/reports/BacktestReport';
+import { StockReport } from './components/reports/StockReport';
+import RiskAlert from './components/pages/RiskAlert';
+import { TestPage } from './components/pages/TestPage';
 
-// ── DEV-ONLY Components — dynamically imported only in dev mode ───────────────
-// These are ~900 lines of dev tooling (ErrorTracker + PerformanceAlerts + VitalBadge)
-// that should NOT appear in the production bundle at all.
-const DevPanels = lazy(() => import('./components/performance/DevPanels'));
+// ── DEV-ONLY Components ────────────────────────────────────────────────────────
+import DevPanels from './components/performance/DevPanels';
 
-// ── AboutDialog — dynamically imported (shown conditionally) ─────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const AboutDialog = (lazy as any)(() => import('./components/dialogs/AboutDialog'));
+// ── AboutDialog ──────────────────────────────────────────────────────────────
+import { AboutDialog } from './components/dialogs/AboutDialog';
 
 // ── Loaders ──────────────────────────────────────────────────────────────────
 const PageLoader = () => (
