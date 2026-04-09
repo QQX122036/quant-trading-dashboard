@@ -198,22 +198,16 @@ export const SentimentGauge: Component<SentimentGaugeProps> = (props) => {
       const res = await apiFetch<{ data: SentimentData }>('/api/data/sentiment', {
         signal: abortController.signal,
       });
-      if (res.code === '0' && res.data?.data) {
+      if (res.code === '0' && res.data) {
         // Map API response to component's expected field names
-        const raw = res.data.data as unknown as Record<string, unknown>;
+        // API返回: { sentiment_score, labels: { fear_greed_index, volatility_index, up_count, down_count, sentiment } }
+        const raw = res.data as unknown as Record<string, unknown>;
+        const labels = (raw.labels ?? {}) as Record<string, unknown>;
         setSentiment({
-          fear_greed:
-            (raw.labels as Record<string, number>)?.fear_greed_index ??
-            (raw.fear_greed as number) ??
-            50,
-          volatility:
-            (raw.labels as Record<string, number>)?.volatility_index ??
-            (raw.volatility as number) ??
-            18,
-          up_count:
-            (raw.labels as Record<string, number>)?.up_count ?? (raw.up_count as number) ?? 0,
-          down_count:
-            (raw.labels as Record<string, number>)?.down_count ?? (raw.down_count as number) ?? 0,
+          fear_greed: (labels.fear_greed_index as number) ?? (raw.fear_greed as number) ?? 50,
+          volatility: (labels.volatility_index as number) ?? (raw.volatility as number) ?? 18,
+          up_count: (labels.up_count as number) ?? (raw.up_count as number) ?? 0,
+          down_count: (labels.down_count as number) ?? (raw.down_count as number) ?? 0,
           date: (raw.date as string) ?? new Date().toLocaleDateString('zh-CN'),
         });
       }
