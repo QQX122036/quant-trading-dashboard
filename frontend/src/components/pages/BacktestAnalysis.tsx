@@ -5,6 +5,7 @@
 import { Component, createSignal, For, Show, onMount, onCleanup, createEffect } from 'solid-js';
 import echarts from '@/lib/echarts';
 import { apiState, setApiState, apiActions } from '../../stores/apiStore';
+import type { BacktestResult } from '../../hooks/useApi';
 
 // Abort controller for request cancellation on unmount
 const _abortCtrl = new AbortController();
