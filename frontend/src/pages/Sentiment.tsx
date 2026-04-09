@@ -150,7 +150,9 @@ function SentimentBarChart(props: { data: DailySentiment[] }) {
   };
 
   onMount(() => {
+    if (!ref) return;
     chart = echarts.init(ref, 'dark', { renderer: 'canvas' });
+    if (!chart) return;
     chart.setOption(buildOption());
     const ro = new ResizeObserver(() => chart?.resize());
     ro.observe(ref);

@@ -163,10 +163,7 @@ async function _rawFetch<T>(path: string, options: RequestInit = {}): Promise<Ap
     ...(options.headers as Record<string, string>),
   });
 
-  // 添加Authorization header（如果token存在）
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
-  }
+  // 已移除认证，不再添加Authorization header
 
   let res: Response;
   try {

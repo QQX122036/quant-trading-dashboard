@@ -117,17 +117,17 @@ export const SectorSentimentHeatmap: Component<SectorSentimentHeatmapProps> = (p
           if (!item) return '';
           const pctChange =
             item.change_pct != null
-              ? `${item.change_pct >= 0 ? '+' : ''}${item.change_pct.toFixed(2)}%`
+              ? `${item.change_pct >= 0 ? '+' : ''}${(item.change_pct ?? 0).toFixed(2)}%`
               : '—';
           const inflow =
             item.net_inflow != null
-              ? `${item.net_inflow >= 0 ? '+' : ''}${item.net_inflow.toFixed(2)}亿`
+              ? `${item.net_inflow >= 0 ? '+' : ''}${(item.net_inflow ?? 0).toFixed(2)}亿`
               : null;
           return `<div style="font-family:JetBrains Mono,monospace;min-width:140px">
             <div style="color:#e5e7eb;font-weight:bold;margin-bottom:4px">${item.sector_name}</div>
             <div style="display:flex;justify-content:space-between;gap:12px">
               <span style="color:#9CA3AF">情绪分</span>
-              <span style="color:${sentimentColor(item.sentiment_score)};font-weight:bold">${item.sentiment_score.toFixed(1)}</span>
+              <span style="color:${sentimentColor(item.sentiment_score ?? 50)};font-weight:bold">${(item.sentiment_score ?? 50).toFixed(1)}</span>
             </div>
             <div style="display:flex;justify-content:space-between;gap:12px">
               <span style="color:#9CA3AF">涨跌幅</span>
