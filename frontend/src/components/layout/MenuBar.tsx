@@ -55,6 +55,7 @@ export const MenuBar: Component = () => {
         { label: '市场总览', route: '/market' },
         { label: 'A股看板', route: '/dashboard' },
         { label: '回测分析', route: '/backtest' },
+        { label: '多因子策略', route: '/multistrategy' },
         { label: '交易记录', route: '/trades' },
         { label: '持仓管理', route: '/positions' },
         { label: '组合分析', route: '/portfolio' },

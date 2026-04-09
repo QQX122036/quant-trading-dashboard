@@ -115,12 +115,14 @@ export const SectorSentimentHeatmap: Component<SectorSentimentHeatmapProps> = (p
           const p = params as { data: [number, number, number] };
           const item = sorted[p.data[0]];
           if (!item) return '';
-          const pctChange = item.change_pct != null
-            ? `${item.change_pct >= 0 ? '+' : ''}${item.change_pct.toFixed(2)}%`
-            : '—';
-          const inflow = item.net_inflow != null
-            ? `${item.net_inflow >= 0 ? '+' : ''}${item.net_inflow.toFixed(2)}亿`
-            : null;
+          const pctChange =
+            item.change_pct != null
+              ? `${item.change_pct >= 0 ? '+' : ''}${item.change_pct.toFixed(2)}%`
+              : '—';
+          const inflow =
+            item.net_inflow != null
+              ? `${item.net_inflow >= 0 ? '+' : ''}${item.net_inflow.toFixed(2)}亿`
+              : null;
           return `<div style="font-family:JetBrains Mono,monospace;min-width:140px">
             <div style="color:#e5e7eb;font-weight:bold;margin-bottom:4px">${item.sector_name}</div>
             <div style="display:flex;justify-content:space-between;gap:12px">
@@ -131,10 +133,14 @@ export const SectorSentimentHeatmap: Component<SectorSentimentHeatmapProps> = (p
               <span style="color:#9CA3AF">涨跌幅</span>
               <span style="color:${item.change_pct != null && item.change_pct >= 0 ? '#EF4444' : '#22C55E'}">${pctChange}</span>
             </div>
-            ${inflow ? `<div style="display:flex;justify-content:space-between;gap:12px">
+            ${
+              inflow
+                ? `<div style="display:flex;justify-content:space-between;gap:12px">
               <span style="color:#9CA3AF">净流入</span>
               <span style="color:${item.net_inflow! >= 0 ? '#EF4444' : '#22C55E'}">${inflow}</span>
-            </div>` : ''}
+            </div>`
+                : ''
+            }
             <div style="margin-top:4px;font-size:10px;color:#6b7280">${sentimentLabel(item.sentiment_score)}</div>
           </div>`;
         },
@@ -187,10 +193,9 @@ export const SectorSentimentHeatmap: Component<SectorSentimentHeatmapProps> = (p
     try {
       setLoading(true);
       setError(null);
-      const res = await apiFetch<{ items: SectorSentimentItem[] }>(
-        '/api/data/sector-sentiment',
-        { signal: abortController.signal }
-      );
+      const res = await apiFetch<{ items: SectorSentimentItem[] }>('/api/data/sector-sentiment', {
+        signal: abortController.signal,
+      });
       if (res.code === '0' && res.data?.items) {
         setData(res.data.items);
       }
@@ -200,12 +205,34 @@ export const SectorSentimentHeatmap: Component<SectorSentimentHeatmapProps> = (p
       setError(String(e));
       // Fallback demo data
       const sectors = [
-        '半导体', '新能源汽车', '医药生物', '光伏设备', '银行',
-        '证券', '房地产', '白酒', '军工', '通信设备',
-        '软件服务', '有色金属', '化工', '工程机械', '食品饮料',
-        '家电', '电力', '煤炭', '石油', '纺织服装',
-        '传媒', '环保', '建材', '旅游', '铁路公路',
-        '保险', '多元金融', '航运港口',
+        '半导体',
+        '新能源汽车',
+        '医药生物',
+        '光伏设备',
+        '银行',
+        '证券',
+        '房地产',
+        '白酒',
+        '军工',
+        '通信设备',
+        '软件服务',
+        '有色金属',
+        '化工',
+        '工程机械',
+        '食品饮料',
+        '家电',
+        '电力',
+        '煤炭',
+        '石油',
+        '纺织服装',
+        '传媒',
+        '环保',
+        '建材',
+        '旅游',
+        '铁路公路',
+        '保险',
+        '多元金融',
+        '航运港口',
       ];
       const demo: SectorSentimentItem[] = sectors.map((name) => ({
         sector_name: name,

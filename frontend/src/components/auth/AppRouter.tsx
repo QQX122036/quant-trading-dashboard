@@ -34,6 +34,8 @@ const FactorDashboard = (lazy as any)(() => import('../pages/FactorDashboard'));
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MultiFactorChart = (lazy as any)(() => import('../pages/MultiFactorChart'));
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+const MultiStrategyChart = (lazy as any)(() => import('../pages/MultiStrategyChart'));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const PortfolioAnalysis = (lazy as any)(() => import('../pages/PortfolioAnalysis'));
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SentimentPage = (lazy as any)(() => import('../pages/SentimentPage'));
@@ -95,6 +97,7 @@ export const AppRouter = () => (
     <ProtectedRoute path="/strategies" component={StrategyManager} />
     <ProtectedRoute path="/factors" component={FactorDashboard} />
     <ProtectedRoute path="/multifactor" component={MultiFactorChart} />
+    <ProtectedRoute path="/multistrategy" component={MultiStrategyChart} />
     <ProtectedRoute path="/portfolio" component={PortfolioAnalysis} />
     <ProtectedRoute path="/sentiment" component={SentimentPage} />
     <ProtectedRoute path="/sentiment-analysis" component={Sentiment} />

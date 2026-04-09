@@ -1,14 +1,26 @@
 /**
- * pdfExport.ts — PDF 导出工具
- * 支持：回测报告、个股分析报告
- * 使用 jsPDF + html2canvas + ECharts getDataURL
+ * pdfExport.ts — PDF 导出工具（性能优化版）
+ *
+ * 优化策略: jspdf + html2canvas 改为动态 import()
+ * - 这两个库体积巨大 (jspdf ~200KB, html2canvas ~300KB)
+ * - 在 exportToPdf/exportBacktestReport/exportEchartsToPdf 首次调用时才加载
+ * - 不在主 bundle 中占据空间，首屏 FCP/LCP 不受影响
  */
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import type { ECharts, EChartsOption } from 'echarts';
 
+// ── 动态导入 jspdf（仅在使用 PDF 导出时才加载）──────────────────────────────────
+async function loadJsPDF(): Promise<typeof import('jspdf')> {
+  return import('jspdf');
+}
+
+// ── 动态导入 html2canvas ──────────────────────────────────────────────────────
+type Html2Canvas = typeof import('html2canvas');
+async function loadHtml2Canvas(): Promise<Html2Canvas> {
+  return import('html2canvas');
+}
+
 // ── 水印工具 ────────────────────────────────────────────────
-function addWatermark(doc: jsPDF, text = '量化分析报告'): void {
+function addWatermark(doc: import('jspdf').default, text = '量化分析报告'): void {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   doc.setFontSize(40);
@@ -21,7 +33,12 @@ function addWatermark(doc: jsPDF, text = '量化分析报告'): void {
 }
 
 // ── 页眉页脚 ────────────────────────────────────────────────
-function addHeaderFooter(doc: jsPDF, pageNum: number, totalPages: number, genTime: string): void {
+function addHeaderFooter(
+  doc: import('jspdf').default,
+  pageNum: number,
+  totalPages: number,
+  genTime: string
+): void {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 14;
@@ -39,11 +56,12 @@ function addHeaderFooter(doc: jsPDF, pageNum: number, totalPages: number, genTim
   doc.setTextColor(0, 0, 0);
 }
 
-// ── 通用：div → canvas → imageDataURL ─────────────────────
+// ── 通用：div → canvas → imageDataURL ─────────────────────────────────────────
 export async function divToImageDataURL(elementId: string, scale = 2): Promise<string> {
+  const html2canvas = await loadHtml2Canvas();
   const el = document.getElementById(elementId);
   if (!el) throw new Error(`Element #${elementId} not found`);
-  const canvas = await html2canvas(el, {
+  const canvas = await html2canvas.default(el, {
     scale,
     useCORS: true,
     allowTaint: false,
@@ -53,7 +71,7 @@ export async function divToImageDataURL(elementId: string, scale = 2): Promise<s
   return canvas.toDataURL('image/png', 1.0);
 }
 
-// ── ECharts 实例 → imageDataURL ───────────────────────────
+// ── ECharts 实例 → imageDataURL ───────────────────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function echartsToImageDataURL(chart: any, pixelRatio = 2): string {
   // EChartsOption is just a config object; only real ECharts instances have getDataURL
@@ -67,7 +85,7 @@ export function echartsToImageDataURL(chart: any, pixelRatio = 2): string {
   });
 }
 
-// ── 核心导出函数 ────────────────────────────────────────────
+// ── 核心导出函数 ─────────────────────────────────────────────────────────────
 export interface ExportPdfOptions {
   filename?: string;
   watermark?: string;
@@ -80,9 +98,11 @@ export async function exportToPdf(
   options: ExportPdfOptions = {}
 ): Promise<void> {
   const { watermark = '量化分析报告', scale = 2 } = options;
+  const [html2canvasMod, JsPDFModule] = await Promise.all([loadHtml2Canvas(), loadJsPDF()]);
+  const JsPDF = JsPDFModule.default ?? JsPDFModule;
 
   const imgDataURL = await divToImageDataURL(elementId, scale);
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const doc = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -161,7 +181,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-// ── 回测报告专用导出 ────────────────────────────────────────
+// ── 回测报告专用导出 ──────────────────────────────────────────────────────────
 export interface BacktestReportData {
   strategyName: string;
   backtestPeriod: string;
@@ -198,7 +218,9 @@ export async function exportBacktestReport(
   data: BacktestReportData,
   filename = 'backtest_report'
 ): Promise<void> {
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const JsPDFModule = await loadJsPDF();
+  const JsPDF = JsPDFModule.default ?? JsPDFModule;
+  const doc = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 14;
@@ -373,7 +395,7 @@ export async function exportBacktestReport(
     const tradeHeaders = ['时间', '标的', '方向', '价格', '数量', '盈亏(P&L)'];
     const tradeColWidths = [30, 25, 15, 25, 25, contentWidth - 120];
     const tradeCols = [margin];
-    tradeColWidths.slice(0, -1).reduce((acc, w) => {
+    tradeColWidths.slice(0, -1).reduce((acc: number[], w: number) => {
       acc.push(acc[acc.length - 1] + w);
       return acc;
     }, tradeCols);
@@ -423,16 +445,17 @@ export async function exportBacktestReport(
   doc.save(`${filename}.pdf`);
 }
 
-// ── ECharts 直接导出PDF ────────────────────────────────────
+// ── ECharts 直接导出PDF ──────────────────────────────────────────────────────
 export async function exportEchartsToPdf(
   chart: any,
-
   title: string,
   filename = 'chart',
   options: ExportPdfOptions = {}
 ): Promise<void> {
   const { watermark = '量化分析报告' } = options;
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const JsPDFModule = await loadJsPDF();
+  const JsPDF = JsPDFModule.default ?? JsPDFModule;
+  const doc = new JsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 14;

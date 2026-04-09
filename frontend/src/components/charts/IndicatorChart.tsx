@@ -80,7 +80,6 @@ function stdDev(values: number[], period: number): number[] {
   return result;
 }
 
-
 // ── Indicator Calculations ────────────────────────────────────────────────────
 
 interface MACDResult {
@@ -134,12 +133,7 @@ interface KDJResult {
   j: number[];
 }
 
-function calculateKDJ(
-  highs: number[],
-  lows: number[],
-  closes: number[],
-  period = 9
-): KDJResult {
+function calculateKDJ(highs: number[], lows: number[], closes: number[], period = 9): KDJResult {
   const k: number[] = [];
   const d: number[] = [];
   const j: number[] = [];
@@ -156,10 +150,7 @@ function calculateKDJ(
       const highValues = highs.slice(i - period + 1, i + 1);
       const lowMin = Math.min(...lowValues);
       const highMax = Math.max(...highValues);
-      const rsv =
-        highMax === lowMin
-          ? 50
-          : ((closes[i] - lowMin) / (highMax - lowMin)) * 100;
+      const rsv = highMax === lowMin ? 50 : ((closes[i] - lowMin) / (highMax - lowMin)) * 100;
       rsvValues.push(rsv);
 
       const prevK = k.length > 0 ? k[k.length - 1] : 50;
@@ -187,8 +178,12 @@ interface BOLLResult {
 function calculateBOLL(closes: number[], period = 20, stdDev_mult = 2): BOLLResult {
   const middle = sma(closes, period);
   const std = stdDev(closes, period);
-  const upper = middle.map((m, i) => (m !== undefined && !isNaN(m) && std[i] !== undefined ? m + stdDev_mult * std[i] : NaN));
-  const lower = middle.map((m, i) => (m !== undefined && !isNaN(m) && std[i] !== undefined ? m - stdDev_mult * std[i] : NaN));
+  const upper = middle.map((m, i) =>
+    m !== undefined && !isNaN(m) && std[i] !== undefined ? m + stdDev_mult * std[i] : NaN
+  );
+  const lower = middle.map((m, i) =>
+    m !== undefined && !isNaN(m) && std[i] !== undefined ? m - stdDev_mult * std[i] : NaN
+  );
   return { upper, middle, lower };
 }
 
@@ -202,7 +197,7 @@ export const IndicatorChart: Component<IndicatorChartProps> = (props) => {
 
   const loadData = async () => {
     if (!containerRef) return;
-    
+
     // 如果图表已被销毁，不要继续
     if (isDisposed) return;
 
@@ -213,7 +208,12 @@ export const IndicatorChart: Component<IndicatorChartProps> = (props) => {
     } else if (props.symbol && props.exchange) {
       setLoading(true);
       try {
-        const res = await fetchDailyBar(`${props.symbol}.${props.exchange}`, undefined, undefined, 100);
+        const res = await fetchDailyBar(
+          `${props.symbol}.${props.exchange}`,
+          undefined,
+          undefined,
+          100
+        );
         if (res.code === '0' && res.data?.bars) {
           bars = res.data.bars as unknown as KLineBar[];
         }
@@ -232,7 +232,7 @@ export const IndicatorChart: Component<IndicatorChartProps> = (props) => {
       if (chart) {
         try {
           chart.remove();
-        } catch (e) {
+        } catch (_e) {
           // 忽略图表已被销毁的错误
           console.debug('[IndicatorChart] Chart already disposed');
         }
@@ -276,15 +276,21 @@ export const IndicatorChart: Component<IndicatorChartProps> = (props) => {
     const closes: number[] = bars.map((b) => b.close);
     const highs: number[] = bars.map((b) => b.high);
     const lows: number[] = bars.map((b) => b.low);
-    
+
     // 转换时间戳，过滤掉无效的日期
     const times: Time[] = [];
     bars.forEach((b, index) => {
-      const dateStr = (b as any).time || (b as any).timestamp || (b as any).date || (b as any).datetime || (b as any).trade_date || '';
+      const dateStr =
+        (b as any).time ||
+        (b as any).timestamp ||
+        (b as any).date ||
+        (b as any).datetime ||
+        (b as any).trade_date ||
+        '';
       // 处理不同的日期格式，转换为 yyyy-mm-dd 格式
       let date: Date;
       let formattedDate: string;
-      
+
       if (dateStr.includes('T')) {
         // ISO 格式：2024-01-08T00:00:00 -> 提取日期部分
         formattedDate = dateStr.split('T')[0];
@@ -303,13 +309,18 @@ export const IndicatorChart: Component<IndicatorChartProps> = (props) => {
         date = new Date(dateStr);
         formattedDate = dateStr;
       }
-      
+
       const timestamp = Math.floor(date.getTime() / 1000);
       // 如果日期无效，使用前一个有效时间戳 + 60 秒（避免重复）
       if (isNaN(timestamp)) {
-        const prevTime = index > 0 ? times[index - 1] as number : Math.floor(Date.now() / 1000);
+        const prevTime = index > 0 ? (times[index - 1] as number) : Math.floor(Date.now() / 1000);
         times.push((prevTime + 60) as Time);
-        console.warn('[IndicatorChart] Invalid date:', dateStr, 'using fallback timestamp:', times[times.length - 1]);
+        console.warn(
+          '[IndicatorChart] Invalid date:',
+          dateStr,
+          'using fallback timestamp:',
+          times[times.length - 1]
+        );
       } else {
         // lightweight-charts 期望 yyyy-mm-dd 格式的字符串作为 Time
         times.push(formattedDate as unknown as Time);
@@ -560,7 +571,7 @@ export const IndicatorChart: Component<IndicatorChartProps> = (props) => {
       if (chart) {
         try {
           chart.remove();
-        } catch (e) {
+        } catch (_e) {
           console.debug('[IndicatorChart] Chart already disposed in cleanup');
         }
       }
@@ -580,7 +591,7 @@ export const IndicatorChart: Component<IndicatorChartProps> = (props) => {
     props.symbol;
     props.exchange;
     props.type;
-    updateData();
+    void updateData(); // void silences "unused expression" while keeping reactive tracking
   });
 
   return (

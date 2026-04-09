@@ -42,17 +42,37 @@ const STYLE_DIMS = ['价值', '成长', '动量', '质量', '低波'];
 
 // ── Sector colors ───────────────────────────────────────────
 const SECTOR_COLORS = [
-  '#60A5FA', '#34D399', '#FBBF24', '#F87171', '#A78BFA',
-  '#38BDF8', '#FB923C', '#E879F9', '#4ADE80', '#F472B6',
-  '#FBBF24', '#6366F1', '#14B8A6', '#F97316', '#8B5CF6',
+  '#60A5FA',
+  '#34D399',
+  '#FBBF24',
+  '#F87171',
+  '#A78BFA',
+  '#38BDF8',
+  '#FB923C',
+  '#E879F9',
+  '#4ADE80',
+  '#F472B6',
+  '#FBBF24',
+  '#6366F1',
+  '#14B8A6',
+  '#F97316',
+  '#8B5CF6',
 ];
 
 // ── Stock name map ──────────────────────────────────────────
 const STOCK_NAME_MAP: Record<string, string> = {
-  '000001': '平安银行', '000002': '万科A', '000858': '五粮液',
-  '600519': '贵州茅台', '600036': '招商银行', '601318': '中国平安',
-  '600887': '伊利股份', '000001.SZSE': '平安银行', '000001.SZE': '平安银行',
-  '600519.SSE': '贵州茅台', '600036.SSE': '招商银行', '601318.SSE': '中国平安',
+  '000001': '平安银行',
+  '000002': '万科A',
+  '000858': '五粮液',
+  '600519': '贵州茅台',
+  '600036': '招商银行',
+  '601318': '中国平安',
+  '600887': '伊利股份',
+  '000001.SZSE': '平安银行',
+  '000001.SZE': '平安银行',
+  '600519.SSE': '贵州茅台',
+  '600036.SSE': '招商银行',
+  '601318.SSE': '中国平安',
 };
 
 // ── Helpers ─────────────────────────────────────────────────
@@ -77,7 +97,11 @@ function calcStyleExposure(positions: PositionData[]): number[] {
 
 // ── Chart init / resize ────────────────────────────────────
 function initPieChart(el: HTMLElement, data: { name: string; value: number }[]) {
-  if (pieChart) { try { pieChart.dispose(); } catch {} }
+  if (pieChart) {
+    try {
+      pieChart.dispose();
+    } catch {}
+  }
   pieChart = echarts.init(el, 'dark');
   pieChart.setOption({
     backgroundColor: 'transparent',
@@ -90,34 +114,46 @@ function initPieChart(el: HTMLElement, data: { name: string; value: number }[]) 
       textStyle: { color: '#E5E7EB' },
     },
     legend: {
-      orient: 'vertical', right: '3%', top: 'center',
+      orient: 'vertical',
+      right: '3%',
+      top: 'center',
       textStyle: { color: '#9CA3AF', fontSize: 11 },
-      itemWidth: 10, itemHeight: 10,
+      itemWidth: 10,
+      itemHeight: 10,
     },
-    series: [{
-      type: 'pie', radius: ['42%', '70%'], center: ['38%', '50%'],
-      avoidLabelOverlap: true,
-      itemStyle: { borderRadius: 4, borderColor: '#111827', borderWidth: 2 },
-      label: { show: false },
-      emphasis: {
-        itemStyle: { shadowBlur: 12, shadowColor: 'rgba(0,0,0,0.4)' },
-        label: { show: true, fontSize: 13, fontWeight: 'bold', color: '#F3F4F6' },
+    series: [
+      {
+        type: 'pie',
+        radius: ['42%', '70%'],
+        center: ['38%', '50%'],
+        avoidLabelOverlap: true,
+        itemStyle: { borderRadius: 4, borderColor: '#111827', borderWidth: 2 },
+        label: { show: false },
+        emphasis: {
+          itemStyle: { shadowBlur: 12, shadowColor: 'rgba(0,0,0,0.4)' },
+          label: { show: true, fontSize: 13, fontWeight: 'bold', color: '#F3F4F6' },
+        },
+        data: data.map((d, i) => ({
+          ...d,
+          itemStyle: { color: SECTOR_COLORS[i % SECTOR_COLORS.length] },
+        })),
       },
-      data: data.map((d, i) => ({
-        ...d,
-        itemStyle: { color: SECTOR_COLORS[i % SECTOR_COLORS.length] },
-      })),
-    }],
+    ],
   });
 }
 
 function initBarChart(el: HTMLElement, data: { name: string; value: number; color: string }[]) {
-  if (barChart) { try { barChart.dispose(); } catch {} }
+  if (barChart) {
+    try {
+      barChart.dispose();
+    } catch {}
+  }
   barChart = echarts.init(el, 'dark');
   barChart.setOption({
     backgroundColor: 'transparent',
     tooltip: {
-      trigger: 'axis', axisPointer: { type: 'shadow' },
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
       formatter: (p: any[]) => `${p[0].name}<br/>市值: ${formatMarketCap(p[0].value)}`,
       backgroundColor: 'rgba(17,24,39,0.95)',
       borderColor: 'rgba(255,255,255,0.1)',
@@ -135,16 +171,32 @@ function initBarChart(el: HTMLElement, data: { name: string; value: number; colo
       axisLabel: { color: '#9CA3AF', fontSize: 11, formatter: (v: number) => formatMarketCap(v) },
       splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
     },
-    series: [{
-      type: 'bar', data: data.map((d) => ({ value: d.value, itemStyle: { color: d.color, borderRadius: [4, 4, 0, 0] } })),
-      barWidth: '55%',
-      label: { show: true, position: 'top', formatter: (p: any) => formatMarketCap(p.value), color: '#D1D5DB', fontSize: 11 },
-    }],
+    series: [
+      {
+        type: 'bar',
+        data: data.map((d) => ({
+          value: d.value,
+          itemStyle: { color: d.color, borderRadius: [4, 4, 0, 0] },
+        })),
+        barWidth: '55%',
+        label: {
+          show: true,
+          position: 'top',
+          formatter: (p: any) => formatMarketCap(p.value),
+          color: '#D1D5DB',
+          fontSize: 11,
+        },
+      },
+    ],
   });
 }
 
 function initRadarChart(el: HTMLElement, values: number[]) {
-  if (radarChart) { try { radarChart.dispose(); } catch {} }
+  if (radarChart) {
+    try {
+      radarChart.dispose();
+    } catch {}
+  }
   radarChart = echarts.init(el, 'dark');
   radarChart.setOption({
     backgroundColor: 'transparent',
@@ -157,34 +209,51 @@ function initRadarChart(el: HTMLElement, values: number[]) {
     },
     radar: {
       indicator: STYLE_DIMS.map((dim) => ({ name: dim, max: 100 })),
-      radius: '65%', center: ['50%', '50%'], splitNumber: 4,
+      radius: '65%',
+      center: ['50%', '50%'],
+      splitNumber: 4,
       axisName: { color: '#9CA3AF', fontSize: 12 },
       splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
       splitArea: { areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(255,255,255,0.06)'] } },
       axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
     },
-    series: [{
-      type: 'radar',
-      data: [{
-        value: values,
-        name: '风格暴露',
-        areaStyle: { color: 'rgba(96,165,250,0.25)' },
-        lineStyle: { color: '#60A5FA', width: 2 },
-        itemStyle: { color: '#60A5FA' },
-      }],
-    }],
+    series: [
+      {
+        type: 'radar',
+        data: [
+          {
+            value: values,
+            name: '风格暴露',
+            areaStyle: { color: 'rgba(96,165,250,0.25)' },
+            lineStyle: { color: '#60A5FA', width: 2 },
+            itemStyle: { color: '#60A5FA' },
+          },
+        ],
+      },
+    ],
   });
 }
 
 function initEquityChart(el: HTMLElement, curve: EquityCurvePoint[], initialBalance: number) {
-  if (equityChart) { try { equityChart.dispose(); } catch {} }
+  if (equityChart) {
+    try {
+      equityChart.dispose();
+    } catch {}
+  }
   equityChart = echarts.init(el, 'dark');
 
   if (!curve || curve.length === 0) {
     // Generate placeholder from initial balance
     equityChart.setOption({
       backgroundColor: 'transparent',
-      graphic: [{ type: 'text', left: 'center', top: 'middle', style: { text: '暂无资金曲线数据', fill: '#6B7280', fontSize: 13 } }],
+      graphic: [
+        {
+          type: 'text',
+          left: 'center',
+          top: 'middle',
+          style: { text: '暂无资金曲线数据', fill: '#6B7280', fontSize: 13 },
+        },
+      ],
     });
     return;
   }
@@ -217,11 +286,13 @@ function initEquityChart(el: HTMLElement, curve: EquityCurvePoint[], initialBala
     legend: {
       data: ['策略权益', '基准'],
       textStyle: { color: '#9CA3AF', fontSize: 11 },
-      top: 0, right: 0,
+      top: 0,
+      right: 0,
     },
     grid: { left: '3%', right: '4%', top: '20%', bottom: '8%', containLabel: true },
     xAxis: {
-      type: 'category', data: dates,
+      type: 'category',
+      data: dates,
       axisLabel: { color: '#6B7280', fontSize: 10, formatter: (v: string) => v.slice(5) },
       axisLine: { lineStyle: { color: 'rgba(255,255,255,0.08)' } },
       splitLine: { show: false },
@@ -239,10 +310,12 @@ function initEquityChart(el: HTMLElement, curve: EquityCurvePoint[], initialBala
         smooth: true,
         lineStyle: { color: '#60A5FA', width: 2 },
         itemStyle: { color: '#60A5FA' },
-        areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: 'rgba(96,165,250,0.3)' },
-          { offset: 1, color: 'rgba(96,165,250,0.02)' },
-        ]) },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(96,165,250,0.3)' },
+            { offset: 1, color: 'rgba(96,165,250,0.02)' },
+          ]),
+        },
         symbol: 'none',
       },
       {
@@ -266,10 +339,26 @@ function resizeAllCharts() {
 }
 
 function disposeAllCharts() {
-  try { pieChart?.dispose(); } catch { pieChart = undefined as unknown as EChartsInstance; }
-  try { barChart?.dispose(); } catch { barChart = undefined as unknown as EChartsInstance; }
-  try { radarChart?.dispose(); } catch { radarChart = undefined as unknown as EChartsInstance; }
-  try { equityChart?.dispose(); } catch { equityChart = undefined as unknown as EChartsInstance; }
+  try {
+    pieChart?.dispose();
+  } catch {
+    pieChart = undefined as unknown as EChartsInstance;
+  }
+  try {
+    barChart?.dispose();
+  } catch {
+    barChart = undefined as unknown as EChartsInstance;
+  }
+  try {
+    radarChart?.dispose();
+  } catch {
+    radarChart = undefined as unknown as EChartsInstance;
+  }
+  try {
+    equityChart?.dispose();
+  } catch {
+    equityChart = undefined as unknown as EChartsInstance;
+  }
   pieChart = undefined as unknown as EChartsInstance;
   barChart = undefined as unknown as EChartsInstance;
   radarChart = undefined as unknown as EChartsInstance;
@@ -279,11 +368,19 @@ function disposeAllCharts() {
 // ── Sector inference ────────────────────────────────────────
 function inferSector(symbol: string): string {
   const s2s: Record<string, string> = {
-    '600': '金融', '601': '金融', '603': '金融', '605': '金融',
-    '000': '消费', '001': '消费',
-    '002': '科技', '003': '科技', '300': '医药', '301': '医药',
+    '600': '金融',
+    '601': '金融',
+    '603': '金融',
+    '605': '金融',
+    '000': '消费',
+    '001': '消费',
+    '002': '科技',
+    '003': '科技',
+    '300': '医药',
+    '301': '医药',
     '688': '科技',
-    '600519': '白酒', '600036': '银行',
+    '600519': '白酒',
+    '600036': '银行',
   };
   const prefix = symbol.replace('.SZSE', '').replace('.SSE', '').slice(0, 3);
   return s2s[prefix] ?? '其他';
@@ -319,18 +416,30 @@ const PositionModal: Component<PositionModalProps> = (props) => {
 
       const res = await fetchDailyBar(tsCode, undefined, undefined, 60);
       if (res.code === '0' && res.data?.bars?.length) {
-        setPriceHistory(res.data.bars.map((b) => ({ date: b.trade_date?.slice(0, 10) ?? '', close: b.close })));
+        setPriceHistory(
+          res.data.bars.map((b) => ({ date: b.trade_date?.slice(0, 10) ?? '', close: b.close }))
+        );
       }
-    } catch {}
-    finally { setLoadingHistory(false); }
+    } catch {
+    } finally {
+      setLoadingHistory(false);
+    }
   });
 
-  onCleanup(() => { try { priceChart?.dispose(); } catch {} });
+  onCleanup(() => {
+    try {
+      priceChart?.dispose();
+    } catch {}
+  });
 
   createEffect(() => {
     const history = priceHistory();
     if (!chartRef) return;
-    if (priceChart) { try { priceChart.dispose(); } catch {} }
+    if (priceChart) {
+      try {
+        priceChart.dispose();
+      } catch {}
+    }
     if (history.length === 0) return;
 
     priceChart = echarts.init(chartRef, 'dark');
@@ -345,7 +454,8 @@ const PositionModal: Component<PositionModalProps> = (props) => {
       },
       grid: { left: '3%', right: '3%', top: '8%', bottom: '8%', containLabel: true },
       xAxis: {
-        type: 'category', data: history.map((h) => h.date.slice(5)),
+        type: 'category',
+        data: history.map((h) => h.date.slice(5)),
         axisLabel: { color: '#6B7280', fontSize: 10 },
         axisLine: { lineStyle: { color: 'rgba(255,255,255,0.08)' } },
         splitLine: { show: false },
@@ -355,18 +465,22 @@ const PositionModal: Component<PositionModalProps> = (props) => {
         axisLabel: { color: '#6B7280', fontSize: 10, formatter: (v: number) => `¥${v.toFixed(0)}` },
         splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } },
       },
-      series: [{
-        type: 'line',
-        data: history.map((h) => h.close),
-        smooth: true,
-        lineStyle: { color: '#60A5FA', width: 2 },
-        itemStyle: { color: '#60A5FA' },
-        areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: 'rgba(96,165,250,0.25)' },
-          { offset: 1, color: 'rgba(96,165,250,0.02)' },
-        ]) },
-        symbol: 'none',
-      }],
+      series: [
+        {
+          type: 'line',
+          data: history.map((h) => h.close),
+          smooth: true,
+          lineStyle: { color: '#60A5FA', width: 2 },
+          itemStyle: { color: '#60A5FA' },
+          areaStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: 'rgba(96,165,250,0.25)' },
+              { offset: 1, color: 'rgba(96,165,250,0.02)' },
+            ]),
+          },
+          symbol: 'none',
+        },
+      ],
     });
 
     // Re-render when history changes
@@ -413,7 +527,9 @@ const PositionModal: Component<PositionModalProps> = (props) => {
           </div>
           <div class="bg-white/5 rounded-lg p-3">
             <div class="text-xs text-gray-500 mb-1">方向</div>
-            <div class={`text-lg font-bold ${props.position.direction === '多' ? 'text-green-400' : 'text-red-400'}`}>
+            <div
+              class={`text-lg font-bold ${props.position.direction === '多' ? 'text-green-400' : 'text-red-400'}`}
+            >
               {props.position.direction}
             </div>
           </div>
@@ -421,18 +537,28 @@ const PositionModal: Component<PositionModalProps> = (props) => {
 
         {/* Detail rows */}
         <div class="p-5 space-y-3 border-b border-white/10">
-          {[
-            { label: '成本价', value: props.position.price > 0 ? `¥${props.position.price.toFixed(2)}` : '—' },
-            { label: 'Frozen', value: props.position.frozen?.toLocaleString() ?? '0' },
-            { label: '可用', value: (props.position.volume - (props.position.frozen ?? 0)).toLocaleString() },
-            { label: 'Exchange', value: props.position.exchange },
-            { label: 'Gateway', value: props.position.gateway_name ?? '—' },
-          ].map((row) => (
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-gray-500">{row.label}</span>
-              <span class="text-gray-300 font-mono">{row.value}</span>
-            </div>
-          ))}
+          <For
+            each={[
+              {
+                label: '成本价',
+                value: props.position.price > 0 ? `¥${props.position.price.toFixed(2)}` : '—',
+              },
+              { label: 'Frozen', value: props.position.frozen?.toLocaleString() ?? '0' },
+              {
+                label: '可用',
+                value: (props.position.volume - (props.position.frozen ?? 0)).toLocaleString(),
+              },
+              { label: 'Exchange', value: props.position.exchange },
+              { label: 'Gateway', value: props.position.gateway_name ?? '—' },
+            ]}
+          >
+            {(row) => (
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-500">{row.label}</span>
+                <span class="text-gray-300 font-mono">{row.value}</span>
+              </div>
+            )}
+          </For>
         </div>
 
         {/* Price history chart */}
@@ -484,12 +610,8 @@ export const PortfolioOverview: Component = () => {
   const totalMarketValue = createMemo(() =>
     positions().reduce((sum, p) => sum + p.volume * (p.price || 0), 0)
   );
-  const totalPnl = createMemo(() =>
-    positions().reduce((sum, p) => sum + (p.pnl || 0), 0)
-  );
-  const accountBalance = createMemo(() =>
-    accounts().reduce((sum, a) => sum + (a.balance || 0), 0)
-  );
+  const totalPnl = createMemo(() => positions().reduce((sum, p) => sum + (p.pnl || 0), 0));
+  const accountBalance = createMemo(() => accounts().reduce((sum, a) => sum + (a.balance || 0), 0));
 
   // ── Industry distribution ────────────────────────────────
   const industryData = createMemo(() => {
@@ -527,7 +649,11 @@ export const PortfolioOverview: Component = () => {
   // ── Summary cards ────────────────────────────────────────
   const cards = createMemo(() => [
     { label: '持仓市值', value: formatMarketCap(totalMarketValue()) },
-    { label: '累计盈亏', value: `${totalPnl() >= 0 ? '+' : ''}${totalPnl().toFixed(0)}`, color: totalPnl() >= 0 ? 'text-[#22C55E]' : 'text-[#EF4444]' },
+    {
+      label: '累计盈亏',
+      value: `${totalPnl() >= 0 ? '+' : ''}${totalPnl().toFixed(0)}`,
+      color: totalPnl() >= 0 ? 'text-[#22C55E]' : 'text-[#EF4444]',
+    },
     { label: '账户余额', value: formatMarketCap(accountBalance()) },
     { label: '持仓股票', value: `${positions().length} 只` },
   ]);
@@ -535,7 +661,10 @@ export const PortfolioOverview: Component = () => {
   // ── Data load with AbortController ─────────────────────
   async function loadPositions() {
     // Cancel any in-flight request
-    if (positionsController) { positionsController.abort(); positionsController = null; }
+    if (positionsController) {
+      positionsController.abort();
+      positionsController = null;
+    }
     positionsController = new AbortController();
 
     setLoading(true);
@@ -559,7 +688,10 @@ export const PortfolioOverview: Component = () => {
   }
 
   async function loadEquityCurve() {
-    if (equityController) { equityController.abort(); equityController = null; }
+    if (equityController) {
+      equityController.abort();
+      equityController = null;
+    }
     equityController = new AbortController();
 
     try {
@@ -627,10 +759,7 @@ export const PortfolioOverview: Component = () => {
     <div class="h-full flex flex-col p-4 gap-4 overflow-auto">
       {/* Position Detail Modal */}
       <Show when={selectedPosition()}>
-        <PositionModal
-          position={selectedPosition()!}
-          onClose={() => setSelectedPosition(null)}
-        />
+        <PositionModal position={selectedPosition()!} onClose={() => setSelectedPosition(null)} />
       </Show>
 
       {/* Loading overlay */}
@@ -661,7 +790,9 @@ export const PortfolioOverview: Component = () => {
       <Show when={error()}>
         <div class="bg-red-900/20 border border-red-800/30 rounded-lg px-4 py-2 text-sm text-red-400">
           ⚠️ {error()}
-          <button class="ml-3 underline hover:no-underline" onClick={loadPositions}>重试</button>
+          <button class="ml-3 underline hover:no-underline" onClick={loadPositions}>
+            重试
+          </button>
         </div>
       </Show>
 
@@ -672,7 +803,9 @@ export const PortfolioOverview: Component = () => {
           <h3 class="font-bold text-sm mb-3 text-gray-300">行业分布</h3>
           <div id={PIE_DOM} class="flex-1 min-h-0" style={{ 'min-height': '200px' }} />
           <Show when={!loading() && industryData().length === 0}>
-            <div class="flex-1 flex items-center justify-center text-sm text-gray-600">暂无行业数据</div>
+            <div class="flex-1 flex items-center justify-center text-sm text-gray-600">
+              暂无行业数据
+            </div>
           </Show>
         </div>
 
@@ -681,9 +814,15 @@ export const PortfolioOverview: Component = () => {
           <h3 class="font-bold text-sm mb-3 text-gray-300">市值分布</h3>
           <div id={BAR_DOM} class="flex-1 min-h-0" style={{ 'min-height': '200px' }} />
           <div class="flex justify-center gap-4 mt-2 text-xs text-gray-500">
-            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#60A5FA]" /> 大盘 &gt;500亿</span>
-            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#34D399]" /> 中盘 50-500亿</span>
-            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#FBBF24]" /> 小盘 ≤50亿</span>
+            <span class="flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-[#60A5FA]" /> 大盘 &gt;500亿
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-[#34D399]" /> 中盘 50-500亿
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-[#FBBF24]" /> 小盘 ≤50亿
+            </span>
           </div>
         </div>
 
@@ -695,7 +834,8 @@ export const PortfolioOverview: Component = () => {
             <For each={STYLE_DIMS}>
               {(dim, i) => (
                 <span class="px-2 py-0.5 rounded bg-white/5 text-gray-400">
-                  {dim} <span class="text-blue-400 font-medium">{styleExposure()[i()].toFixed(0)}</span>
+                  {dim}{' '}
+                  <span class="text-blue-400 font-medium">{styleExposure()[i()].toFixed(0)}</span>
                 </span>
               )}
             </For>
@@ -707,7 +847,9 @@ export const PortfolioOverview: Component = () => {
           <h3 class="font-bold text-sm mb-3 text-gray-300">资金曲线</h3>
           <div id={EQUITY_DOM} class="flex-1 min-h-0" style={{ 'min-height': '200px' }} />
           <Show when={!loading() && equityCurve().length === 0}>
-            <div class="flex-1 flex items-center justify-center text-sm text-gray-600">暂无资金曲线数据</div>
+            <div class="flex-1 flex items-center justify-center text-sm text-gray-600">
+              暂无资金曲线数据
+            </div>
           </Show>
         </div>
       </div>
@@ -716,7 +858,9 @@ export const PortfolioOverview: Component = () => {
       <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4 flex flex-col">
         <h3 class="font-bold text-sm mb-3 text-gray-300">持仓明细</h3>
         <Show when={!loading() && positions().length === 0}>
-          <div class="flex-1 flex items-center justify-center py-8 text-sm text-gray-600">暂无持仓</div>
+          <div class="flex-1 flex items-center justify-center py-8 text-sm text-gray-600">
+            暂无持仓
+          </div>
         </Show>
         <Show when={positions().length > 0}>
           <div class="overflow-auto max-h-56">
@@ -741,18 +885,25 @@ export const PortfolioOverview: Component = () => {
                       <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
                         <td class="py-2 font-mono text-xs text-gray-400">{pos.symbol}</td>
                         <td class="py-2 text-xs text-gray-300">{getStockName(pos.symbol)}</td>
-                        <td class={`py-2 text-right text-xs font-medium ${pos.direction === '多' ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
+                        <td
+                          class={`py-2 text-right text-xs font-medium ${pos.direction === '多' ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}
+                        >
                           {pos.direction}
                         </td>
-                        <td class="py-2 text-right tabular-nums text-xs">{pos.volume.toLocaleString()}</td>
+                        <td class="py-2 text-right tabular-nums text-xs">
+                          {pos.volume.toLocaleString()}
+                        </td>
                         <td class="py-2 text-right tabular-nums text-xs text-gray-400">
                           {pos.price > 0 ? `¥${pos.price.toFixed(2)}` : '—'}
                         </td>
                         <td class="py-2 text-right tabular-nums text-xs font-medium">
                           {mv > 0 ? formatMarketCap(mv) : '—'}
                         </td>
-                        <td class={`py-2 text-right tabular-nums text-xs font-bold ${(pos.pnl ?? 0) >= 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>
-                          {(pos.pnl ?? 0) >= 0 ? '+' : ''}{(pos.pnl ?? 0).toFixed(0)}
+                        <td
+                          class={`py-2 text-right tabular-nums text-xs font-bold ${(pos.pnl ?? 0) >= 0 ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}
+                        >
+                          {(pos.pnl ?? 0) >= 0 ? '+' : ''}
+                          {(pos.pnl ?? 0).toFixed(0)}
                         </td>
                         <td class="py-2 text-center">
                           <button

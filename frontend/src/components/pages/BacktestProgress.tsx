@@ -119,7 +119,14 @@ export const BacktestProgress: Component<BacktestProgressProps> = (props) => {
         return;
       }
       const d = res.data;
-      console.log('[BacktestProgress] Status:', d.status, 'Progress:', d.progress, 'Message:', d.message);
+      console.log(
+        '[BacktestProgress] Status:',
+        d.status,
+        'Progress:',
+        d.progress,
+        'Message:',
+        d.message
+      );
       setStatus(d.status as 'pending' | 'running' | 'completed' | 'failed');
       setProgress(d.progress ?? 0);
       setMessage(d.message || '处理中...');

@@ -55,7 +55,12 @@ export const SentimentTrendChart: Component<SentimentTrendChartProps> = (props) 
         textStyle: { color: '#e5e7eb', fontSize: 12 },
         formatter: (params: unknown) => {
           if (!Array.isArray(params)) return '';
-          const arr = params as Array<{ name: string; seriesName: string; value: number; color: string }>;
+          const arr = params as Array<{
+            name: string;
+            seriesName: string;
+            value: number;
+            color: string;
+          }>;
           const date = arr[0]?.name ?? '';
           let html = `<div style="color:#9CA3AF;font-size:10px;margin-bottom:4px">${date}</div>`;
           arr.forEach((p) => {
@@ -109,7 +114,10 @@ export const SentimentTrendChart: Component<SentimentTrendChartProps> = (props) 
           areaStyle: {
             color: {
               type: 'linear',
-              x: 0, y: 0, x2: 0, y2: 1,
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
               colorStops: [
                 { offset: 0, color: 'rgba(245,158,11,0.25)' },
                 { offset: 1, color: 'rgba(245,158,11,0.02)' },
@@ -214,11 +222,7 @@ export const SentimentTrendChart: Component<SentimentTrendChartProps> = (props) 
         </div>
       </div>
       {error() && <div class="text-xs text-red-400 mb-2">{error()}</div>}
-      <div
-        ref={ref}
-        class="w-full"
-        style={{ height: props.embedded ? '160px' : '260px' }}
-      />
+      <div ref={ref} class="w-full" style={{ height: props.embedded ? '160px' : '260px' }} />
     </div>
   );
 };

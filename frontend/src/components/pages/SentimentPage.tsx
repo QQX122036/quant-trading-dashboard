@@ -34,9 +34,7 @@ export const SentimentPage: Component = () => {
       <div class="sticky top-0 z-10 bg-[#0A0E17]/90 backdrop-blur-sm border-b border-white/5 px-4 py-3 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-3">
           <h2 class="text-sm font-bold text-white">📊 市场情绪监控</h2>
-          <div class="text-xs text-gray-500">
-            同花顺/东方财富级情绪分析
-          </div>
+          <div class="text-xs text-gray-500">同花顺/东方财富级情绪分析</div>
         </div>
         <div class="flex items-center gap-2">
           <label class="text-xs text-gray-500">
@@ -54,7 +52,6 @@ export const SentimentPage: Component = () => {
 
       {/* ── Bento Grid Layout ── */}
       <div class="p-4 space-y-4">
-
         {/* Row 1: Sentiment Gauge (full width) */}
         <div class="grid grid-cols-1">
           <SentimentGauge />

@@ -56,16 +56,29 @@ export const SentimentMarketCompare: Component<SentimentMarketCompareProps> = (p
         textStyle: { color: '#e5e7eb', fontSize: 12 },
         formatter: (params: unknown) => {
           if (!Array.isArray(params)) return '';
-          const arr = params as Array<{ name: string; seriesName: string; value: number; color: string; seriesIndex: number }>;
+          const arr = params as Array<{
+            name: string;
+            seriesName: string;
+            value: number;
+            color: string;
+            seriesIndex: number;
+          }>;
           const date = arr[0]?.name ?? '';
           let html = `<div style="color:#9CA3AF;font-size:10px;margin-bottom:4px">${date}</div>`;
           arr.forEach((p) => {
             if (p.value == null) return;
             const num = Number(p.value);
-            const sign = p.seriesIndex === 0 ? '' : (num >= 0 ? '+' : '');
-            const color = p.seriesIndex === 0
-              ? (num < 40 ? '#22C55E' : num > 60 ? '#EF4444' : '#F59E0B')
-              : (num >= 0 ? '#EF4444' : '#22C55E');
+            const sign = p.seriesIndex === 0 ? '' : num >= 0 ? '+' : '';
+            const color =
+              p.seriesIndex === 0
+                ? num < 40
+                  ? '#22C55E'
+                  : num > 60
+                    ? '#EF4444'
+                    : '#F59E0B'
+                : num >= 0
+                  ? '#EF4444'
+                  : '#22C55E';
             html += `<div style="display:flex;align-items:center;gap:6px;margin:2px 0">
               <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.color}"></span>
               <span style="color:#d1d5db;font-size:11px">${p.seriesName}</span>
@@ -131,7 +144,11 @@ export const SentimentMarketCompare: Component<SentimentMarketCompareProps> = (p
           itemStyle: { color: '#F59E0B' },
           areaStyle: {
             color: {
-              type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
               colorStops: [
                 { offset: 0, color: 'rgba(245,158,11,0.2)' },
                 { offset: 1, color: 'rgba(245,158,11,0.01)' },
@@ -196,8 +213,8 @@ export const SentimentMarketCompare: Component<SentimentMarketCompareProps> = (p
         const date = d.toISOString().slice(0, 10);
         // Simulate fear/greed + market correlation
         fg = Math.max(10, Math.min(90, fg + (Math.random() - 0.5) * 15));
-        const pctChange = (fg - 50) / 100 * 2 + (Math.random() - 0.5) * 1.5;
-        baseClose *= (1 + pctChange / 100);
+        const pctChange = ((fg - 50) / 100) * 2 + (Math.random() - 0.5) * 1.5;
+        baseClose *= 1 + pctChange / 100;
         demo.push({
           date,
           fear_greed: Math.round(fg),
@@ -237,11 +254,7 @@ export const SentimentMarketCompare: Component<SentimentMarketCompareProps> = (p
         </div>
       </div>
       {error() && <div class="text-xs text-red-400 mb-2">{error()}</div>}
-      <div
-        ref={ref}
-        class="w-full"
-        style={{ height: props.embedded ? '160px' : '280px' }}
-      />
+      <div ref={ref} class="w-full" style={{ height: props.embedded ? '160px' : '280px' }} />
     </div>
   );
 };

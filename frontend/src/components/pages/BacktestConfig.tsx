@@ -28,7 +28,9 @@ export interface BacktestConfigData {
 export const BacktestConfig: Component<BacktestConfigProps> = (props) => {
   const ctrl = new AbortController();
   onCleanup(() => ctrl.abort());
-  onMount(() => { apiActions.fetchBacktestTasks(); });
+  onMount(() => {
+    apiActions.fetchBacktestTasks();
+  });
   const [selectedStrategy, setSelectedStrategy] = createSignal('dual-ma');
   const [symbols, setSymbols] = createSignal<string[]>([]);
   const [symbolInput, setSymbolInput] = createSignal('');
@@ -302,8 +304,16 @@ export const BacktestConfig: Component<BacktestConfigProps> = (props) => {
                   <span class="text-gray-300 font-mono">{task.task_id?.slice(0, 8)}...</span>
                   <span class="ml-2 text-gray-500">{task.strategy}</span>
                 </div>
-                <span class={`px-2 py-0.5 rounded text-xs ${task.status === 'completed' ? 'bg-green-500/20 text-green-400' : task.status === 'failed' ? 'bg-red-500/20 text-red-400' : task.status === 'running' ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-500/20 text-gray-400'}`}>
-                  {task.status === 'completed' ? '✅ 完成' : task.status === 'failed' ? '❌ 失败' : task.status === 'running' ? '🔄 运行' : '⏳ 待处理'}
+                <span
+                  class={`px-2 py-0.5 rounded text-xs ${task.status === 'completed' ? 'bg-green-500/20 text-green-400' : task.status === 'failed' ? 'bg-red-500/20 text-red-400' : task.status === 'running' ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-500/20 text-gray-400'}`}
+                >
+                  {task.status === 'completed'
+                    ? '✅ 完成'
+                    : task.status === 'failed'
+                      ? '❌ 失败'
+                      : task.status === 'running'
+                        ? '🔄 运行'
+                        : '⏳ 待处理'}
                 </span>
               </div>
             )}

@@ -590,7 +590,11 @@ export const PositionMonitor: Component = () => {
               <div class="px-3 py-1.5 text-xs text-[var(--text-muted)] border-b border-[var(--border-color)]">
                 行业分布
               </div>
-              <div class="flex-1 min-h-0 w-full" ref={pieContainer!} style={{ "min-height": "200px" }}></div>
+              <div
+                class="flex-1 min-h-0 w-full"
+                ref={pieContainer!}
+                style={{ 'min-height': '200px' }}
+              />
             </div>
 
             {/* Stock weight bar chart */}
@@ -598,7 +602,11 @@ export const PositionMonitor: Component = () => {
               <div class="px-3 py-1.5 text-xs text-[var(--text-muted)] border-b border-[var(--border-color)]">
                 单股持仓占比 Top12
               </div>
-              <div class="flex-1 min-h-0 w-full" ref={weightContainer!} style={{ "min-height": "200px" }}></div>
+              <div
+                class="flex-1 min-h-0 w-full"
+                ref={weightContainer!}
+                style={{ 'min-height': '200px' }}
+              />
             </div>
           </div>
         )}

@@ -32,8 +32,10 @@ export const MarketOverview: Component = () => {
       <div class="text-white text-lg mb-4 p-4 bg-green-900/40 border-2 border-green-500 rounded font-bold">
         ✅ MarketOverview 页面已成功加载！
         <div class="text-sm font-normal mt-2">
-          时间：{new Date().toLocaleString('zh-CN')}<br/>
-          indices: {marketState.indices.length} | sectors: {marketState.sectors.length} | hotStocks: {marketState.hotStocks.length}
+          时间：{new Date().toLocaleString('zh-CN')}
+          <br />
+          indices: {marketState.indices.length} | sectors: {marketState.sectors.length} | hotStocks:{' '}
+          {marketState.hotStocks.length}
         </div>
       </div>
 

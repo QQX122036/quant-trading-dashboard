@@ -18,9 +18,13 @@ export const BacktestAnalysis: Component = () => {
   const [taskId, _setTaskId] = createSignal<string>('');
 
   // Load backtest tasks on mount
-  onMount(() => { apiActions.fetchBacktestTasks(); });
+  onMount(() => {
+    apiActions.fetchBacktestTasks();
+  });
 
-  onCleanup(() => { _abortCtrl.abort(); });
+  onCleanup(() => {
+    _abortCtrl.abort();
+  });
 
   // Equity / Drawdown chart
   let equityRef: HTMLDivElement | undefined;
@@ -475,7 +479,11 @@ export const BacktestAnalysis: Component = () => {
                   });
                   console.log('[BacktestAnalysis] API response:', res);
                   // API 直接返回 task_id 字符串，而不是标准格式
-                  const rawId = !res ? null : typeof res === 'string' ? res : ((res as any).data?.task_id || (res as any).data);
+                  const rawId = !res
+                    ? null
+                    : typeof res === 'string'
+                      ? res
+                      : (res as any).data?.task_id || (res as any).data;
                   const taskId = rawId ?? null;
                   if (taskId) {
                     console.log('[BacktestAnalysis] Got task_id:', taskId);
@@ -498,7 +506,10 @@ export const BacktestAnalysis: Component = () => {
         <Show when={viewMode() === 'progress'}>
           <div class="flex-1 flex items-center justify-center">
             <div class="w-full max-w-md">
-              <BacktestProgress taskId={apiState.backtestTaskId || ''} onComplete={handleComplete} />
+              <BacktestProgress
+                taskId={apiState.backtestTaskId || ''}
+                onComplete={handleComplete}
+              />
             </div>
           </div>
         </Show>
