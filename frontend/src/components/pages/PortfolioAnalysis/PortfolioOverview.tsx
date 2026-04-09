@@ -674,8 +674,30 @@ export const PortfolioOverview: Component = () => {
         fetchPositions().catch(() => ({ code: -1, data: { positions: [] as PositionData[] } })),
         fetchAccounts().catch(() => ({ code: -1, data: { accounts: [] as AccountData[] } })),
       ]);
-      setPositions(posRes.data?.positions ?? []);
-      setAccounts(accRes.data?.accounts ?? []);
+      // Map API response fields to PositionData interface
+      const mappedPositions: PositionData[] = (posRes.data?.positions ?? []).map((p: Record<string, unknown>) => ({
+        vt_positionid: String(p.position_id ?? ''),
+        symbol: String(p.ts_code ?? ''),
+        exchange: (p.ts_code as string)?.endsWith('.SSE') ? 'SSE' as const : 'SZSE' as const,
+        direction: (p.direction === '空' ? '空' : '多') as '多' | '空',
+        volume: Number(p.volume ?? 0),
+        yd_position: Number(p.available_volume ?? p.volume ?? 0),
+        frozen: Number(p.frozen_volume ?? 0),
+        price: Number(p.price ?? 0),
+        pnl: Number(p.pnl ?? 0),
+        gateway_name: String(p.gateway_name ?? 'SIM'),
+      }));
+      setPositions(mappedPositions);
+      // Map API response fields to AccountData interface
+      const mappedAccounts: AccountData[] = (accRes.data?.accounts ?? []).map((a: Record<string, unknown>) => ({
+        vt_accountid: String(a.account_id ?? ''),
+        accountid: String(a.account_id ?? ''),
+        balance: Number(a.balance ?? 0),
+        frozen: Number(a.frozen ?? 0),
+        available: Number(a.available ?? (Number(a.balance ?? 0) - Number(a.frozen ?? 0))),
+        gateway_name: String(a.gateway_name ?? 'SIM'),
+      }));
+      setAccounts(mappedAccounts);
     } catch (e: any) {
       if (e?.name !== 'AbortError') {
         setError(e?.message ?? '加载失败');
