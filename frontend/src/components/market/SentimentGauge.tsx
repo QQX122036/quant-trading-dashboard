@@ -5,6 +5,7 @@
  */
 import { Component, createSignal, onMount, onCleanup, createMemo } from 'solid-js';
 import echarts from '@/lib/echarts';
+import { apiFetch } from '../../hooks/useApi';
 
 interface SentimentData {
   fear_greed: number; // 0-100
@@ -185,15 +186,25 @@ export const SentimentGauge: Component<SentimentGaugeProps> = (props) => {
   const [loading, setLoading] = createSignal(false);
   const [error, setError] = createSignal<string | null>(null);
 
+  let abortController: AbortController | null = null;
+
   const fetchData = async () => {
+    // Cancel any in-flight request before starting a new one
+    abortController?.abort();
+    abortController = new AbortController();
     try {
       setLoading(true);
       setError(null);
-      const res = await fetch('/api/data/sentiment');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      if (json.data) setSentiment(json.data);
+      const res = await apiFetch<{ data: SentimentData }>('/api/data/sentiment', {
+        signal: abortController.signal,
+      });
+      if (res.code === '0' && res.data?.data) {
+        setSentiment(res.data.data);
+      }
     } catch (e: unknown) {
+      const errObj = e as Record<string, unknown> | undefined;
+      // Ignore abort errors — they're expected when component unmounts or refetches
+      if (errObj?.code === 'NETWORK_ERROR' && String(e).includes('abort')) return;
       const msg = e instanceof Error ? e.message : String(e);
       setError(msg);
       // 提供模拟数据用于开发预览
@@ -212,7 +223,10 @@ export const SentimentGauge: Component<SentimentGaugeProps> = (props) => {
   onMount(() => {
     fetchData();
     const timer = setInterval(fetchData, 60 * 1000);
-    onCleanup(() => clearInterval(timer));
+    onCleanup(() => {
+      abortController?.abort();
+      clearInterval(timer);
+    });
   });
 
   return (

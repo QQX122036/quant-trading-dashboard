@@ -27,18 +27,25 @@ export const SectorMoneyFlow: Component<SectorMoneyFlowProps> = (props) => {
   const [error, setError] = createSignal<string | null>(null);
   const [expandedSector, setExpandedSector] = createSignal<string | null>(null);
   let refreshTimer: ReturnType<typeof setInterval>;
+  let abortController: AbortController | null = null;
 
   const fetchData = async () => {
+    abortController?.abort();
+    abortController = new AbortController();
     try {
       setLoading(true);
       setError(null);
-      const res = await apiFetch<{ items: SectorFlowItem[] }>('/api/data/sector-money-flow');
+      const res = await apiFetch<{ items: SectorFlowItem[] }>('/api/data/sector-money-flow', {
+        signal: abortController.signal,
+      });
       if (res.data?.items) {
         // 按净流入降序
         const sorted = [...res.data.items].sort((a, b) => b.net_inflow - a.net_inflow);
         setData(sorted);
       }
     } catch (e: unknown) {
+      const errObj = e as Record<string, unknown> | undefined;
+      if (errObj?.code === 'NETWORK_ERROR' && String(e).includes('abort')) return;
       const msg = e instanceof Error ? e.message : String(e);
       setError(msg);
     } finally {
@@ -52,6 +59,7 @@ export const SectorMoneyFlow: Component<SectorMoneyFlowProps> = (props) => {
   });
 
   onCleanup(() => {
+    abortController?.abort();
     clearInterval(refreshTimer);
   });
 

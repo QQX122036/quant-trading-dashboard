@@ -87,6 +87,7 @@ export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
   let resizeObserver: ResizeObserver;
   let refreshTimer: ReturnType<typeof setInterval>;
   let wsHandler: ((msg: WsMessage) => void) | null = null;
+  let abortController: AbortController | null = null;
 
   const [loading, setLoading] = createSignal(false);
   const [data, setData] = createSignal<MoneyFlowItem[]>([]);
@@ -96,11 +97,15 @@ export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
   const ws = getWsInstance();
 
   const fetchData = async () => {
+    // Cancel any in-flight request
+    abortController?.abort();
+    abortController = new AbortController();
     try {
       setLoading(true);
       setError(null);
       const res = await apiFetch<{ items: Record<string, unknown>[] }>(
-        `/api/data/money-flow?ts_code=${tsCode()}`
+        `/api/data/money-flow?ts_code=${tsCode()}`,
+        { signal: abortController.signal }
       );
       if (res.data?.items) {
         // 尝试映射后端字段
@@ -132,6 +137,8 @@ export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
         setData(mapped);
       }
     } catch (e: unknown) {
+      const errObj = e as Record<string, unknown> | undefined;
+      if (errObj?.code === 'NETWORK_ERROR' && String(e).includes('abort')) return;
       const msg = e instanceof Error ? e.message : String(e);
       setError(msg);
     } finally {
@@ -282,6 +289,7 @@ export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
   });
 
   onCleanup(() => {
+    abortController?.abort();
     resizeObserver?.disconnect();
     clearInterval(refreshTimer);
     chart?.dispose();
