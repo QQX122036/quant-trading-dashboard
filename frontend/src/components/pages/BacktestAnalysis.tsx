@@ -394,7 +394,8 @@ export const BacktestAnalysis: Component = () => {
     }
   });
 
-  const handleComplete = () => {
+  const handleComplete = (result: unknown) => {
+    setApiState('backtestResult', result as BacktestResult);
     setViewMode('result');
   };
 
