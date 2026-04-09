@@ -84,6 +84,7 @@ const App = () => {
           <Route path="/strategies" component={PageWrapper(StrategyManager)} />
           <Route path="/factors" component={PageWrapper(FactorDashboard)} />
           <Route path="/multifactor" component={PageWrapper(MultiFactorChart)} />
+          <Route path="/multistrategy" component={PageWrapper(MultiStrategyChart)} />
           <Route path="/portfolio" component={PageWrapper(PortfolioAnalysis)} />
           <Route path="/sentiment" component={PageWrapper(SentimentPage)} />
           <Route path="/news" component={PageWrapper(NewsSentiment)} />

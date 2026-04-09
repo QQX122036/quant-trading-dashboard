@@ -262,6 +262,7 @@ export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
   const initChart = () => {
     if (!chartRef) return;
     chart = echarts.init(chartRef, undefined, { renderer: 'canvas' });
+    if (!chart) return;
     chart.setOption(buildOption(data()));
 
     resizeObserver = new ResizeObserver(() => {

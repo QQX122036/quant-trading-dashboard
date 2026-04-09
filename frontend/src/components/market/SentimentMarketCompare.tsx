@@ -175,7 +175,9 @@ export const SentimentMarketCompare: Component<SentimentMarketCompareProps> = (p
   };
 
   onMount(() => {
+    if (!ref) return;
     chart = echarts.init(ref, undefined, { renderer: 'canvas' });
+    if (!chart) return;
     chart.setOption(buildOption(data()));
     const ro = new ResizeObserver(() => chart?.resize());
     ro.observe(ref);
