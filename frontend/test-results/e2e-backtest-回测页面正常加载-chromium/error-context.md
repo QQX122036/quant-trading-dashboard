@@ -6,41 +6,16 @@
 
 # Test info
 
-- Name: e2e-backtest.test.ts >> 回测配置区域存在（标的输入/策略选择/参数设置）
-- Location: e2e-backtest.test.ts:46:1
+- Name: e2e-backtest.test.ts >> 回测页面正常加载
+- Location: e2e-backtest.test.ts:33:1
 
 # Error details
 
 ```
-Error: expect(received).toBe(expected) // Object.is equality
+Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5180/login
+Call log:
+  - navigating to "http://localhost:5180/login", waiting until "networkidle"
 
-Expected: true
-Received: false
-```
-
-# Page snapshot
-
-```yaml
-- generic [ref=e2]:
-  - link "跳转到主要内容" [ref=e3] [cursor=pointer]:
-    - /url: "#main-content"
-  - generic [ref=e4]:
-    - navigation "主导航" [ref=e5]:
-      - generic [ref=e6]:
-        - generic [ref=e7]: 📊
-        - generic [ref=e8]: VeighNa Web
-      - generic [ref=e9]:
-        - button "系统菜单" [ref=e11]: 系统
-        - button "功能菜单" [ref=e13]: 功能
-        - button "帮助菜单" [ref=e15]: 帮助
-      - generic [ref=e16]:
-        - generic "当前时间 07:43:59" [ref=e17]: 07:43:59
-        - button "切换到英文" [ref=e18]:
-          - generic [ref=e19]: 🌐
-          - generic [ref=e20]: EN
-        - 'status "WebSocket状态: 未连接" [ref=e21]':
-          - generic [ref=e23]: 未连接
-    - main [ref=e24]
 ```
 
 # Test source
@@ -56,7 +31,8 @@ Received: false
   8   | const API_BASE = 'http://localhost:8501/api';
   9   | 
   10  | async function ensureLogin(page: Page) {
-  11  |   await page.goto(`${FRONTEND_URL}/login`, { waitUntil: 'networkidle', timeout: 20000 });
+> 11  |   await page.goto(`${FRONTEND_URL}/login`, { waitUntil: 'networkidle', timeout: 20000 });
+      |              ^ Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5180/login
   12  |   await page.waitForTimeout(1000);
   13  |   const token = await page.evaluate(() => localStorage.getItem('auth_token'));
   14  |   if (token) {
@@ -97,8 +73,7 @@ Received: false
   49  |   await page.waitForTimeout(3000);
   50  |   const content = await page.content();
   51  |   const hasConfigArea = content.includes('回测') || content.includes('标的') || content.includes('策略') || content.includes('参数');
-> 52  |   expect(hasConfigArea).toBe(true);
-      |                         ^ Error: expect(received).toBe(expected) // Object.is equality
+  52  |   expect(hasConfigArea).toBe(true);
   53  | });
   54  | 
   55  | // ─── 回测进度轮询（提交任务后检查进度条） ──────────────────────────────────
