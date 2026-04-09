@@ -5,6 +5,9 @@
 import { Component, createSignal, For, Show, onMount, onCleanup, createEffect } from 'solid-js';
 import echarts from '@/lib/echarts';
 import { apiState, setApiState, apiActions } from '../../stores/apiStore';
+
+// Abort controller for request cancellation on unmount
+const _abortCtrl = new AbortController();
 import { BacktestConfig } from './BacktestConfig';
 import { BacktestProgress } from './BacktestProgress';
 
@@ -13,6 +16,11 @@ type ViewMode = 'config' | 'progress' | 'result';
 export const BacktestAnalysis: Component = () => {
   const [viewMode, setViewMode] = createSignal<ViewMode>('config');
   const [taskId, _setTaskId] = createSignal<string>('');
+
+  // Load backtest tasks on mount
+  onMount(() => { apiActions.fetchBacktestTasks(); });
+
+  onCleanup(() => { _abortCtrl.abort(); });
 
   // Equity / Drawdown chart
   let equityRef: HTMLDivElement | undefined;

@@ -2,8 +2,8 @@
  * BacktestConfig.tsx — 策略参数配置界面
  * 策略选择、参数滑块、日期范围、初始资金配置
  */
-import { Component, createSignal, For } from 'solid-js';
-import { apiActions } from '../../stores/apiStore';
+import { Component, createSignal, For, Show, onMount, onCleanup } from 'solid-js';
+import { apiState, apiActions } from '../../stores/apiStore';
 
 const STRATEGIES = [
   { id: 'momentum', name: '动量策略', description: '追涨杀跌，基于近期收益率惯性' },
@@ -26,6 +26,9 @@ export interface BacktestConfigData {
 }
 
 export const BacktestConfig: Component<BacktestConfigProps> = (props) => {
+  const ctrl = new AbortController();
+  onCleanup(() => ctrl.abort());
+  onMount(() => { apiActions.fetchBacktestTasks(); });
   const [selectedStrategy, setSelectedStrategy] = createSignal('dual-ma');
   const [symbols, setSymbols] = createSignal<string[]>([]);
   const [symbolInput, setSymbolInput] = createSignal('');
@@ -277,6 +280,37 @@ export const BacktestConfig: Component<BacktestConfigProps> = (props) => {
             onInput={(e) => setInitialCapital(Number(e.target.value))}
             aria-label="回测初始资金"
           />
+        </div>
+      </div>
+
+      {/* 回测记录列表 */}
+      <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-bold text-sm text-gray-300">📜 回测记录</h3>
+          <button
+            class="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+            onClick={() => apiActions.fetchBacktestTasks()}
+          >
+            🔄 刷新
+          </button>
+        </div>
+        <div class="space-y-2 max-h-48 overflow-y-auto">
+          <For each={apiState.backtestTasks.slice(0, 10)}>
+            {(task) => (
+              <div class="flex justify-between items-center bg-[#0A0E17] rounded px-3 py-2 text-xs">
+                <div>
+                  <span class="text-gray-300 font-mono">{task.task_id?.slice(0, 8)}...</span>
+                  <span class="ml-2 text-gray-500">{task.strategy}</span>
+                </div>
+                <span class={`px-2 py-0.5 rounded text-xs ${task.status === 'completed' ? 'bg-green-500/20 text-green-400' : task.status === 'failed' ? 'bg-red-500/20 text-red-400' : task.status === 'running' ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-500/20 text-gray-400'}`}>
+                  {task.status === 'completed' ? '✅ 完成' : task.status === 'failed' ? '❌ 失败' : task.status === 'running' ? '🔄 运行' : '⏳ 待处理'}
+                </span>
+              </div>
+            )}
+          </For>
+          <Show when={apiState.backtestTasks.length === 0}>
+            <div class="text-center text-gray-500 text-xs py-4">暂无回测记录</div>
+          </Show>
         </div>
       </div>
 
