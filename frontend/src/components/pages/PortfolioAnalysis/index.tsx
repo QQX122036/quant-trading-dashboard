@@ -67,4 +67,5 @@ const PortfolioAnalysis: Component = () => {
 };
 
 export default PortfolioAnalysis;
+export { PortfolioAnalysis };
 export { activeTab, setActiveTab };
