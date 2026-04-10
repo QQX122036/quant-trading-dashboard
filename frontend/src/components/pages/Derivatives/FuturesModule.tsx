@@ -2,7 +2,9 @@
  * FuturesModule.tsx — 期货模块
  * 主力/次主力合约、升贴水分析、跨期价差图
  */
-import { Component, createSignal, createMemo, onMount, For, _Show } from 'solid-js';
+import { Component, createSignal, createMemo, onMount, For, Show } from 'solid-js';
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 
 interface FuturesContract {
   symbol: string;
@@ -173,7 +175,7 @@ export const FuturesModule: Component = () => {
   const [contracts] = createSignal<FuturesContract[]>(generateMockFutures());
   const [selectedSymbol, setSelectedSymbol] = createSignal('IF');
   let spreadChartRef: HTMLDivElement | undefined;
-  let spreadChart: echarts.ECharts | undefined;
+  let spreadChart: EChartsType | undefined;
 
   const selectedContract = createMemo(
     () => contracts().find((c) => c.symbol === selectedSymbol()) || contracts()[0]
@@ -186,12 +188,11 @@ export const FuturesModule: Component = () => {
   const premiumPrefix = (v: number) => (v >= 0 ? '+' : '');
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     if (!spreadChartRef) return;
     spreadChart = ec.init(spreadChartRef, 'dark');
 
     const { dates, spread } = generateSpreadData(selectedSymbol());
-    const option: echarts.EChartsCoreOption = {
+    const option: EChartsCoreOption = {
       backgroundColor: 'transparent',
       grid: { top: 30, right: 20, bottom: 30, left: 60 },
       tooltip: {

@@ -2,6 +2,8 @@
  * MultiFactorChart.tsx — 多因子评分展示
  * 水平条形图 + 排名表格 + 跳转K线
  */
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { Component, createSignal, onMount, onCleanup, For, Show } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import { fetchMultiFactorScores, type MultiFactorScore } from '../../hooks/useApi';
@@ -12,7 +14,7 @@ interface MultiFactorChartProps {
 
 export const MultiFactorChart: Component<MultiFactorChartProps> = (props) => {
   let barRef: HTMLDivElement | undefined;
-  let barChart: echarts.ECharts | undefined;
+  let barChart: EChartsType | undefined;
   const navigate = useNavigate();
 
   const [tsCode, setTsCode] = createSignal(props.tsCode || '000300.SH');
@@ -24,7 +26,7 @@ export const MultiFactorChart: Component<MultiFactorChartProps> = (props) => {
   const [selectedRow, setSelectedRow] = createSignal<string | null>(null);
 
   // ── Horizontal Bar Chart ────────────────────────────────────
-  const buildBarOption = (data: MultiFactorScore[]): echarts.EChartsCoreOption => {
+  const buildBarOption = (data: MultiFactorScore[]): EChartsCoreOption => {
     const items = data.slice(0, 20); // top 20
 
     const composite = items.map((d) => d.composite_score);
@@ -117,7 +119,6 @@ export const MultiFactorChart: Component<MultiFactorChartProps> = (props) => {
   };
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     barChart = ec.init(barRef!, 'dark');
     const ro = new ResizeObserver(() => barChart?.resize());
     if (barRef) ro.observe(barRef);

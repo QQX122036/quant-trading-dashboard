@@ -3,6 +3,8 @@
  * 显示买卖盘各5档价格/数量
  * 使用 ECharts 实现
  */
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { Component, createSignal, onMount, onCleanup, createEffect, For } from 'solid-js';
 
 export interface DepthLevel {
@@ -55,7 +57,7 @@ async function fetchDepth(tsCode: string): Promise<DepthData> {
 
 export const DepthChart: Component<DepthChartProps> = (props) => {
   let containerRef: HTMLDivElement | undefined;
-  let chart: echarts.ECharts | undefined;
+  let chart: EChartsType | undefined;
 
   const [depthData, setDepthData] = createSignal<DepthData>(mockDepthData());
   const [loading, setLoading] = createSignal(false);
@@ -241,7 +243,6 @@ export const DepthChart: Component<DepthChartProps> = (props) => {
   }
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     if (!containerRef) return;
 
     chart = ec.init(containerRef, undefined, { renderer: 'canvas' });

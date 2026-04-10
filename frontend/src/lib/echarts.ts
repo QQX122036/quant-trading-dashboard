@@ -66,5 +66,7 @@ echarts.use([
 // ── Graphic elements (LinearGradient, Text, Rect, Circle, etc.) ─
 // The graphic namespace is a top-level export from echarts
 import { graphic } from 'echarts';
+import type { EChartsType, EChartsCoreOption } from 'echarts/core';
 export { graphic };
+export type { EChartsType, EChartsCoreOption };
 export default echarts;

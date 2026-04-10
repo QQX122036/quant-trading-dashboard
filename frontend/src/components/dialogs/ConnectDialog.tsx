@@ -1,4 +1,4 @@
-import { Component, _createEffect, onMount, onCleanup } from 'solid-js';
+import { Component, createEffect, onMount, onCleanup } from 'solid-js';
 import { actions } from '../../stores';
 
 export const ConnectDialog: Component = () => {

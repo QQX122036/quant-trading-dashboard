@@ -3,6 +3,8 @@
  * 恐惧贪婪指数 + 波动率指数 时序走势
  * 支持多指标叠加显示
  */
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { Component, createSignal, onMount, onCleanup, createMemo } from 'solid-js';
 import { apiFetch } from '../../hooks/useApi';
 
@@ -24,14 +26,14 @@ const CARD_BASE = 'bg-[#1f2937]/80 rounded-lg border border-white/10';
 
 export const SentimentTrendChart: Component<SentimentTrendChartProps> = (props) => {
   let ref!: HTMLDivElement;
-  let chart: echarts.ECharts | undefined;
+  let chart: EChartsType | undefined;
   let abortController: AbortController | null = null;
   const [loading, setLoading] = createSignal(false);
   const [data, setData] = createSignal<SentimentTrendItem[]>([]);
   const [error, setError] = createSignal<string | null>(null);
   const days = () => props.days ?? 30;
 
-  const buildOption = (items: SentimentTrendItem[]): echarts.EChartsCoreOption => {
+  const buildOption = (items: SentimentTrendItem[]): EChartsCoreOption => {
     if (!items.length) return {};
     const dates = items.map((d) => d.date.slice(5)); // MM-DD
     const fgValues = items.map((d) => d.fear_greed);
@@ -151,7 +153,6 @@ export const SentimentTrendChart: Component<SentimentTrendChartProps> = (props) 
   };
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     if (!ref) return;
     chart = ec.init(ref, undefined, { renderer: 'canvas' });
     if (!chart) return;
@@ -206,7 +207,6 @@ export const SentimentTrendChart: Component<SentimentTrendChartProps> = (props) 
   });
 
   onMount(async () => {
-    const _ec = (await import('@/lib/echarts')).default;
     fetchData();
     const timer = setInterval(fetchData, 60 * 1000);
     onCleanup(() => {

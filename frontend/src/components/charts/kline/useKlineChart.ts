@@ -15,7 +15,7 @@ import {
 } from 'lightweight-charts';
 import { fetchDailyBar, isSuccessCode, type DailyBar } from '../../../hooks/useApi';
 import { calculateMACD } from '../IndicatorChart';
-import { _logger } from '../../../lib/logger';
+import { logger } from '../../../lib/logger';
 
 export const UP_COLOR = '#EF4444';
 export const DOWN_COLOR = '#22C55E';

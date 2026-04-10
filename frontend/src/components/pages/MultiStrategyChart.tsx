@@ -3,7 +3,9 @@
  * 因子权重柱状图 + IC时间序列折线图 + 因子贡献度饼图
  */
 import { Component, createSignal, onMount, onCleanup, Show } from 'solid-js';
-import { apiState, _apiActions } from '../../stores/apiStore';
+import { apiState, apiActions } from '../../stores/apiStore';
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 
 // ── Mock data (当真实数据不可用时) ─────────────────────────────
 const MOCK_FACTOR_WEIGHTS = [
@@ -42,9 +44,9 @@ export const MultiStrategyChart: Component = () => {
   let weightRef: HTMLDivElement | undefined;
   let icRef: HTMLDivElement | undefined;
   let contribRef: HTMLDivElement | undefined;
-  let weightChart: echarts.ECharts | undefined;
-  let icChart: echarts.ECharts | undefined;
-  let contribChart: echarts.ECharts | undefined;
+  let weightChart: EChartsType | undefined;
+  let icChart: EChartsType | undefined;
+  let contribChart: EChartsType | undefined;
 
   const [result, setResult] = createSignal<FactorBacktestResult | null>(null);
   const [loading, setLoading] = createSignal(false);
@@ -53,7 +55,7 @@ export const MultiStrategyChart: Component = () => {
   // ── Factor Weight Bar Chart ────────────────────────────────
   const buildWeightOption = (
     data: Array<{ name: string; weight: number; color: string }>
-  ): echarts.EChartsCoreOption => ({
+  ): EChartsCoreOption => ({
     backgroundColor: 'transparent',
     grid: { left: '5%', right: '12%', top: '8%', bottom: '8%', containLabel: true },
     tooltip: {
@@ -117,7 +119,7 @@ export const MultiStrategyChart: Component = () => {
   // ── IC Time Series Line Chart ─────────────────────────────
   const buildICOption = (
     data: Array<{ date: string; ic: number; ic_rank?: number }>
-  ): echarts.EChartsCoreOption => {
+  ): EChartsCoreOption => {
     const dates = data.map((d) => d.date);
     const icValues = data.map((d) => d.ic);
     const rankValues = data.map((d) => d.ic_rank ?? d.ic * 0.85);
@@ -208,13 +210,13 @@ export const MultiStrategyChart: Component = () => {
           itemStyle: { color: '#8B5CF6' },
         },
       ],
-    } as unknown as echarts.EChartsCoreOption;
+    } as unknown as EChartsCoreOption;
   };
 
   // ── Factor Contribution Pie Chart ─────────────────────────
   const buildContribOption = (
     data: Array<{ name: string; value: number; color: string }>
-  ): echarts.EChartsCoreOption => ({
+  ): EChartsCoreOption => ({
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'item',
@@ -337,7 +339,6 @@ export const MultiStrategyChart: Component = () => {
   };
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     weightChart = ec.init(weightRef!, 'dark');
     icChart = ec.init(icRef!, 'dark');
     contribChart = ec.init(contribRef!, 'dark');

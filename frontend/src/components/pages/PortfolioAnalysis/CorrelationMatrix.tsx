@@ -3,7 +3,9 @@
  * ECharts heatmap: 正相关(蓝) / 负相关(红) / 中性(白)
  */
 import { Component, createSignal, onMount, onCleanup, createEffect } from 'solid-js';
-import { _marketState } from '../../../stores/marketStore';
+import { marketState } from '../../../stores/marketStore';
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 
 interface CorrelationData {
   stocks: string[];
@@ -69,7 +71,7 @@ function extractSymbols(
 
 export const CorrelationMatrix: Component<CorrelationMatrixProps> = (props) => {
   let chartRef: HTMLDivElement | undefined;
-  let chart: echarts.ECharts | undefined;
+  let chart: EChartsType | undefined;
 
   const [loading, setLoading] = createSignal(false);
   const [data, setData] = createSignal<CorrelationData | null>(null);
@@ -108,7 +110,7 @@ export const CorrelationMatrix: Component<CorrelationMatrixProps> = (props) => {
   };
 
   // ── ECharts 配置 ────────────────────────────────────────────
-  const buildOption = (corr: CorrelationData): echarts.EChartsCoreOption => {
+  const buildOption = (corr: CorrelationData): EChartsCoreOption => {
     const { stocks, matrix } = corr;
     const n = stocks.length;
 
@@ -234,12 +236,11 @@ export const CorrelationMatrix: Component<CorrelationMatrixProps> = (props) => {
           },
         },
       ],
-    } as unknown as echarts.EChartsCoreOption;
+    } as unknown as EChartsCoreOption;
   };
 
   // ── 生命周期 ────────────────────────────────────────────────
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     if (!chartRef) return;
     chart = ec.init(chartRef, 'dark', { renderer: 'canvas' });
 

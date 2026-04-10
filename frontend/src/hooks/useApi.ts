@@ -982,5 +982,5 @@ export async function fetchEquityCurve(
   const params = new URLSearchParams({ account_id: accountId });
   if (startDate) params.set('start_date', startDate);
   if (endDate) params.set('end_date', endDate);
-  return apiFetch<EquityCurveResponse>(`/api/equity-curve?${params}`);
+  return apiFetch<EquityCurveResponse>(`/api/analysis/equity-curve?${params}`);
 }

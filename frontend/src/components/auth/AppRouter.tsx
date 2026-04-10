@@ -11,6 +11,7 @@ import { Suspense } from 'solid-js';
 import { MainLayout } from '../layout/MainLayout';
 import { PageErrorBoundary } from '../common/ErrorBoundary';
 import { pageRoutes } from './PageRoutes';
+import { I18nProvider } from '../../i18n';
 
 // ── 全局 Suspense 骨架屏 ───────────────────────────────────────────────────────
 const PageSkeleton = () => (
@@ -23,11 +24,13 @@ const PageSkeleton = () => (
 );
 
 export const AppRouter = () => (
-  <PageErrorBoundary>
-    <Router root={(props) => <MainLayout>{props.children}</MainLayout>}>
-      <Suspense fallback={<PageSkeleton />}>{pageRoutes()}</Suspense>
-    </Router>
-  </PageErrorBoundary>
+  <I18nProvider>
+    <PageErrorBoundary>
+      <Router root={(props) => <MainLayout>{props.children}</MainLayout>}>
+        <Suspense fallback={<PageSkeleton />}>{pageRoutes}</Suspense>
+      </Router>
+    </PageErrorBoundary>
+  </I18nProvider>
 );
 
 export default AppRouter;

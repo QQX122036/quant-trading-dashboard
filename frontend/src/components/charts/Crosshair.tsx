@@ -38,7 +38,7 @@ export class CrosshairManager {
   private chart: IChartApi;
   private candleSeries: ISeriesApi<'Candlestick'> | undefined;
   private options: Required<CrosshairOptions>;
-  private unsubscribers: (() => void)[] = [];
+  private unsubscribers: Array<() => void> = [];
 
   constructor(
     chart: IChartApi,
@@ -71,16 +71,14 @@ export class CrosshairManager {
     });
   }
 
-  /** 订阅十字光标移动事件 */
   subscribe(callbacks: CrosshairSubscribeCallbacks) {
-    const unsub = this.chart.subscribeCrosshairMove((param) => {
+    const handler = (param: Parameters<Parameters<typeof this.chart.subscribeCrosshairMove>[0]>[0]) => {
       const t = param.time as Time | undefined;
       let price: number | undefined;
       let index = -1;
 
       if (param.point && this.candleSeries) {
         price = this.candleSeries.coordinateToPrice(param.point.y) ?? undefined;
-        // Get bar index
         if (param.time && this.candleSeries.data) {
           const bars = this.candleSeries.data();
           index = bars.findIndex((b) => b.time === param.time);
@@ -88,8 +86,9 @@ export class CrosshairManager {
       }
 
       callbacks.onCrosshairMove?.(t || null, price, index);
-    });
-    this.unsubscribers.push(unsub);
+    };
+    this.chart.subscribeCrosshairMove(handler);
+    this.unsubscribers.push(() => this.chart.unsubscribeCrosshairMove(handler));
   }
 
   /** 设置十字光标位置（用于多图表同步） */

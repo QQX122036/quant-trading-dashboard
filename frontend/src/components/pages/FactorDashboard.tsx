@@ -2,7 +2,9 @@
  * FactorDashboard.tsx — 因子有效性看板
  * IC时间序列折线图、IR柱状图、相关性热力图
  */
-import { Component, createSignal, onMount, onCleanup, _For, Show } from 'solid-js';
+import { Component, createSignal, onMount, onCleanup, For, Show } from 'solid-js';
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import {
   fetchFactorIC,
   fetchFactorIR,
@@ -20,9 +22,9 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
   let icRef: HTMLDivElement | undefined;
   let irRef: HTMLDivElement | undefined;
   let corrRef: HTMLDivElement | undefined;
-  let icChart: echarts.ECharts | undefined;
-  let irChart: echarts.ECharts | undefined;
-  let corrChart: echarts.ECharts | undefined;
+  let icChart: EChartsType | undefined;
+  let irChart: EChartsType | undefined;
+  let corrChart: EChartsType | undefined;
 
   const [tsCode, setTsCode] = createSignal(props.tsCode || '600519.SH');
   const [loading, setLoading] = createSignal(false);
@@ -35,7 +37,7 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
   const IC_THRESHOLD = 0.03;
 
   // ── IC Chart ────────────────────────────────────────────────
-  const buildICOption = (data: FactorICItem[]): echarts.EChartsCoreOption => {
+  const buildICOption = (data: FactorICItem[]): EChartsCoreOption => {
     const dates = data.map((d) => d.date);
     const icValues = data.map((d) => d.ic);
     const rankIcValues = data.map((d) => d.ic_rank);
@@ -127,11 +129,11 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
           itemStyle: { color: '#8B5CF6' },
         },
       ],
-    } as unknown as echarts.EChartsCoreOption;
+    } as unknown as EChartsCoreOption;
   };
 
   // ── IR Bar Chart ───────────────────────────────────────────
-  const buildIROption = (data: FactorIRItem[]): echarts.EChartsCoreOption => {
+  const buildIROption = (data: FactorIRItem[]): EChartsCoreOption => {
     const factors = data.map((d) => d.factor_name);
     const irValues = data.map((d) => d.ir);
 
@@ -200,11 +202,11 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
           },
         },
       ],
-    } as unknown as echarts.EChartsCoreOption;
+    } as unknown as EChartsCoreOption;
   };
 
   // ── Correlation Heatmap ────────────────────────────────────
-  const buildCorrOption = (data: FactorCorrelationItem[]): echarts.EChartsCoreOption => {
+  const buildCorrOption = (data: FactorCorrelationItem[]): EChartsCoreOption => {
     if (!data.length) return {};
 
     const allFactors = Array.from(new Set(data.map((d) => d.factor_1)));
@@ -282,7 +284,7 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
           emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' } },
         },
       ],
-    } as unknown as echarts.EChartsCoreOption;
+    } as unknown as EChartsCoreOption;
   };
 
   const loadData = async () => {
@@ -313,7 +315,6 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
   };
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     icChart = ec.init(icRef!, 'dark');
     irChart = ec.init(irRef!, 'dark');
     corrChart = ec.init(corrRef!, 'dark');

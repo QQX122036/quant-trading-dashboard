@@ -5,6 +5,8 @@
  * - 表格: 高正面 / 高负面新闻列表
  * - 对接 GET /api/news/sentiment
  */
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { Component, createSignal, createMemo, onMount, onCleanup, For, Show } from 'solid-js';
 import { apiFetch } from '../hooks/useApi';
 
@@ -50,9 +52,9 @@ const CARD = 'bg-[#1f2937]/80 rounded-lg border border-white/10';
 // ── Sentiment Bar Chart ─────────────────────────────────────
 function SentimentBarChart(props: { data: DailySentiment[] }) {
   let ref!: HTMLDivElement;
-  let chart: ReturnType<typeof echarts.init> | undefined;
+  let chart: EChartsType | undefined;
 
-  const buildOption = (): echarts.EChartsCoreOption => {
+  const buildOption = (): EChartsCoreOption => {
     const data = props.data;
     const dates = data.map((d) => d.date.slice(5)); // MM-DD
     return {
@@ -148,7 +150,6 @@ function SentimentBarChart(props: { data: DailySentiment[] }) {
   };
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     if (!ref) return;
     chart = ec.init(ref, 'dark', { renderer: 'canvas' });
     if (!chart) return;

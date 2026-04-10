@@ -3,6 +3,8 @@
  * 堆叠面积图：北向资金/主力净流入/超大单/大单/中单/小单
  * 净流入(红) / 净流出(绿)
  */
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { Component, createSignal, onMount, onCleanup, createEffect, For } from 'solid-js';
 import { apiFetch } from '../../hooks/useApi';
 import { getWsInstance } from '../../hooks/useWebSocket';
@@ -82,7 +84,7 @@ const SERIES_NAMES: Record<string, string> = {
 
 export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
   let chartRef!: HTMLDivElement;
-  let chart: echarts.ECharts | undefined;
+  let chart: EChartsType | undefined;
   let resizeObserver: ResizeObserver;
   let refreshTimer: ReturnType<typeof setInterval>;
   let wsHandler: ((msg: WsMessage) => void) | null = null;
@@ -145,7 +147,7 @@ export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
     }
   };
 
-  const buildOption = (items: MoneyFlowItem[]): echarts.EChartsCoreOption => {
+  const buildOption = (items: MoneyFlowItem[]): EChartsCoreOption => {
     if (!items.length) return {};
 
     const times = items.map((d) => d.time);
@@ -271,7 +273,6 @@ export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
   };
 
   onMount(async () => {
-    const _ec = (await import('@/lib/echarts')).default;
     initChart();
     fetchData();
     refreshTimer = setInterval(fetchData, 60 * 1000);

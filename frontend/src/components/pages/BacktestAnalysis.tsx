@@ -2,6 +2,8 @@
  * BacktestAnalysis.tsx — 回测分析 (增强版)
  * 收益率曲线 + 回撤分析 + 月度收益热力图
  */
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { Component, createSignal, For, Show, onMount, onCleanup, createEffect } from 'solid-js';
 import { apiState, setApiState, apiActions } from '../../stores/apiStore';
 import type { BacktestResult } from '../../hooks/useApi';
@@ -19,7 +21,6 @@ export const BacktestAnalysis: Component = () => {
 
   // Load backtest tasks on mount
   onMount(async () => {
-    const _ec = (await import('@/lib/echarts')).default;
     apiActions.fetchBacktestTasks();
   });
 
@@ -31,14 +32,14 @@ export const BacktestAnalysis: Component = () => {
   let equityRef: HTMLDivElement | undefined;
   let drawdownRef: HTMLDivElement | undefined;
   let monthlyRef: HTMLDivElement | undefined;
-  let equityChart: echarts.ECharts | undefined;
-  let drawdownChart: echarts.ECharts | undefined;
-  let monthlyChart: echarts.ECharts | undefined;
+  let equityChart: EChartsType | undefined;
+  let drawdownChart: EChartsType | undefined;
+  let monthlyChart: EChartsType | undefined;
 
   // ── Equity + Benchmark Chart ────────────────────────────────
   const buildEquityOption = (
     curve: Array<{ date: string; equity: number; benchmark: number }>
-  ): echarts.EChartsCoreOption => {
+  ): EChartsCoreOption => {
     if (!curve.length) return { backgroundColor: 'transparent', series: [] };
     const initial = curve[0]?.equity || 1;
     const dates = curve.map((d) => d.date);
@@ -127,7 +128,7 @@ export const BacktestAnalysis: Component = () => {
   // ── Drawdown Chart ─────────────────────────────────────────
   const buildDrawdownOption = (
     curve: Array<{ date: string; equity: number }>
-  ): echarts.EChartsCoreOption => {
+  ): EChartsCoreOption => {
     if (!curve.length) return { backgroundColor: 'transparent', series: [] };
 
     let peak = curve[0]?.equity || 0;
@@ -236,7 +237,7 @@ export const BacktestAnalysis: Component = () => {
   // ── Monthly Returns Heatmap ─────────────────────────────────
   const buildMonthlyOption = (
     curve: Array<{ date: string; equity: number }>
-  ): echarts.EChartsCoreOption => {
+  ): EChartsCoreOption => {
     if (curve.length < 30) return { backgroundColor: 'transparent', series: [] };
 
     // Group by year-month
@@ -339,11 +340,10 @@ export const BacktestAnalysis: Component = () => {
           emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' } },
         },
       ],
-    } as unknown as echarts.EChartsCoreOption;
+    } as unknown as EChartsCoreOption;
   };
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     equityChart = ec.init(equityRef!, 'dark');
     drawdownChart = ec.init(drawdownRef!, 'dark');
     monthlyChart = ec.init(monthlyRef!, 'dark');

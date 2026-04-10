@@ -5,7 +5,8 @@
  * - 当日成交统计: 成交明细表格
  */
 import { Component, createSignal, onMount, onCleanup, createMemo, Show, For } from 'solid-js';
-import * as ec from 'echarts';
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import {
   fetchAccounts,
   fetchTrades,
@@ -24,7 +25,7 @@ interface AccountRecord {
 
 const Dashboard: Component = () => {
   let lineRef: HTMLDivElement | undefined;
-  let lineChart: echarts.ECharts | undefined;
+  let lineChart: EChartsType | undefined;
 
   // ── State ─────────────────────────────────────────────────
   const [accountHistory, setAccountHistory] = createSignal<AccountRecord[]>([]);
@@ -89,7 +90,6 @@ const Dashboard: Component = () => {
 
   // ── Data loading ───────────────────────────────────────────
   onMount(async () => {
-    const _ec = (await import('@/lib/echarts')).default;
     await Promise.allSettled([loadEquityCurve(), loadTrades(), loadPositions()]);
     setLoading(false);
     setTimeout(initChart, 50);

@@ -53,7 +53,6 @@ export const VolumePanel: Component<VolumePanelProps> = (props) => {
     volumeSeries = chart.addHistogramSeries({
       priceFormat: { type: 'volume' },
       priceScaleId: 'volume',
-      scaleMargins: { top: 0.85, bottom: 0 },
     });
 
     if (props.showMA !== false) {
@@ -62,7 +61,6 @@ export const VolumePanel: Component<VolumePanelProps> = (props) => {
         lineWidth: 1,
         priceLineVisible: false,
         priceScaleId: 'volume',
-        scaleMargins: { top: 0.85, bottom: 0 },
         lastValueVisible: false,
         crosshairMarkerVisible: false,
       });
@@ -72,7 +70,6 @@ export const VolumePanel: Component<VolumePanelProps> = (props) => {
         lineWidth: 1,
         priceLineVisible: false,
         priceScaleId: 'volume',
-        scaleMargins: { top: 0.85, bottom: 0 },
         lastValueVisible: false,
         crosshairMarkerVisible: false,
       });

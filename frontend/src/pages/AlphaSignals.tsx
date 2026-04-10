@@ -6,7 +6,8 @@
  * - 支持评分分布直方图、CSV导出、多维度排序
  */
 import { Component, createSignal, onMount, createMemo, Show, For } from 'solid-js';
-import * as ec from 'echarts';
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { fetchAlphaTop20 } from '../hooks/useApi';
 
 // ── Types ─────────────────────────────────────────────────
@@ -40,7 +41,7 @@ function getRatingColor(rating: string): string {
 
 const AlphaSignals: Component = () => {
   let chartRef: HTMLDivElement | undefined;
-  let chart: echarts.ECharts | undefined;
+  let chart: EChartsType | undefined;
 
   const [data, setData] = createSignal<AlphaStock[]>([]);
   const [loading, setLoading] = createSignal(true);
@@ -154,7 +155,6 @@ const AlphaSignals: Component = () => {
   }
 
   onMount(async () => {
-    const _ec = (await import('@/lib/echarts')).default;
     loadData();
     initChart();
     initHistogram();
@@ -162,7 +162,7 @@ const AlphaSignals: Component = () => {
 
   // ── ECharts 直方图 ───────────────────────────────────────
   let histRef: HTMLDivElement | undefined;
-  let histChart: echarts.ECharts | undefined;
+  let histChart: EChartsType | undefined;
 
   function initHistogram() {
     if (!histRef) return;

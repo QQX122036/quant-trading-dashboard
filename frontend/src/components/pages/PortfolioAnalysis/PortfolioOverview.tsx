@@ -23,10 +23,12 @@ import { fetchPositions, fetchAccounts, fetchEquityCurve } from '../../../hooks/
 import { fetchDailyBar } from '../../../hooks/useApi';
 import type { PositionData, AccountData } from '../../../types/vnpy';
 import type { EquityCurvePoint } from '../../../hooks/useApi';
-import { _formatPercent, _formatPnl, _formatAmount } from '@/utils/format';
+import { formatPercent, formatPnl, formatAmount } from '@/utils/format';
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 
 // ── Chart refs ─────────────────────────────────────────────
-type EChartsInstance = echarts.ECharts;
+type EChartsInstance = EChartsType;
 let pieChart: EChartsInstance;
 let barChart: EChartsInstance;
 let radarChart: EChartsInstance;
@@ -407,7 +409,6 @@ const PositionModal: Component<PositionModalProps> = (props) => {
   const mv = () => props.position.volume * (props.position.price || 0);
 
   onMount(async () => {
-    const _ec = (await import('@/lib/echarts')).default;
     setLoadingHistory(true);
     try {
       const tsCode = props.position.symbol.includes('.')
@@ -737,7 +738,6 @@ export const PortfolioOverview: Component = () => {
 
   // ── Lifecycle ───────────────────────────────────────────
   onMount(async () => {
-    const _ec = (await import('@/lib/echarts')).default;
     loadPositions();
     loadEquityCurve();
     window.addEventListener('resize', resizeAllCharts);

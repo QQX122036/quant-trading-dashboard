@@ -1,3 +1,5 @@
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { Component, createSignal, createMemo, onMount, onCleanup, For } from 'solid-js';
 import {
   createSolidTable,
@@ -226,8 +228,8 @@ export const PositionMonitor: Component = () => {
   // ── ECharts refs ─────────────────────────────────────────
   let pieContainer: HTMLDivElement | undefined;
   let weightContainer: HTMLDivElement | undefined;
-  let pieChart: echarts.ECharts | undefined;
-  let weightChart: echarts.ECharts | undefined;
+  let pieChart: EChartsType | undefined;
+  let weightChart: EChartsType | undefined;
 
   // ── Pie chart (industry distribution) ───────────────────
   function buildPieOption() {
@@ -439,7 +441,6 @@ export const PositionMonitor: Component = () => {
 
   // ── Lifecycle ─────────────────────────────────────────────
   onMount(async () => {
-    const _ec = (await import('@/lib/echarts')).default;
     try {
       const res = await fetchPositions();
       if (res.code === '0' && res.data?.positions) {

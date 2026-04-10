@@ -1,3 +1,5 @@
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { Component, onMount, onCleanup, createEffect } from 'solid-js';
 
 export interface YieldChartProps {
@@ -7,9 +9,9 @@ export interface YieldChartProps {
 
 export const YieldChart: Component<YieldChartProps> = (props) => {
   let containerRef: HTMLDivElement | undefined;
-  let chart: echarts.ECharts | undefined;
+  let chart: EChartsType | undefined;
 
-  const getOption = (): echarts.EChartsCoreOption => {
+  const getOption = (): EChartsCoreOption => {
     const curve = props.equityCurve;
     if (!curve || curve.length === 0) {
       return getEmptyOption();
@@ -113,7 +115,7 @@ export const YieldChart: Component<YieldChartProps> = (props) => {
     };
   };
 
-  const getEmptyOption = (): echarts.EChartsCoreOption => ({
+  const getEmptyOption = (): EChartsCoreOption => ({
     backgroundColor: 'transparent',
     grid: { left: '5%', right: '5%', top: '10%', bottom: '10%', containLabel: true },
     xAxis: { type: 'category', data: [] },
@@ -135,7 +137,6 @@ export const YieldChart: Component<YieldChartProps> = (props) => {
   });
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     if (!containerRef) return;
     chart = ec.init(containerRef, 'dark');
     chart.setOption(getOption());

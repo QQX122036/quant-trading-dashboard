@@ -4,7 +4,9 @@
  */
 import { Component, createSignal, Show, onMount, onCleanup, createEffect } from 'solid-js';
 import { logger } from '../../lib/logger';
-import { exportEchartsToPdf, type _ExportPdfOptions } from '../../utils/pdfExport';
+import { exportEchartsToPdf, type ExportPdfOptions } from '../../utils/pdfExport';
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 
 interface StockProfile {
   code: string;
@@ -59,9 +61,9 @@ interface _StockReportData {
   financials: FinancialSummary;
   moneyFlow: MoneyFlow;
   riskMetrics: RiskMetrics;
-  klineChart?: echarts.ECharts | undefined;
-  volumeChart?: echarts.ECharts | undefined;
-  moneyFlowChart?: echarts.ECharts | undefined;
+  klineChart?: EChartsType | undefined;
+  volumeChart?: EChartsType | undefined;
+  moneyFlowChart?: EChartsType | undefined;
   priceLine?: Array<{ date: string; close: number; ma5: number; ma10: number; ma20: number }>;
 }
 
@@ -72,9 +74,9 @@ interface StockReportProps {
   financials?: FinancialSummary;
   moneyFlow?: MoneyFlow;
   riskMetrics?: RiskMetrics;
-  klineChart?: echarts.ECharts | undefined;
-  volumeChart?: echarts.ECharts | undefined;
-  moneyFlowChart?: echarts.ECharts | undefined;
+  klineChart?: EChartsType | undefined;
+  volumeChart?: EChartsType | undefined;
+  moneyFlowChart?: EChartsType | undefined;
   priceLine?: Array<{ date: string; close: number; ma5: number; ma10: number; ma20: number }>;
   onExportPdf?: () => void;
 }
@@ -83,9 +85,9 @@ export const StockReport: Component<StockReportProps> = (props) => {
   let klineRef: HTMLDivElement | undefined;
   let volumeRef: HTMLDivElement | undefined;
   let moneyFlowRef: HTMLDivElement | undefined;
-  let klineChart: echarts.ECharts | undefined;
-  let volumeChart: echarts.ECharts | undefined;
-  let moneyFlowChart: echarts.ECharts | undefined;
+  let klineChart: EChartsType | undefined;
+  let volumeChart: EChartsType | undefined;
+  let moneyFlowChart: EChartsType | undefined;
 
   const [exporting, setExporting] = createSignal(false);
 
@@ -95,7 +97,6 @@ export const StockReport: Component<StockReportProps> = (props) => {
   const riskMetrics = () => props.riskMetrics;
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     klineChart = ec.init(klineRef!, 'dark');
     volumeChart = ec.init(volumeRef!, 'dark');
     moneyFlowChart = ec.init(moneyFlowRef!, 'dark');
@@ -127,7 +128,7 @@ export const StockReport: Component<StockReportProps> = (props) => {
     const _volumes = price.map((d) => d.close); // placeholder; real volume from props
 
     // K-line: candlestick-like using price + volume bar below
-    const klineOption: echarts.EChartsCoreOption = {
+    const klineOption: EChartsCoreOption = {
       backgroundColor: 'transparent',
       grid: { left: '5%', right: '3%', top: '8%', bottom: '15%', containLabel: true },
       tooltip: {
@@ -191,7 +192,7 @@ export const StockReport: Component<StockReportProps> = (props) => {
     };
 
     // Volume bars
-    const volOption: echarts.EChartsCoreOption = {
+    const volOption: EChartsCoreOption = {
       backgroundColor: 'transparent',
       grid: { left: '5%', right: '3%', top: '8%', bottom: '8%', containLabel: true },
       xAxis: {
@@ -237,7 +238,7 @@ export const StockReport: Component<StockReportProps> = (props) => {
     const categories = ['散户(SM)', '中单(MD)', '大单(LG)', '超大单(MG)'];
     const netBuy = [mf.netBuySm, mf.netBuyMd, mf.netBuyLg, mf.netBuyMg];
 
-    const option: echarts.EChartsCoreOption = {
+    const option: EChartsCoreOption = {
       backgroundColor: 'transparent',
       grid: { left: '5%', right: '5%', top: '10%', bottom: '10%', containLabel: true },
       tooltip: {

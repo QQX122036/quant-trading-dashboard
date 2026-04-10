@@ -2,6 +2,8 @@
  * RiskContribution.tsx — 风险贡献分析
  * 各持仓对组合 VaR 的边际贡献分析与可视化
  */
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { Component, createSignal, onMount, onCleanup, createEffect, Show } from 'solid-js';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -142,7 +144,7 @@ const STOCK_COLORS = [
 
 export const RiskContribution: Component = () => {
   let chartRef: HTMLDivElement | undefined;
-  let chart: echarts.ECharts | undefined;
+  let chart: EChartsType | undefined;
 
   const [data, setData] = createSignal<RiskContributionItem[]>([]);
   const [portfolioVaR, setPortfolioVaR] = createSignal(0);
@@ -179,7 +181,7 @@ export const RiskContribution: Component = () => {
 
   // ── ECharts 配置 ──────────────────────────────────────────────────────────
 
-  const buildChartOption = (items: RiskContributionItem[]): echarts.EChartsCoreOption => {
+  const buildChartOption = (items: RiskContributionItem[]): EChartsCoreOption => {
     if (!items.length) return { backgroundColor: 'transparent', series: [] };
 
     const codes = items.map((d) => d.code);
@@ -274,7 +276,6 @@ export const RiskContribution: Component = () => {
   // ── 生命周期 ──────────────────────────────────────────────────────────────
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     if (chartRef) {
       chart = ec.init(chartRef, undefined, { renderer: 'canvas' });
     }

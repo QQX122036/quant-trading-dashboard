@@ -3,6 +3,8 @@
  * 恐惧贪婪指数 + 波动率指数 + 涨跌家数比
  * ECharts 仪表盘 + 数值卡片
  */
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { Component, createSignal, onMount, onCleanup, createMemo } from 'solid-js';
 import { apiFetch } from '../../hooks/useApi';
 
@@ -29,7 +31,7 @@ function createGaugeOption(
   name: string,
   colorStops: Array<{ offset: number; color: string }>,
   suffix = ''
-): echarts.EChartsCoreOption {
+): EChartsCoreOption {
   return {
     backgroundColor: 'transparent',
     series: [
@@ -79,7 +81,7 @@ function createGaugeOption(
 
 function FearGreedGauge(props: { value: number }) {
   let ref!: HTMLDivElement;
-  let chart: echarts.ECharts | undefined;
+  let chart: EChartsType | undefined;
 
   const label = createMemo(() => {
     const v = props.value;
@@ -90,7 +92,7 @@ function FearGreedGauge(props: { value: number }) {
     return { text: '贪婪', color: '#EF4444', bg: 'bg-red-500/10 border-red-500/30' };
   });
 
-  const option = createMemo((): echarts.EChartsCoreOption => {
+  const option = createMemo((): EChartsCoreOption => {
     const v = Math.round(props.value);
     return createGaugeOption(v, 0, 100, '', [
       { offset: 0, color: '#22C55E' },
@@ -101,7 +103,6 @@ function FearGreedGauge(props: { value: number }) {
   });
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     if (!ref) return;
     chart = ec.init(ref, undefined, { renderer: 'canvas' });
     if (!chart) return;
@@ -233,7 +234,6 @@ export const SentimentGauge: Component<SentimentGaugeProps> = (props) => {
   };
 
   onMount(async () => {
-    const _ec = (await import('@/lib/echarts')).default;
     fetchData();
     const timer = setInterval(fetchData, 60 * 1000);
     onCleanup(() => {

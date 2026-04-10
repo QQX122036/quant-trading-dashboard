@@ -4,16 +4,16 @@
  * - 持仓收益分布饼图（按行业/按个股）
  */
 import { Component, createSignal, onMount, onCleanup } from 'solid-js';
+import ec, { type EChartsType } from '@/lib/echarts';
 
 export const DashboardCharts: Component = () => {
   let lineRef: HTMLDivElement | undefined;
   let pieRef: HTMLDivElement | undefined;
-  let lineChart: echarts.ECharts | null = null;
-  let pieChart: echarts.ECharts | null = null;
+  let lineChart: EChartsType | null = null;
+  let pieChart: EChartsType | null = null;
   const [mode, setMode] = createSignal<'line' | 'pie'>('line');
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     if (lineRef) {
       lineChart = ec.init(lineRef, 'dark');
       renderLineChart();

@@ -3,8 +3,10 @@
  * ECharts 热力图展示各行业板块情绪分布
  * 颜色映射：绿色(负面) → 黄色(中性) → 红色(正面)
  */
-import { Component, createSignal, onMount, onCleanup, _For, Show, createMemo } from 'solid-js';
+import { Component, createSignal, onMount, onCleanup, For, Show, createMemo } from 'solid-js';
 import { apiFetch } from '../../hooks/useApi';
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 
 export interface SectorSentimentItem {
   sector_name: string;
@@ -43,14 +45,14 @@ function sentimentLabel(score: number): string {
 
 export const SectorSentimentHeatmap: Component<SectorSentimentHeatmapProps> = (props) => {
   let ref!: HTMLDivElement;
-  let chart: echarts.ECharts | undefined;
+  let chart: EChartsType | undefined;
   let abortController: AbortController | null = null;
   const [loading, setLoading] = createSignal(false);
   const [data, setData] = createSignal<SectorSentimentItem[]>([]);
   const [error, setError] = createSignal<string | null>(null);
   const maxItems = () => props.maxItems ?? 28;
 
-  const buildOption = (items: SectorSentimentItem[]): echarts.EChartsCoreOption => {
+  const buildOption = (items: SectorSentimentItem[]): EChartsCoreOption => {
     if (!items.length) return {};
     // Take top N by abs sentiment deviation from 50
     const sorted = [...items]
@@ -176,7 +178,6 @@ export const SectorSentimentHeatmap: Component<SectorSentimentHeatmapProps> = (p
   };
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     if (!ref) return;
     chart = ec.init(ref, undefined, { renderer: 'canvas' });
     if (!chart) return;
@@ -258,7 +259,6 @@ export const SectorSentimentHeatmap: Component<SectorSentimentHeatmapProps> = (p
   });
 
   onMount(async () => {
-    const _ec = (await import('@/lib/echarts')).default;
     fetchData();
     const timer = setInterval(fetchData, 60 * 1000);
     onCleanup(() => {

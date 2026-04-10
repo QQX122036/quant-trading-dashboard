@@ -6,6 +6,8 @@
  * - ECharts 仪表盘: 舆情指数 0-100
  * - WebSocket 实时推送 news.sentiment
  */
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { Component, createSignal, createMemo, onMount, onCleanup, For, Show } from 'solid-js';
 import {
   fetchNewsSentiment,
@@ -20,9 +22,9 @@ const CARD = 'bg-[#1f2937]/80 rounded-lg border border-white/10';
 
 function SentimentGaugeChart(props: { index: number }) {
   let ref!: HTMLDivElement;
-  let chart: echarts.ECharts | undefined;
+  let chart: EChartsType | undefined;
 
-  const option = createMemo((): echarts.EChartsCoreOption => {
+  const option = createMemo((): EChartsCoreOption => {
     const v = Math.round(props.index);
     const color = v > 60 ? '#22C55E' : v < 40 ? '#EF4444' : '#F59E0B';
     return {
@@ -70,7 +72,6 @@ function SentimentGaugeChart(props: { index: number }) {
   });
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     chart = ec.init(ref, undefined, { renderer: 'canvas' });
     chart.setOption(option());
     const ro = new ResizeObserver(() => chart?.resize());
@@ -336,7 +337,6 @@ export const NewsSentiment: Component = () => {
   }
 
   onMount(async () => {
-    const _ec = (await import('@/lib/echarts')).default;
     loadData();
     loadAnnouncements();
     setupWS();

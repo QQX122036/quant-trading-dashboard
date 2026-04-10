@@ -2,6 +2,8 @@
  * BacktestReport.tsx — 回测报告页面
  * 支持一键导出PDF
  */
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { Component, createSignal, Show, onMount, onCleanup, createEffect, For } from 'solid-js';
 import { logger } from '../../lib/logger';
 import { exportBacktestReport, type BacktestReportData } from '../../utils/pdfExport';
@@ -45,7 +47,7 @@ interface BacktestReportProps {
 
 function buildEquityOption(
   curve: Array<{ date: string; equity: number; benchmark?: number }>
-): echarts.EChartsCoreOption {
+): EChartsCoreOption {
   if (!curve.length) return { backgroundColor: 'transparent', series: [] };
   const initial = curve[0]?.equity || 1;
   const dates = curve.map((d) => d.date);
@@ -121,12 +123,12 @@ function buildEquityOption(
         itemStyle: { color: '#6B7280' },
       },
     ],
-  } as unknown as echarts.EChartsCoreOption;
+  } as unknown as EChartsCoreOption;
 }
 
 function buildDrawdownOption(
   curve: Array<{ date: string; equity: number }>
-): echarts.EChartsCoreOption {
+): EChartsCoreOption {
   if (!curve.length) return { backgroundColor: 'transparent', series: [] };
   let peak = curve[0]?.equity || 0;
   const drawdowns: number[] = [];
@@ -220,12 +222,12 @@ function buildDrawdownOption(
             : undefined,
       },
     ],
-  } as unknown as echarts.EChartsCoreOption;
+  } as unknown as EChartsCoreOption;
 }
 
 function buildMonthlyOption(
   curve: Array<{ date: string; equity: number }>
-): echarts.EChartsCoreOption {
+): EChartsCoreOption {
   if (curve.length < 30) return { backgroundColor: 'transparent', series: [] };
 
   const monthlyMap = new Map<string, { first: number; last: number }>();
@@ -327,7 +329,7 @@ function buildMonthlyOption(
         emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' } },
       },
     ],
-  } as unknown as echarts.EChartsCoreOption;
+  } as unknown as EChartsCoreOption;
 }
 
 // ── Component ─────────────────────────────────────────────
@@ -336,9 +338,9 @@ export const BacktestReport: Component<BacktestReportProps> = (props) => {
   let equityRef: HTMLDivElement | undefined;
   let drawdownRef: HTMLDivElement | undefined;
   let monthlyRef: HTMLDivElement | undefined;
-  let equityChart: echarts.ECharts | undefined;
-  let drawdownChart: echarts.ECharts | undefined;
-  let monthlyChart: echarts.ECharts | undefined;
+  let equityChart: EChartsType | undefined;
+  let drawdownChart: EChartsType | undefined;
+  let monthlyChart: EChartsType | undefined;
 
   const [exporting, setExporting] = createSignal(false);
 
@@ -357,7 +359,6 @@ export const BacktestReport: Component<BacktestReportProps> = (props) => {
   const curve = () => buildCurve();
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     equityChart = ec.init(equityRef!, 'dark');
     drawdownChart = ec.init(drawdownRef!, 'dark');
     monthlyChart = ec.init(monthlyRef!, 'dark');

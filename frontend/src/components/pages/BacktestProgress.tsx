@@ -4,6 +4,8 @@
  */
 import { Component, createSignal, onCleanup, Show, createEffect } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { getBacktestProgress, getBacktestResult } from '../../hooks/useApi';
 
 interface BacktestProgressProps {
@@ -20,7 +22,7 @@ const _ESTIMATES: Record<string, number> = {
 
 export const BacktestProgress: Component<BacktestProgressProps> = (props) => {
   let containerRef: HTMLDivElement | undefined;
-  let chart: echarts.ECharts | undefined;
+  let chart: EChartsType | undefined;
   const navigate = useNavigate();
 
   const [status, setStatus] = createSignal<'pending' | 'running' | 'completed' | 'failed'>(
@@ -55,7 +57,7 @@ export const BacktestProgress: Component<BacktestProgressProps> = (props) => {
               color: [
                 [
                   pct / 100,
-                  new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                  new ec.graphic.LinearGradient(0, 0, 1, 0, [
                     { offset: 0, color: '#3B82F6' },
                     { offset: 1, color: '#6366F1' },
                   ]),
@@ -235,7 +237,7 @@ export const BacktestProgress: Component<BacktestProgressProps> = (props) => {
 
 // 自动初始化图表
 export const initBacktestProgressChart = (container: HTMLDivElement) => {
-  const c = echarts.init(container, 'dark');
+  const c = ec.init(container, 'dark');
   c.setOption({
     backgroundColor: 'transparent',
     series: [

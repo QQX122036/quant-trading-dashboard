@@ -2,7 +2,7 @@
  * MarketMonitor.tsx — 市场行情监控 + K线图
  * 使用 TanStack Table 展示指数行情，集成 lightweight-charts K线图，支持自动刷新
  */
-import { Component, createSignal, createMemo, For, Show, onMount, _onCleanup } from 'solid-js';
+import { Component, createSignal, createMemo, For, Show, onMount, onCleanup } from 'solid-js';
 import {
   createSolidTable,
   createColumnHelper,

@@ -6,6 +6,8 @@
  * Vega：波动率敏感度（波动率变动1%，期权价格变动）
  * Rho：利率敏感度（利率变动1%，期权价格变动）
  */
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { Component, createSignal, createEffect, onMount, onCleanup, For } from 'solid-js';
 
 interface GreeksData {
@@ -44,7 +46,7 @@ function createGaugeOption(
   unit: string,
   normalRange: [number, number],
   accentColor: string
-): echarts.EChartsCoreOption {
+): EChartsCoreOption {
   const _pct = ((value - min) / (max - min)) * 100;
   const inRange = value >= normalRange[0] && value <= normalRange[1];
   const color = inRange ? accentColor : '#EF4444';
@@ -115,10 +117,9 @@ const GreekCard: Component<{
   description: string;
 }> = (props) => {
   let chartRef: HTMLDivElement | undefined;
-  let chart: echarts.ECharts | undefined;
+  let chart: EChartsType | undefined;
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     if (!chartRef) return;
     chart = ec.init(chartRef, 'dark');
     chart.setOption(
@@ -175,10 +176,9 @@ export const GreeksPanel: Component = () => {
   const [rhoPnl, _setRhoPnl] = createSignal(25.6);
 
   let thetaChartRef: HTMLDivElement | undefined;
-  let thetaChart: echarts.ECharts | undefined;
+  let thetaChart: EChartsType | undefined;
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     if (!thetaChartRef) return;
     thetaChart = ec.init(thetaChartRef, 'dark');
 
@@ -234,7 +234,7 @@ export const GreeksPanel: Component = () => {
           },
         },
       ],
-    } as unknown as echarts.EChartsCoreOption);
+    } as unknown as EChartsCoreOption);
 
     const ro = new ResizeObserver(() => thetaChart?.resize());
     ro.observe(thetaChartRef);

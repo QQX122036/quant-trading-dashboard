@@ -3,6 +3,8 @@
  * 双Y轴折线图：恐惧贪婪指数 vs 指数涨跌幅
  * 对标同花顺/东方财富 情绪温度计功能
  */
+import ec from '@/lib/echarts';
+import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { Component, createSignal, onMount, onCleanup, createMemo } from 'solid-js';
 import { apiFetch } from '../../hooks/useApi';
 
@@ -24,7 +26,7 @@ const CARD_BASE = 'bg-[#1f2937]/80 rounded-lg border border-white/10';
 
 export const SentimentMarketCompare: Component<SentimentMarketCompareProps> = (props) => {
   let ref!: HTMLDivElement;
-  let chart: echarts.ECharts | undefined;
+  let chart: EChartsType | undefined;
   let abortController: AbortController | null = null;
   const [loading, setLoading] = createSignal(false);
   const [data, setData] = createSignal<CompareItem[]>([]);
@@ -32,7 +34,7 @@ export const SentimentMarketCompare: Component<SentimentMarketCompareProps> = (p
   const days = () => props.days ?? 30;
   const indexCode = () => props.indexCode ?? '000001.SH';
 
-  const buildOption = (items: CompareItem[]): echarts.EChartsCoreOption => {
+  const buildOption = (items: CompareItem[]): EChartsCoreOption => {
     if (!items.length) return {};
     const dates = items.map((d) => d.date.slice(5));
     const fgValues = items.map((d) => d.fear_greed);
@@ -174,7 +176,6 @@ export const SentimentMarketCompare: Component<SentimentMarketCompareProps> = (p
   };
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     if (!ref) return;
     chart = ec.init(ref, undefined, { renderer: 'canvas' });
     if (!chart) return;
@@ -238,7 +239,6 @@ export const SentimentMarketCompare: Component<SentimentMarketCompareProps> = (p
   });
 
   onMount(async () => {
-    const _ec = (await import('@/lib/echarts')).default;
     fetchData();
     const timer = setInterval(fetchData, 60 * 1000);
     onCleanup(() => {

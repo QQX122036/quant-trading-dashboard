@@ -15,7 +15,7 @@ import { state } from '../../stores';
 import { fetchTrades } from '../../hooks/useApi';
 import { logger } from '../../lib/logger';
 import { formatPrice, formatTime } from '../../utils/format';
-import { directionBg, _pnlColor } from '../../utils/color';
+import { directionBg, pnlColor } from '../../utils/color';
 import type { TradeData } from '../../types/vnpy';
 
 export const TradeMonitor: Component = () => {

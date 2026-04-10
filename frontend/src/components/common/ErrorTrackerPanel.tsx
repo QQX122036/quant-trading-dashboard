@@ -9,9 +9,9 @@
  * - DEV 模式悬浮按钮入口
  */
 
-import { Component, For, Show, createSignal, createMemo, _onCleanup } from 'solid-js';
-import { _watchErrors, trackedErrors, useErrorTracker } from '../../stores/errorStore';
-import type { _TrackedError, ErrorLevel, ErrorSource } from '../../stores/errorStore';
+import { Component, For, Show, createSignal, createMemo, onCleanup } from 'solid-js';
+import { watchErrors, trackedErrors, useErrorTracker } from '../../stores/errorStore';
+import type { TrackedError, ErrorLevel, ErrorSource } from '../../stores/errorStore';
 
 interface Props {
   /** 默认是否展开面板 */
