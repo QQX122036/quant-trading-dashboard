@@ -3,24 +3,9 @@
  * 职责：lightweight-charts 初始化、K线/MA渲染、十字光标事件
  */
 import { Component, createEffect, onCleanup, onMount, createSignal } from 'solid-js';
-import {
-  createChart,
-  IChartApi,
-  ISeriesApi,
-  CandlestickData,
-  LineData,
-  Time,
-  CrosshairMode,
-  HistogramData,
-} from 'lightweight-charts';
+import { createChart, IChartApi, ISeriesApi, Time, CrosshairMode } from 'lightweight-charts';
 import type { DailyBar } from '../../../hooks/useApi';
-import {
-  barToCandle,
-  calcMA,
-  adjustBars,
-  computeChipDistribution,
-  type ChipDistribution,
-} from './chartUtils';
+import { barToCandle, calcMA, adjustBars } from './chartUtils';
 
 export interface KLineCanvasProps {
   bars: DailyBar[];
@@ -42,8 +27,8 @@ export const KLineCanvas: Component<KLineCanvasProps> = (props) => {
   let chart: IChartApi | undefined;
   let candleSeries: ISeriesApi<'Candlestick'> | undefined;
   const maSeriesMap = new Map<number, ISeriesApi<'Line'>>();
-  const [currentPrice, setCurrentPrice] = createSignal<number>(0);
-  const [chipSeries, setChipSeries] = createSignal<ISeriesApi<'Histogram'> | null>(null);
+  const [_currentPrice, setCurrentPrice] = createSignal<number>(0);
+  const [_chipSeries, _setChipSeries] = createSignal<ISeriesApi<'Histogram'> | null>(null);
 
   function setupChart() {
     if (!containerRef) return;
@@ -215,11 +200,11 @@ export const KLineCanvas: Component<KLineCanvasProps> = (props) => {
     }
   }
 
-  function getChart(): IChartApi | undefined {
+  function _getChart(): IChartApi | undefined {
     return chart;
   }
 
-  function getCandleSeries(): ISeriesApi<'Candlestick'> | undefined {
+  function _getCandleSeries(): ISeriesApi<'Candlestick'> | undefined {
     return candleSeries;
   }
 

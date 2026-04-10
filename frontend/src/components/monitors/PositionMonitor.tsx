@@ -439,7 +439,7 @@ export const PositionMonitor: Component = () => {
 
   // ── Lifecycle ─────────────────────────────────────────────
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+    const _ec = (await import('@/lib/echarts')).default;
     try {
       const res = await fetchPositions();
       if (res.code === '0' && res.data?.positions) {
@@ -463,7 +463,7 @@ export const PositionMonitor: Component = () => {
   });
 
   // Re-render charts when data changes
-  const chartUpdater = createMemo(() => {
+  const _chartUpdater = createMemo(() => {
     positionRows(); // track
     setTimeout(() => {
       initCharts();

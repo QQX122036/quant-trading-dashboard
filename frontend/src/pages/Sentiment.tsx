@@ -7,7 +7,6 @@
  */
 import { Component, createSignal, createMemo, onMount, onCleanup, For, Show } from 'solid-js';
 import { apiFetch } from '../hooks/useApi';
-import { formatDate } from '../utils/format';
 
 // ── Types ──────────────────────────────────────────────────
 interface NewsItem {
@@ -40,7 +39,7 @@ interface DailySentiment {
   avg_score: number; // 0-100
 }
 
-interface ApiResponse<T> {
+interface _ApiResponse<T> {
   code: string;
   msg?: string;
   data?: T;

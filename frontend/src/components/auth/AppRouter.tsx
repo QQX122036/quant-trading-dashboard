@@ -6,11 +6,11 @@
  * - Suspense fallback 展示骨架屏，避免白屏
  * - 首屏仅加载核心布局 + /market，最大化削减初始 bundle
  */
-import { Router, Route } from '@solidjs/router';
+import { Router } from '@solidjs/router';
 import { Suspense } from 'solid-js';
 import { MainLayout } from '../layout/MainLayout';
 import { PageErrorBoundary } from '../common/ErrorBoundary';
-import { pageRoutes, SkeletonPage } from './PageRoutes';
+import { pageRoutes } from './PageRoutes';
 
 // ── 全局 Suspense 骨架屏 ───────────────────────────────────────────────────────
 const PageSkeleton = () => (
@@ -25,9 +25,7 @@ const PageSkeleton = () => (
 export const AppRouter = () => (
   <PageErrorBoundary>
     <Router root={(props) => <MainLayout>{props.children}</MainLayout>}>
-      <Suspense fallback={<PageSkeleton />}>
-        {pageRoutes()}
-      </Suspense>
+      <Suspense fallback={<PageSkeleton />}>{pageRoutes()}</Suspense>
     </Router>
   </PageErrorBoundary>
 );

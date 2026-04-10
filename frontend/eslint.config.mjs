@@ -22,6 +22,8 @@ export default [
         ...globals.browser,
         echarts: 'readonly',
         ec: 'readonly',
+        RequestInit: 'readonly',
+        RequestInfo: 'readonly',
       },
     },
     plugins: {
@@ -40,6 +42,7 @@ export default [
       '@typescript-eslint/no-unused-expressions': 'warn',
       'solid/prefer-for': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-this-alias': 'off',
       'solid/reactivity': 'warn',
       'solid/no-unknown-events': 'off',
     },

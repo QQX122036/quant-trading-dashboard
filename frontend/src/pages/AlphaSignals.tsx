@@ -7,7 +7,7 @@
  */
 import { Component, createSignal, onMount, createMemo, Show, For } from 'solid-js';
 import * as ec from 'echarts';
-import { apiFetch, fetchAlphaTop20 } from '../hooks/useApi';
+import { fetchAlphaTop20 } from '../hooks/useApi';
 
 // ── Types ─────────────────────────────────────────────────
 
@@ -145,7 +145,7 @@ const AlphaSignals: Component = () => {
       } else {
         setError(res.message || '获取数据失败');
       }
-    } catch (e: unknown) {
+    } catch (_e: unknown) {
       setError('网络错误，请检查后端服务');
     } finally {
       setRefreshing(false);
@@ -154,7 +154,7 @@ const AlphaSignals: Component = () => {
   }
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+    const _ec = (await import('@/lib/echarts')).default;
     loadData();
     initChart();
     initHistogram();
@@ -254,7 +254,13 @@ const AlphaSignals: Component = () => {
     const sorted = items;
 
     const columns = ['代码', '名称', '行业', 'Alpha评分', '评级'];
-    const rows = sorted.map((s) => [s.ts_code, s.name, s.industry, s.alpha20.toFixed(2), s.rating]);
+    const _rows = sorted.map((s) => [
+      s.ts_code,
+      s.name,
+      s.industry,
+      s.alpha20.toFixed(2),
+      s.rating,
+    ]);
     chart.setOption(
       {
         backgroundColor: 'transparent',

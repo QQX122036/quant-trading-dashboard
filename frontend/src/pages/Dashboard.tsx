@@ -4,7 +4,7 @@
  * - 账户资金曲线: ECharts 折线图，对接 /api/equity-curve（含基准对比+回撤）
  * - 当日成交统计: 成交明细表格
  */
-import { Component, createSignal, onMount, onCleanup, createMemo, For, Show } from 'solid-js';
+import { Component, createSignal, onMount, onCleanup, createMemo, Show, For } from 'solid-js';
 import * as ec from 'echarts';
 import {
   fetchAccounts,
@@ -82,14 +82,14 @@ const Dashboard: Component = () => {
 
   const totalTradeVolume = createMemo(() => todayTrades().reduce((s, t) => s + (t.volume ?? 0), 0));
 
-  const maxDrawdown = createMemo(() => {
+  const _maxDrawdown = createMemo(() => {
     const m = equityMetrics();
     return m?.max_drawdown ?? 0;
   });
 
   // ── Data loading ───────────────────────────────────────────
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+    const _ec = (await import('@/lib/echarts')).default;
     await Promise.allSettled([loadEquityCurve(), loadTrades(), loadPositions()]);
     setLoading(false);
     setTimeout(initChart, 50);
@@ -169,7 +169,7 @@ const Dashboard: Component = () => {
       const dates = curve.map((p) => p.date.slice(5));
       const equityVals = curve.map((p) => p.equity);
       const bmVals = curve.map((p) => p.benchmark);
-      const ddVals = curve.map((p) => p.drawdown);
+      const _ddVals = curve.map((p) => p.drawdown);
 
       const allVals = [...equityVals, ...bmVals];
       const minVal = Math.min(...allVals);
@@ -207,11 +207,13 @@ const Dashboard: Component = () => {
               const ddVal = equityPt?.drawdown ?? 0;
               const drVal = equityPt?.daily_return ?? 0;
               const srVal = equityPt?.rolling_sharpe ?? 0;
-              const retPct =
+              const _retPct =
                 ((eqVal - (equityPt?.equity - ((drVal / 100) * equityPt?.equity || 0))) /
                   (equityPt?.equity - ((drVal / 100) * equityPt?.equity || 0))) *
                   100 || 0;
-              const eqRet = ((eqVal / (equityPt?.equity / (1 + drVal / 100)) - 1) * 100).toFixed(2);
+              const _eqRet = ((eqVal / (equityPt?.equity / (1 + drVal / 100)) - 1) * 100).toFixed(
+                2
+              );
               return `
               <div style="font-size:11px;color:#9ca3af;margin-bottom:4px">${date}</div>
               <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:#3b82f6">策略净值</span><span style="color:#fff">¥${eqVal.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</span></div>

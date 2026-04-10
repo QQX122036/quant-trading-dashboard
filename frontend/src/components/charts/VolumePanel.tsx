@@ -89,7 +89,7 @@ export const VolumePanel: Component<VolumePanelProps> = (props) => {
     volumeSeries.setData(buildVolumeHistogram(bars));
 
     if (mavol5Series || mavol10Series) {
-      const closes = bars.map((b) => b.close);
+      const _closes = bars.map((b) => b.close);
       const times = bars.map((b) => barTime(b));
       if (mavol5Series)
         mavol5Series.setData(

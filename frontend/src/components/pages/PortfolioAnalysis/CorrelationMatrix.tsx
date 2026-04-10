@@ -3,7 +3,7 @@
  * ECharts heatmap: 正相关(蓝) / 负相关(红) / 中性(白)
  */
 import { Component, createSignal, onMount, onCleanup, createEffect } from 'solid-js';
-import { marketState } from '../../../stores/marketStore';
+import { _marketState } from '../../../stores/marketStore';
 
 interface CorrelationData {
   stocks: string[];

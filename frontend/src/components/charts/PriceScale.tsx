@@ -29,10 +29,10 @@ const DEFAULT_OPTIONS: PriceScaleOptions = {
  * 配置图表右侧价格轴
  */
 export function configurePriceScale(
-  chart: IChartApi,
+  _chart: IChartApi,
   options: PriceScaleOptions = DEFAULT_OPTIONS
 ): void {
-  chart.applyOptions({
+  _chart.applyOptions({
     rightPriceScale: {
       borderColor: options.borderColor,
       autoScale: options.autoScale,
@@ -45,8 +45,8 @@ export function configurePriceScale(
  * 价格刻度 Hook — 返回当前价格和涨跌幅
  */
 export function usePriceScale(
-  chart: () => IChartApi | undefined,
-  candleSeries: () => ISeriesApi<'Candlestick'> | undefined
+  _chart: () => IChartApi | undefined,
+  _candleSeries: () => ISeriesApi<'Candlestick'> | undefined
 ) {
   const [currentPrice, setCurrentPrice] = createSignal<number>(0);
   const [priceChange, setPriceChange] = createSignal<number>(0);

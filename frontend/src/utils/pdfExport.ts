@@ -98,7 +98,7 @@ export async function exportToPdf(
   options: ExportPdfOptions = {}
 ): Promise<void> {
   const { watermark = '量化分析报告', scale = 2 } = options;
-  const [html2canvasMod, JsPDFModule] = await Promise.all([loadHtml2Canvas(), loadJsPDF()]);
+  const [_html2canvasMod, JsPDFModule] = await Promise.all([loadHtml2Canvas(), loadJsPDF()]);
   const JsPDF = JsPDFModule.default ?? JsPDFModule;
 
   const imgDataURL = await divToImageDataURL(elementId, scale);

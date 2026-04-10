@@ -260,7 +260,7 @@ export const apiActions = {
     try {
       const res = await api.fetchBacktestTasks();
       setApiState('backtestTasks', res.data?.tasks || []);
-    } catch (e: unknown) {
+    } catch (_e: unknown) {
       // silent fail for task list
     }
   },

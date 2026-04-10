@@ -3,7 +3,7 @@
  * 职责：技术指标（MA5/10/20、BOLL、VOLUME等）在K线图上的叠加绘制
  */
 import { Component, createEffect, onCleanup } from 'solid-js';
-import { IChartApi, ISeriesApi, LineData, HistogramData, Time } from 'lightweight-charts';
+import { IChartApi, ISeriesApi, LineData, Time } from 'lightweight-charts';
 import type { DailyBar } from '../../hooks/useApi';
 
 export interface IndicatorConfig {
@@ -64,21 +64,21 @@ function calcMA(closes: number[], times: Time[], period: number): LineData<Time>
 function calcBOLL(
   closes: number[],
   times: Time[],
-  period = 20,
-  stdDev = 2
+  _period = 20,
+  _stdDev = 2
 ): { mid: LineData<Time>[]; upper: LineData<Time>[]; lower: LineData<Time>[] } {
   const mid: LineData<Time>[] = [];
   const upper: LineData<Time>[] = [];
   const lower: LineData<Time>[] = [];
 
-  for (let i = period - 1; i < closes.length; i++) {
-    const slice = closes.slice(i - period + 1, i + 1);
-    const avg = slice.reduce((a, b) => a + b, 0) / period;
-    const variance = slice.reduce((sum, v) => sum + Math.pow(v - avg, 2), 0) / period;
+  for (let i = _period - 1; i < closes.length; i++) {
+    const slice = closes.slice(i - _period + 1, i + 1);
+    const avg = slice.reduce((a, b) => a + b, 0) / _period;
+    const variance = slice.reduce((sum, v) => sum + Math.pow(v - avg, 2), 0) / _period;
     const std = Math.sqrt(variance);
     mid.push({ time: times[i], value: avg });
-    upper.push({ time: times[i], value: avg + stdDev * std });
-    lower.push({ time: times[i], value: avg - stdDev * std });
+    upper.push({ time: times[i], value: avg + _stdDev * std });
+    lower.push({ time: times[i], value: avg - _stdDev * std });
   }
   return { mid, upper, lower };
 }
@@ -131,7 +131,7 @@ export class IndicatorOverlayManager {
   }
 
   /** 启用/更新 BOLL 指标 */
-  enableBOLL(period = 20, stdDev = 2) {
+  enableBOLL(_period = 20, _stdDev = 2) {
     if (!this.bollSeries) {
       const mid = this.chart.addLineSeries({
         color: BOLL_MID_COLOR,

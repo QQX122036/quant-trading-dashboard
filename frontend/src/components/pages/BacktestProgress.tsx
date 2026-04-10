@@ -28,7 +28,7 @@ export const BacktestProgress: Component<BacktestProgressProps> = (props) => {
   );
   const [_progress, setProgress] = createSignal(0);
   const [message, setMessage] = createSignal('等待启动...');
-  const [eta, setEta] = createSignal<number | null>(null);
+  const [eta, _setEta] = createSignal<number | null>(null);
   const [elapsed, setElapsed] = createSignal(0);
   const [startTime, setStartTime] = createSignal<number | null>(null);
 

@@ -80,17 +80,17 @@ export async function withLoading<T>(
 /**
  * 带重试回调的 loading 包装器
  */
-export async function withLoadingAndRetry<T>(
+export async function withLoadingAndRetry<_T>(
   module: string,
   key: string,
-  onRetry?: (attempt: number, delay: number) => void
+  _onRetry?: (attempt: number, delay: number) => void
 ): Promise<{
   act: <T2>(fn: () => Promise<T2>) => Promise<T2>;
 }> {
   return {
     act: async <T2>(fn: () => Promise<T2>) => {
       loadingActions.start(module, key);
-      let attempt = 0;
+      let _attempt = 0;
       try {
         const result = await fn();
         loadingActions.end(module);

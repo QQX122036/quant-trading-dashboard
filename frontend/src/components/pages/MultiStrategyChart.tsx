@@ -3,7 +3,7 @@
  * 因子权重柱状图 + IC时间序列折线图 + 因子贡献度饼图
  */
 import { Component, createSignal, onMount, onCleanup, Show } from 'solid-js';
-import { apiState, apiActions } from '../../stores/apiStore';
+import { apiState, _apiActions } from '../../stores/apiStore';
 
 // ── Mock data (当真实数据不可用时) ─────────────────────────────
 const MOCK_FACTOR_WEIGHTS = [

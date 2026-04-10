@@ -281,7 +281,7 @@ function checkMemory(thresholds: Thresholds): PerfAlert[] {
 
 function checkErrorRate(
   tracker: ReturnType<typeof getErrorTracker>,
-  thresholds: Thresholds
+  _thresholds: Thresholds
 ): PerfAlert[] {
   const alerts: PerfAlert[] = [];
   const now = Date.now();
@@ -340,7 +340,7 @@ export const PerformanceAlerts: Component<Props> = (props) => {
 
   function refreshAlerts() {
     const metrics = monitor.getMetrics();
-    const now = Date.now();
+    const _now = Date.now();
 
     const newAlerts: PerfAlert[] = [
       ...checkWebVitals(metrics.webVitals, thresholds),
@@ -393,7 +393,7 @@ export const PerformanceAlerts: Component<Props> = (props) => {
     setAcknowledged(new Set(alerts().map((a) => a.id)));
   }
 
-  function dismiss(id: string) {
+  function _dismiss(id: string) {
     setAlerts((prev) => prev.filter((a) => a.id !== id));
   }
 

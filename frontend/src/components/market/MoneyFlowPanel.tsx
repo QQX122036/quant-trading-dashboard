@@ -271,7 +271,7 @@ export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
   };
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+    const _ec = (await import('@/lib/echarts')).default;
     initChart();
     fetchData();
     refreshTimer = setInterval(fetchData, 60 * 1000);

@@ -11,18 +11,10 @@
 import { Component, createSignal, createEffect, onMount } from 'solid-js';
 import type { Time } from 'lightweight-charts';
 import type { DailyBar } from '../../../hooks/useApi';
-import { isSuccessCode } from '../../../hooks/useApi';
+
 import { useKlineChart } from './useKlineChart';
 import { KlineControls } from './KlineControls';
 import { KlineOverlay } from './KlineOverlay';
-
-interface Signal {
-  time: Time;
-  position: 'aboveBar' | 'belowBar';
-  shape: 'arrowUp' | 'arrowDown' | 'circle';
-  color: string;
-  text: string;
-}
 
 export interface KlineChartProps {
   symbol?: string;
@@ -40,11 +32,11 @@ export interface KlineChartProps {
 }
 
 // A股红涨绿跌配色
-const UP_COLOR = '#EF4444';
-const DOWN_COLOR = '#22C55E';
-const MA5_COLOR = '#3B82F6';
-const MA10_COLOR = '#F59E0B';
-const MA20_COLOR = '#8B5CF6';
+const _UP_COLOR = '#EF4444';
+const _DOWN_COLOR = '#22C55E';
+const _MA5_COLOR = '#3B82F6';
+const _MA10_COLOR = '#F59E0B';
+const _MA20_COLOR = '#8B5CF6';
 
 export const KlineChart: Component<KlineChartProps> = (props) => {
   let containerRef: HTMLDivElement | undefined;

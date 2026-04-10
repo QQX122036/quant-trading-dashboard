@@ -2,7 +2,7 @@
  * Crosshair.tsx — 十字光标管理
  * 职责：十字光标样式配置、多图表同步、十字光标位置管理
  */
-import { Component, createSignal, onCleanup, createEffect } from 'solid-js';
+import { Component, onCleanup, createEffect } from 'solid-js';
 import { IChartApi, ISeriesApi, Time, CrosshairMode } from 'lightweight-charts';
 
 export interface CrosshairOptions {

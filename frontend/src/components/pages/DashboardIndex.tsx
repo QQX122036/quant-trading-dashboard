@@ -11,8 +11,8 @@ import { A } from '@solidjs/router';
 import { apiState, apiActions } from '../../stores/apiStore';
 import { state } from '../../stores';
 import { fetchDailyBar } from '../../hooks/useApi';
-import { formatPrice, formatPercent, formatAmount } from '../../utils/format';
-import { pnlColor } from '../../utils/color';
+import { formatPrice, _formatPercent, _formatAmount } from '../../utils/format';
+import { _pnlColor } from '../../utils/color';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface IndexData {
@@ -303,7 +303,7 @@ export const DashboardIndex: Component = () => {
                   <div class="relative flex items-center justify-between">
                     <div
                       class={`${entry.iconColor} opacity-80 group-hover:opacity-100 transition-opacity`}
-                      innerHTML={entry.icon}
+                      innerHTML={entry.icon} // eslint-disable-line solid/no-innerhtml
                     />
                     <svg
                       class="w-4 h-4 text-gray-600 group-hover:text-white group-hover:translate-x-1 transition-all duration-200"

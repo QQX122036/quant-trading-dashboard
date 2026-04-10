@@ -25,9 +25,7 @@ import { calculateMACD } from './IndicatorChart';
 import { logger } from '../../lib/logger';
 
 // ── Sub-components ────────────────────────────────────────────────────────────
-import { VolumePanel } from './VolumePanel';
-import { IndicatorOverlay, type IndicatorConfig } from './IndicatorOverlay';
-import { Crosshair, CrosshairManager } from './Crosshair';
+import { CrosshairManager } from './Crosshair';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -154,7 +152,7 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
   const [timeframe, setTimeframe] = createSignal<'1D' | '1W' | '1M'>('1D');
   const [visibleCount, setVisibleCount] = createSignal(0);
   const [totalCount, setTotalCount] = createSignal(0);
-  const [currentPrice, setCurrentPrice] = createSignal<number>(0);
+  const [_currentPrice, setCurrentPrice] = createSignal<number>(0);
 
   // ── Visible range tracking ────────────────────────────────────────────────
 
@@ -515,7 +513,7 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
         if (chart) {
           try {
             chart.remove();
-          } catch (e) {
+          } catch (_e) {
             console.debug('[KlineChart] Chart already disposed');
           }
         }

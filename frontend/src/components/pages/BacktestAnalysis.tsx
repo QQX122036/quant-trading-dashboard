@@ -15,11 +15,11 @@ type ViewMode = 'config' | 'progress' | 'result';
 
 export const BacktestAnalysis: Component = () => {
   const [viewMode, setViewMode] = createSignal<ViewMode>('config');
-  const [taskId, _setTaskId] = createSignal<string>('');
+  const [_taskId, _setTaskId] = createSignal<string>('');
 
   // Load backtest tasks on mount
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+    const _ec = (await import('@/lib/echarts')).default;
     apiActions.fetchBacktestTasks();
   });
 

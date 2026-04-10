@@ -243,7 +243,7 @@ export const NewsSentiment: Component = () => {
   const [activeTab, setActiveTab] = createSignal<'news' | 'announcements'>('news');
   const [annType, setAnnType] = createSignal<string>('');
   const [realtimeNews, setRealtimeNews] = createSignal<NewsItem | null>(null);
-  const [toastVisible, setToastVisible] = createSignal(false);
+  const [_toastVisible, setToastVisible] = createSignal(false);
   const [toastTimer, setToastTimer] = createSignal<ReturnType<typeof setTimeout> | null>(null);
 
   const ANN_TYPES = ['', '业绩预告', '年报', '分红', '并购', '股权变动', '其他'];
@@ -304,7 +304,7 @@ export const NewsSentiment: Component = () => {
         setSummary(sentRes.value.data.summary);
         setNews(sentRes.value.data.news || []);
       }
-    } catch (e) {
+    } catch (_e) {
       // 使用默认数据
       setSummary({
         ts_code: tsCode(),
@@ -336,7 +336,7 @@ export const NewsSentiment: Component = () => {
   }
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+    const _ec = (await import('@/lib/echarts')).default;
     loadData();
     loadAnnouncements();
     setupWS();

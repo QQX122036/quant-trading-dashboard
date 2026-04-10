@@ -16,7 +16,7 @@ export const ErrorChild: Component = () => {
 
 // Child that throws after mount — for testing error boundary catches async errors
 export const AsyncErrorChild: Component = () => {
-  const [, setTick] = createSignal(0);
+  const [_tick, _setTick] = createSignal(0);
   onMount(() => {
     // Delay error to after mount so boundary is established first
     setTimeout(() => {

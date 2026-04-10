@@ -4,12 +4,7 @@
  */
 import { createSignal, createEffect } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
-import {
-  login as apiLogin,
-  logout as apiLogout,
-  getAuthToken,
-  clearAuthToken,
-} from '../hooks/useApi';
+import { login as apiLogin, logout as apiLogout, getAuthToken } from '../hooks/useApi';
 
 // ── Types ─────────────────────────────────────────────────
 

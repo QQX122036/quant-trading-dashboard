@@ -6,7 +6,7 @@ import { PositionMonitor } from '../monitors/PositionMonitor';
 import { AccountMonitor } from '../monitors/AccountMonitor';
 import { CustomIndicatorEditor } from '../dialogs/CustomIndicatorEditor';
 import { apiFetch } from '../../hooks/useApi';
-import type { DailyBar, KLineBar } from '../../hooks/useApi';
+import type { DailyBar } from '../../hooks/useApi';
 
 type Indicator = 'MACD' | 'RSI' | 'KDJ' | 'BOLL';
 

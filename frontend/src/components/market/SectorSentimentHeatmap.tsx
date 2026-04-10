@@ -3,7 +3,7 @@
  * ECharts 热力图展示各行业板块情绪分布
  * 颜色映射：绿色(负面) → 黄色(中性) → 红色(正面)
  */
-import { Component, createSignal, onMount, onCleanup, For, Show, createMemo } from 'solid-js';
+import { Component, createSignal, onMount, onCleanup, _For, Show, createMemo } from 'solid-js';
 import { apiFetch } from '../../hooks/useApi';
 
 export interface SectorSentimentItem {
@@ -58,7 +58,7 @@ export const SectorSentimentHeatmap: Component<SectorSentimentHeatmapProps> = (p
       .slice(0, maxItems());
 
     const sectorNames = sorted.map((s) => s.sector_name);
-    const scoreValues = sorted.map((s) => s.sentiment_score);
+    const _scoreValues = sorted.map((s) => s.sentiment_score);
 
     // Build heatmap data: [sectorIndex, 0, score]
     const heatmapData = sorted.map((s, i) => [i, 0, s.sentiment_score]);
@@ -258,7 +258,7 @@ export const SectorSentimentHeatmap: Component<SectorSentimentHeatmapProps> = (p
   });
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+    const _ec = (await import('@/lib/echarts')).default;
     fetchData();
     const timer = setInterval(fetchData, 60 * 1000);
     onCleanup(() => {

@@ -194,7 +194,7 @@ export const OrderMonitor: Component = () => {
     return s.desc ? '↓' : '↑';
   };
 
-  const alignClass = (col: ReturnType<typeof helper.accessor> | undefined) => {
+  const _alignClass = (col: ReturnType<typeof helper.accessor> | undefined) => {
     // @ts-ignore
     const align = col?.meta?.align as string | undefined;
     if (align === 'center') return 'text-center';

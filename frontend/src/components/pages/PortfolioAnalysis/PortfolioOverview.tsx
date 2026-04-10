@@ -23,7 +23,7 @@ import { fetchPositions, fetchAccounts, fetchEquityCurve } from '../../../hooks/
 import { fetchDailyBar } from '../../../hooks/useApi';
 import type { PositionData, AccountData } from '../../../types/vnpy';
 import type { EquityCurvePoint } from '../../../hooks/useApi';
-import { formatPercent, formatPnl, formatAmount } from '@/utils/format';
+import { _formatPercent, _formatPnl, _formatAmount } from '@/utils/format';
 
 // ── Chart refs ─────────────────────────────────────────────
 type EChartsInstance = echarts.ECharts;
@@ -273,7 +273,7 @@ function initEquityChart(el: HTMLElement, curve: EquityCurvePoint[], initialBala
         let html = `<div style="font-size:12px;font-weight:600;margin-bottom:4px">${date}</div>`;
         for (const p of params) {
           const sign = p.value >= 0 ? '+' : '';
-          const color = p.seriesName === '策略权益' ? '#60A5FA' : '#F59E0B';
+          const _color = p.seriesName === '策略权益' ? '#60A5FA' : '#F59E0B';
           html += `<div style="display:flex;justify-content:space-between;gap:12px">
             <span style="color:${p.color}">${p.seriesName}</span>
             <span style="color:#F3F4F6">${sign}${formatMarketCap(p.value)}</span>
@@ -407,7 +407,7 @@ const PositionModal: Component<PositionModalProps> = (props) => {
   const mv = () => props.position.volume * (props.position.price || 0);
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+    const _ec = (await import('@/lib/echarts')).default;
     setLoadingHistory(true);
     try {
       const tsCode = props.position.symbol.includes('.')
@@ -737,7 +737,7 @@ export const PortfolioOverview: Component = () => {
 
   // ── Lifecycle ───────────────────────────────────────────
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+    const _ec = (await import('@/lib/echarts')).default;
     loadPositions();
     loadEquityCurve();
     window.addEventListener('resize', resizeAllCharts);

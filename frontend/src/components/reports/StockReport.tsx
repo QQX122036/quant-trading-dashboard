@@ -4,7 +4,7 @@
  */
 import { Component, createSignal, Show, onMount, onCleanup, createEffect } from 'solid-js';
 import { logger } from '../../lib/logger';
-import { exportEchartsToPdf, type ExportPdfOptions } from '../../utils/pdfExport';
+import { exportEchartsToPdf, type _ExportPdfOptions } from '../../utils/pdfExport';
 
 interface StockProfile {
   code: string;
@@ -54,7 +54,7 @@ interface RiskMetrics {
   var95: number;
 }
 
-interface StockReportData {
+interface _StockReportData {
   profile: StockProfile;
   financials: FinancialSummary;
   moneyFlow: MoneyFlow;

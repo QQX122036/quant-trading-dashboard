@@ -6,7 +6,7 @@ const HEADER_WIDTHS = [90, 60, 55, 65, 55, 55, 90, 60, 90];
 const ROW_WIDTHS = [90, 60, 55, 65, 55, 55, 90, 60, 90];
 
 // ── Account summary field widths (matches AccountMonitor columns) ─────────────────
-const ACCOUNT_FIELD_LABELS = ['账号', '网关', '总权益', '可用资金', '冻结资金', '当日盈亏'];
+const _ACCOUNT_FIELD_LABELS = ['账号', '网关', '总权益', '可用资金', '冻结资金', '当日盈亏'];
 
 export const PositionSkeleton: Component = () => {
   return (

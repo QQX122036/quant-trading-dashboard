@@ -15,7 +15,7 @@ import {
 } from 'lightweight-charts';
 import { fetchDailyBar, isSuccessCode, type DailyBar } from '../../../hooks/useApi';
 import { calculateMACD } from '../IndicatorChart';
-import { logger } from '../../../lib/logger';
+import { _logger } from '../../../lib/logger';
 
 export const UP_COLOR = '#EF4444';
 export const DOWN_COLOR = '#22C55E';
@@ -432,7 +432,7 @@ export function useKlineChart(
       if (chart) {
         try {
           chart.remove();
-        } catch (e) {
+        } catch (_e) {
           console.debug('[KlineChart] Chart already disposed');
         }
       }

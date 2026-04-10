@@ -238,7 +238,7 @@ export const SentimentMarketCompare: Component<SentimentMarketCompareProps> = (p
   });
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+    const _ec = (await import('@/lib/echarts')).default;
     fetchData();
     const timer = setInterval(fetchData, 60 * 1000);
     onCleanup(() => {

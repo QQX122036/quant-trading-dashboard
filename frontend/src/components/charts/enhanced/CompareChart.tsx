@@ -3,14 +3,7 @@
  * 职责：归一化多股票K线叠加对比（独立图表实例）
  */
 import { Component, Show, For, onMount, onCleanup, createEffect } from 'solid-js';
-import {
-  createChart,
-  IChartApi,
-  ISeriesApi,
-  LineData,
-  Time,
-  CrosshairMode,
-} from 'lightweight-charts';
+import { createChart, IChartApi, CrosshairMode } from 'lightweight-charts';
 import type { ComparedStock } from './EnhancedKlineChart';
 import { adjustBars, normalizeToStart } from './chartUtils';
 
@@ -53,8 +46,8 @@ export const CompareChart: Component<CompareChartProps> = (props) => {
   createEffect(() => {
     if (!chart || !props.show) return;
     // Add main stock normalized line
-    const adjBars = adjustBars(props.bars, props.adjustType);
-    const mainNormalized = normalizeToStart(adjBars);
+    const _adjBars = adjustBars(props.bars, props.adjustType);
+    const _mainNormalized = normalizeToStart(_adjBars);
     // We use a simple approach: just show compared stocks, main stock shown in parent chart
   });
 

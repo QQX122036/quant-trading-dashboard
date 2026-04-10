@@ -1,7 +1,7 @@
 /**
  * chartUtils.ts — K线图表共享工具函数
  */
-import { CandlestickData, LineData, HistogramData, Time } from 'lightweight-charts';
+import { CandlestickData, LineData, Time } from 'lightweight-charts';
 import type { DailyBar } from '../../../hooks/useApi';
 
 export const UP_COLOR = '#EF4444';

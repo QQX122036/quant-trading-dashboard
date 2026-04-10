@@ -1,10 +1,10 @@
-import { Component, createEffect, onMount, onCleanup } from 'solid-js';
+import { Component, _createEffect, onMount, onCleanup } from 'solid-js';
 import { actions } from '../../stores';
 
 export const ConnectDialog: Component = () => {
   let dialogRef: HTMLDivElement | undefined;
   let firstFocusableRef: HTMLButtonElement | HTMLInputElement | undefined;
-  let lastFocusableRef: HTMLButtonElement | undefined;
+  let _lastFocusableRef: HTMLButtonElement | undefined;
 
   onMount(() => {
     // Focus trap: store first and last focusable elements
@@ -12,7 +12,7 @@ export const ConnectDialog: Component = () => {
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
     const focusableEls = dialogRef?.querySelectorAll<HTMLElement>(focusableSelectors);
     firstFocusableRef = focusableEls?.[0] as HTMLButtonElement | HTMLInputElement;
-    lastFocusableRef = focusableEls?.[focusableEls.length - 1] as HTMLButtonElement;
+    _lastFocusableRef = focusableEls?.[focusableEls.length - 1] as HTMLButtonElement;
 
     // Focus the first interactive element
     firstFocusableRef?.focus();

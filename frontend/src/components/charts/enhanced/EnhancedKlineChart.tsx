@@ -54,7 +54,7 @@ export const EnhancedKlineChart: Component<EnhancedKlineChartProps> = (props) =>
   const [totalCount, setTotalCount] = createSignal(0);
   const [selectingRange, setSelectingRange] = createSignal(false);
   const [rangeStart, setRangeStart] = createSignal<{ time: Time; price: number } | null>(null);
-  const [rangeSelection, setRangeSelection] = createSignal<{
+  const [_rangeSelection, setRangeSelection] = createSignal<{
     fromIndex: number;
     toIndex: number;
     fromTime: Time;

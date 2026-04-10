@@ -155,7 +155,7 @@ export async function apiFetch<T>(
 
 async function _rawFetch<T>(path: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   const url = path.startsWith('http') ? path : `${BASE_URL}${path}`;
-  const token = getAuthToken();
+  const _token = getAuthToken();
   const startTime = Date.now();
   logger.debug(`[API] ${options.method ?? 'GET'} ${path}`);
   const headers = new Headers({

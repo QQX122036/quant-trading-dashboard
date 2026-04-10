@@ -33,7 +33,7 @@ function getRating(value: number, name: string): 'good' | 'needs-improvement' | 
 
 async function reportMetric(metric: Metric): Promise<void> {
   const rating = getRating(metric.value, metric.name);
-  const msg = `[WebVitals] ${metric.name}: ${metric.value.toFixed(2)} (${rating})`;
+  const _msg = `[WebVitals] ${metric.name}: ${metric.value.toFixed(2)} (${rating})`;
 
   logger.debug(`[WebVitals] ${metric.name}: ${metric.value.toFixed(2)} (${rating})`, {
     delta: metric.delta.toFixed(2),

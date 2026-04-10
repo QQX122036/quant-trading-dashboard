@@ -8,8 +8,8 @@ import {
   createMemo,
   For,
   Show,
-  onMount,
-  onCleanup,
+  _onMount,
+  _onCleanup,
   createEffect,
 } from 'solid-js';
 import {

@@ -9,7 +9,7 @@
  * 组合原因：三者都是纯 DEV 工具，且常同时使用，
  * 合并为单个 chunk 可避免小块碎片化。
  */
-import { Component, lazy, Suspense } from 'solid-js';
+import { Component, Suspense } from 'solid-js';
 import { ErrorTrackerPanel } from '../common/ErrorTrackerPanel';
 import { PerformanceAlerts, VitalBadge } from './PerformanceAlerts';
 

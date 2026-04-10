@@ -25,7 +25,7 @@ import { MoneyFlowPanel } from '../market/MoneyFlowPanel';
 import { SectorMoneyFlow } from '../market/SectorMoneyFlow';
 
 export const SentimentPage: Component = () => {
-  const [tsCode, setTsCode] = createSignal('000001.SH');
+  const [tsCode, _setTsCode] = createSignal('000001.SH');
   const [indexCode, setIndexCode] = createSignal('000001.SH');
 
   return (
