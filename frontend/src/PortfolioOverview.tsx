@@ -19,6 +19,7 @@ import {
   createEffect,
   on,
 } from 'solid-js';
+import echarts from '@/lib/echarts';
 import { fetchPositions, fetchAccounts, fetchEquityCurve } from '../../../hooks/useApi';
 import { fetchDailyBar } from '../../../hooks/useApi';
 import type { PositionData, AccountData } from '../../../types/vnpy';
@@ -101,7 +102,7 @@ function initPieChart(el: HTMLElement, data: { name: string; value: number }[]) 
       pieChart.dispose();
     } catch {}
   }
-  pieChart = ec.init(el, 'dark');
+  pieChart = echarts.init(el, 'dark');
   pieChart.setOption({
     backgroundColor: 'transparent',
     tooltip: {
@@ -147,7 +148,7 @@ function initBarChart(el: HTMLElement, data: { name: string; value: number; colo
       barChart.dispose();
     } catch {}
   }
-  barChart = ec.init(el, 'dark');
+  barChart = echarts.init(el, 'dark');
   barChart.setOption({
     backgroundColor: 'transparent',
     tooltip: {
@@ -196,7 +197,7 @@ function initRadarChart(el: HTMLElement, values: number[]) {
       radarChart.dispose();
     } catch {}
   }
-  radarChart = ec.init(el, 'dark');
+  radarChart = echarts.init(el, 'dark');
   radarChart.setOption({
     backgroundColor: 'transparent',
     tooltip: {
@@ -239,7 +240,7 @@ function initEquityChart(el: HTMLElement, curve: EquityCurvePoint[], initialBala
       equityChart.dispose();
     } catch {}
   }
-  equityChart = ec.init(el, 'dark');
+  equityChart = echarts.init(el, 'dark');
 
   if (!curve || curve.length === 0) {
     // Generate placeholder from initial balance
@@ -310,7 +311,7 @@ function initEquityChart(el: HTMLElement, curve: EquityCurvePoint[], initialBala
         lineStyle: { color: '#60A5FA', width: 2 },
         itemStyle: { color: '#60A5FA' },
         areaStyle: {
-          color: new ec.graphic.LinearGradient(0, 0, 0, 1, [
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: 'rgba(96,165,250,0.3)' },
             { offset: 1, color: 'rgba(96,165,250,0.02)' },
           ]),
@@ -407,7 +408,6 @@ const PositionModal: Component<PositionModalProps> = (props) => {
   const mv = () => props.position.volume * (props.position.price || 0);
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
     setLoadingHistory(true);
     try {
       const tsCode = props.position.symbol.includes('.')
@@ -442,7 +442,7 @@ const PositionModal: Component<PositionModalProps> = (props) => {
     }
     if (history.length === 0) return;
 
-    priceChart = ec.init(chartRef, 'dark');
+    priceChart = echarts.init(chartRef, 'dark');
     priceChart.setOption({
       backgroundColor: 'transparent',
       tooltip: {
@@ -473,7 +473,7 @@ const PositionModal: Component<PositionModalProps> = (props) => {
           lineStyle: { color: '#60A5FA', width: 2 },
           itemStyle: { color: '#60A5FA' },
           areaStyle: {
-            color: new ec.graphic.LinearGradient(0, 0, 0, 1, [
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: 'rgba(96,165,250,0.25)' },
               { offset: 1, color: 'rgba(96,165,250,0.02)' },
             ]),
@@ -732,8 +732,7 @@ export const PortfolioOverview: Component = () => {
   }
 
   // ── Lifecycle ───────────────────────────────────────────
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+  onMount(() => {
     loadPositions();
     loadEquityCurve();
     window.addEventListener('resize', resizeAllCharts);

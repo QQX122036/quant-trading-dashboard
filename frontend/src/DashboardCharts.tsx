@@ -4,22 +4,24 @@
  * - 持仓收益分布饼图（按行业/按个股）
  */
 import { Component, createSignal, onMount, onCleanup } from 'solid-js';
+import type * as EChartsType from 'echarts/core';
+import type { ECharts } from 'echarts';
 
 export const DashboardCharts: Component = () => {
   let lineRef: HTMLDivElement | undefined;
   let pieRef: HTMLDivElement | undefined;
-  let lineChart: echarts.ECharts | null = null;
-  let pieChart: echarts.ECharts | null = null;
+  let lineChart: ECharts | null = null;
+  let pieChart: ECharts | null = null;
   const [mode, setMode] = createSignal<'line' | 'pie'>('line');
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
-    if (lineRef) {
-      lineChart = ec.init(lineRef, 'dark');
+    const _ec = await import('@/lib/echarts');
+    const echarts = _ec.default;    if (lineRef) {
+      lineChart = echarts.init(lineRef, 'dark');
       renderLineChart();
     }
     if (pieRef) {
-      pieChart = ec.init(pieRef, 'dark');
+      pieChart = echarts.init(pieRef, 'dark');
       renderPieChart();
     }
 
@@ -93,7 +95,7 @@ export const DashboardCharts: Component = () => {
             symbol: 'none',
             lineStyle: { color: '#3b82f6', width: 2 },
             areaStyle: {
-              color: new ec.graphic.LinearGradient(0, 0, 0, 1, [
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
                 { offset: 0, color: 'rgba(59,130,246,0.3)' },
                 { offset: 1, color: 'rgba(59,130,246,0)' },
               ]),

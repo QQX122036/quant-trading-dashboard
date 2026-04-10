@@ -7,6 +7,7 @@
  * Rho：利率敏感度（利率变动1%，期权价格变动）
  */
 import { Component, createSignal, createEffect, onMount, onCleanup, For } from 'solid-js';
+import echarts from '@/lib/echarts';
 
 interface GreeksData {
   delta: number; // 范围约 -1 到 1
@@ -117,10 +118,9 @@ const GreekCard: Component<{
   let chartRef: HTMLDivElement | undefined;
   let chart: echarts.ECharts | undefined;
 
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+  onMount(() => {
     if (!chartRef) return;
-    chart = ec.init(chartRef, 'dark');
+    chart = echarts.init(chartRef, 'dark');
     chart.setOption(
       createGaugeOption(
         props.value,
@@ -177,10 +177,9 @@ export const GreeksPanel: Component = () => {
   let thetaChartRef: HTMLDivElement | undefined;
   let thetaChart: echarts.ECharts | undefined;
 
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+  onMount(() => {
     if (!thetaChartRef) return;
-    thetaChart = ec.init(thetaChartRef, 'dark');
+    thetaChart = echarts.init(thetaChartRef, 'dark');
 
     // Theta decay chart: value vs time to expiration
     const daysToExp = Array.from({ length: 30 }, (_, i) => i);
@@ -222,7 +221,7 @@ export const GreeksPanel: Component = () => {
           lineStyle: { color: '#8B5CF6', width: 2 },
           itemStyle: { color: '#8B5CF6' },
           areaStyle: {
-            color: new ec.graphic.LinearGradient(0, 0, 0, 1, [
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: 'rgba(139,92,246,0.2)' },
               { offset: 1, color: 'rgba(139,92,246,0)' },
             ]),

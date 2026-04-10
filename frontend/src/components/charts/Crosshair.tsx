@@ -8,7 +8,6 @@ import {
   ISeriesApi,
   Time,
   CrosshairMode,
-  CrosshairPriceLineMode,
 } from 'lightweight-charts';
 
 export interface CrosshairOptions {
@@ -22,8 +21,6 @@ export interface CrosshairOptions {
   horzLineStyle?: 0 | 1 | 2 | 3 | 4;
   /** 标签背景色 */
   labelBackgroundColor?: string;
-  /** 是否显示价格线 */
-  priceLineMode?: CrosshairPriceLineMode;
 }
 
 export interface CrosshairSubscribeCallbacks {
@@ -37,7 +34,6 @@ const DEFAULT_OPTIONS: Required<CrosshairOptions> = {
   vertLineStyle: 2,
   horzLineStyle: 2,
   labelBackgroundColor: '#3B82F6',
-  priceLineMode: CrosshairPriceLineMode.LastVisibleValue,
 };
 
 /**

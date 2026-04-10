@@ -3,6 +3,7 @@
  * IC时间序列折线图、IR柱状图、相关性热力图
  */
 import { Component, createSignal, onMount, onCleanup, For, Show } from 'solid-js';
+import echarts from '@/lib/echarts';
 import {
   fetchFactorIC,
   fetchFactorIR,
@@ -112,7 +113,7 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
           lineStyle: { width: 2 },
           itemStyle: { color: '#3B82F6' },
           areaStyle: {
-            color: new ec.graphic.LinearGradient(0, 0, 0, 1, [
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: 'rgba(59,130,246,0.25)' },
               { offset: 1, color: 'rgba(59,130,246,0)' },
             ]),
@@ -180,11 +181,11 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
             itemStyle: {
               color:
                 v >= 0
-                  ? new ec.graphic.LinearGradient(0, 0, 0, 1, [
+                  ? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
                       { offset: 0, color: '#22C55E' },
                       { offset: 1, color: '#16A34A' },
                     ])
-                  : new ec.graphic.LinearGradient(0, 0, 0, 1, [
+                  : new echarts.graphic.LinearGradient(0, 0, 0, 1, [
                       { offset: 0, color: '#EF4444' },
                       { offset: 1, color: '#DC2626' },
                     ]),
@@ -312,11 +313,10 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
     }
   };
 
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
-    icChart = ec.init(icRef!, 'dark');
-    irChart = ec.init(irRef!, 'dark');
-    corrChart = ec.init(corrRef!, 'dark');
+  onMount(() => {
+    icChart = echarts.init(icRef!, 'dark');
+    irChart = echarts.init(irRef!, 'dark');
+    corrChart = echarts.init(corrRef!, 'dark');
 
     const ro = new ResizeObserver(() => {
       icChart?.resize();

@@ -3,6 +3,7 @@
  * 水平条形图 + 排名表格 + 跳转K线
  */
 import { Component, createSignal, onMount, onCleanup, For, Show } from 'solid-js';
+import echarts from '@/lib/echarts';
 import { useNavigate } from '@solidjs/router';
 import { fetchMultiFactorScores, type MultiFactorScore } from '../../hooks/useApi';
 
@@ -116,9 +117,8 @@ export const MultiFactorChart: Component<MultiFactorChartProps> = (props) => {
     }
   };
 
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
-    barChart = ec.init(barRef!, 'dark');
+  onMount(() => {
+    barChart = echarts.init(barRef!, 'dark');
     const ro = new ResizeObserver(() => barChart?.resize());
     if (barRef) ro.observe(barRef);
 

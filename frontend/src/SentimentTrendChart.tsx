@@ -4,6 +4,7 @@
  * 支持多指标叠加显示
  */
 import { Component, createSignal, onMount, onCleanup, createMemo } from 'solid-js';
+import echarts from '@/lib/echarts';
 import { apiFetch } from '../../hooks/useApi';
 
 export interface SentimentTrendItem {
@@ -150,10 +151,9 @@ export const SentimentTrendChart: Component<SentimentTrendChartProps> = (props) 
     };
   };
 
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+  onMount(() => {
     if (!ref) return;
-    chart = ec.init(ref, undefined, { renderer: 'canvas' });
+    chart = echarts.init(ref, undefined, { renderer: 'canvas' });
     if (!chart) return;
     chart.setOption(buildOption(data()));
     const ro = new ResizeObserver(() => chart?.resize());
@@ -205,8 +205,7 @@ export const SentimentTrendChart: Component<SentimentTrendChartProps> = (props) 
     }
   });
 
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+  onMount(() => {
     fetchData();
     const timer = setInterval(fetchData, 60 * 1000);
     onCleanup(() => {

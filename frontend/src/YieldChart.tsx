@@ -1,4 +1,6 @@
 import { Component, onMount, onCleanup, createEffect } from 'solid-js';
+import type * as EChartsType from 'echarts/core';
+import type { ECharts } from 'echarts';
 
 export interface YieldChartProps {
   equityCurve?: Array<{ date: string; equity: number; benchmark: number }>;
@@ -7,7 +9,7 @@ export interface YieldChartProps {
 
 export const YieldChart: Component<YieldChartProps> = (props) => {
   let containerRef: HTMLDivElement | undefined;
-  let chart: echarts.ECharts | undefined;
+  let chart: ECharts | undefined;
 
   const getOption = (): echarts.EChartsCoreOption => {
     const curve = props.equityCurve;
@@ -95,7 +97,7 @@ export const YieldChart: Component<YieldChartProps> = (props) => {
           lineStyle: { color: '#3B82F6', width: 2 },
           itemStyle: { color: '#3B82F6' },
           areaStyle: {
-            color: new ec.graphic.LinearGradient(0, 0, 0, 1, [
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: 'rgba(59, 130, 246, 0.3)' },
               { offset: 1, color: 'rgba(59, 130, 246, 0)' },
             ]),
@@ -135,9 +137,9 @@ export const YieldChart: Component<YieldChartProps> = (props) => {
   });
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
-    if (!containerRef) return;
-    chart = ec.init(containerRef, 'dark');
+    const _ec = await import('@/lib/echarts');
+    const echarts = _ec.default;    if (!containerRef) return;
+    chart = echarts.init(containerRef, 'dark');
     chart.setOption(getOption());
 
     const resizeObserver = new ResizeObserver(() => chart?.resize());

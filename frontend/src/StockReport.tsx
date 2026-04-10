@@ -3,6 +3,7 @@
  * 支持一键导出PDF
  */
 import { Component, createSignal, Show, onMount, onCleanup, createEffect } from 'solid-js';
+import echarts from '@/lib/echarts';
 import { logger } from '../../lib/logger';
 import { exportEchartsToPdf, type ExportPdfOptions } from '../../utils/pdfExport';
 
@@ -94,11 +95,10 @@ export const StockReport: Component<StockReportProps> = (props) => {
   const moneyFlow = () => props.moneyFlow;
   const riskMetrics = () => props.riskMetrics;
 
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
-    klineChart = ec.init(klineRef!, 'dark');
-    volumeChart = ec.init(volumeRef!, 'dark');
-    moneyFlowChart = ec.init(moneyFlowRef!, 'dark');
+  onMount(() => {
+    klineChart = echarts.init(klineRef!, 'dark');
+    volumeChart = echarts.init(volumeRef!, 'dark');
+    moneyFlowChart = echarts.init(moneyFlowRef!, 'dark');
 
     const ro = new ResizeObserver(() => {
       klineChart?.resize();

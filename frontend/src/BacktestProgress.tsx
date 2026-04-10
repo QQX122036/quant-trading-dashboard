@@ -3,6 +3,8 @@
  * ECharts进度条、ETA倒计时、轮询状态、完成跳转
  */
 import { Component, createSignal, onCleanup, Show, createEffect } from 'solid-js';
+import type * as EChartsType from 'echarts/core';
+import type { ECharts } from 'echarts';
 import { useNavigate } from '@solidjs/router';
 import { getBacktestProgress, getBacktestResult } from '../../hooks/useApi';
 
@@ -20,7 +22,7 @@ const _ESTIMATES: Record<string, number> = {
 
 export const BacktestProgress: Component<BacktestProgressProps> = (props) => {
   let containerRef: HTMLDivElement | undefined;
-  let chart: echarts.ECharts | undefined;
+  let chart: ECharts | undefined;
   const navigate = useNavigate();
 
   const [status, setStatus] = createSignal<'pending' | 'running' | 'completed' | 'failed'>(

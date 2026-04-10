@@ -3,6 +3,7 @@
  * 因子权重柱状图 + IC时间序列折线图 + 因子贡献度饼图
  */
 import { Component, createSignal, onMount, onCleanup, Show } from 'solid-js';
+import echarts from '@/lib/echarts';
 import { apiState, apiActions } from '../../stores/apiStore';
 
 // ── Mock data (当真实数据不可用时) ─────────────────────────────
@@ -95,7 +96,7 @@ export const MultiStrategyChart: Component = () => {
         data: data.map((d) => ({
           value: d.weight,
           itemStyle: {
-            color: new ec.graphic.LinearGradient(0, 0, 1, 0, [
+            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
               { offset: 0, color: d.color },
               { offset: 1, color: `${d.color}99` },
             ]),
@@ -193,7 +194,7 @@ export const MultiStrategyChart: Component = () => {
           lineStyle: { width: 2, color: '#3B82F6' },
           itemStyle: { color: '#3B82F6' },
           areaStyle: {
-            color: new ec.graphic.LinearGradient(0, 0, 0, 1, [
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: 'rgba(59,130,246,0.25)' },
               { offset: 1, color: 'rgba(59,130,246,0)' },
             ]),
@@ -336,11 +337,10 @@ export const MultiStrategyChart: Component = () => {
     }
   };
 
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
-    weightChart = ec.init(weightRef!, 'dark');
-    icChart = ec.init(icRef!, 'dark');
-    contribChart = ec.init(contribRef!, 'dark');
+  onMount(() => {
+    weightChart = echarts.init(weightRef!, 'dark');
+    icChart = echarts.init(icRef!, 'dark');
+    contribChart = echarts.init(contribRef!, 'dark');
 
     const ro = new ResizeObserver(() => {
       weightChart?.resize();

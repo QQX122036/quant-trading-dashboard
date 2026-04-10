@@ -3,6 +3,8 @@
  * 收益率曲线 + 回撤分析 + 月度收益热力图
  */
 import { Component, createSignal, For, Show, onMount, onCleanup, createEffect } from 'solid-js';
+import type * as EChartsType from 'echarts/core';
+import type { ECharts } from 'echarts';
 import { apiState, setApiState, apiActions } from '../../stores/apiStore';
 import type { BacktestResult } from '../../hooks/useApi';
 
@@ -19,8 +21,8 @@ export const BacktestAnalysis: Component = () => {
 
   // Load backtest tasks on mount
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
-    apiActions.fetchBacktestTasks();
+    const _ec = await import('@/lib/echarts');
+    const echarts = _ec.default;    apiActions.fetchBacktestTasks();
   });
 
   onCleanup(() => {
@@ -31,9 +33,9 @@ export const BacktestAnalysis: Component = () => {
   let equityRef: HTMLDivElement | undefined;
   let drawdownRef: HTMLDivElement | undefined;
   let monthlyRef: HTMLDivElement | undefined;
-  let equityChart: echarts.ECharts | undefined;
-  let drawdownChart: echarts.ECharts | undefined;
-  let monthlyChart: echarts.ECharts | undefined;
+  let equityChart: ECharts | undefined;
+  let drawdownChart: ECharts | undefined;
+  let monthlyChart: ECharts | undefined;
 
   // ── Equity + Benchmark Chart ────────────────────────────────
   const buildEquityOption = (
@@ -106,7 +108,7 @@ export const BacktestAnalysis: Component = () => {
           lineStyle: { color: '#3B82F6', width: 2 },
           itemStyle: { color: '#3B82F6' },
           areaStyle: {
-            color: new ec.graphic.LinearGradient(0, 0, 0, 1, [
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: 'rgba(59,130,246,0.3)' },
               { offset: 1, color: 'rgba(59,130,246,0)' },
             ]),
@@ -211,7 +213,7 @@ export const BacktestAnalysis: Component = () => {
           lineStyle: { color: '#EF4444', width: 1.5 },
           itemStyle: { color: '#EF4444' },
           areaStyle: {
-            color: new ec.graphic.LinearGradient(0, 0, 0, 1, [
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: 'rgba(239,68,68,0.3)' },
               { offset: 1, color: 'rgba(239,68,68,0)' },
             ]),
@@ -343,10 +345,10 @@ export const BacktestAnalysis: Component = () => {
   };
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
-    equityChart = ec.init(equityRef!, 'dark');
-    drawdownChart = ec.init(drawdownRef!, 'dark');
-    monthlyChart = ec.init(monthlyRef!, 'dark');
+    const _ec = await import('@/lib/echarts');
+    const echarts = _ec.default;    equityChart = echarts.init(equityRef!, 'dark');
+    drawdownChart = echarts.init(drawdownRef!, 'dark');
+    monthlyChart = echarts.init(monthlyRef!, 'dark');
 
     const ro = new ResizeObserver(() => {
       equityChart?.resize();

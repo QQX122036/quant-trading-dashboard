@@ -4,7 +4,6 @@
  * 对标同花顺/东方财富 情绪温度计功能
  */
 import { Component, createSignal, onMount, onCleanup, createMemo } from 'solid-js';
-import echarts from '@/lib/echarts';
 import { apiFetch } from '../../hooks/useApi';
 
 export interface CompareItem {
@@ -174,9 +173,10 @@ export const SentimentMarketCompare: Component<SentimentMarketCompareProps> = (p
     };
   };
 
-  onMount(() => {
+  onMount(async () => {
+    const ec = (await import('@/lib/echarts')).default;
     if (!ref) return;
-    chart = echarts.init(ref, undefined, { renderer: 'canvas' });
+    chart = ec.init(ref, undefined, { renderer: 'canvas' });
     if (!chart) return;
     chart.setOption(buildOption(data()));
     const ro = new ResizeObserver(() => chart?.resize());
@@ -237,7 +237,8 @@ export const SentimentMarketCompare: Component<SentimentMarketCompareProps> = (p
     }
   });
 
-  onMount(() => {
+  onMount(async () => {
+    const ec = (await import('@/lib/echarts')).default;
     fetchData();
     const timer = setInterval(fetchData, 60 * 1000);
     onCleanup(() => {

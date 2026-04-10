@@ -4,6 +4,7 @@
  * 颜色映射：绿色(负面) → 黄色(中性) → 红色(正面)
  */
 import { Component, createSignal, onMount, onCleanup, For, Show, createMemo } from 'solid-js';
+import echarts from '@/lib/echarts';
 import { apiFetch } from '../../hooks/useApi';
 
 export interface SectorSentimentItem {
@@ -175,10 +176,9 @@ export const SectorSentimentHeatmap: Component<SectorSentimentHeatmapProps> = (p
     };
   };
 
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+  onMount(() => {
     if (!ref) return;
-    chart = ec.init(ref, undefined, { renderer: 'canvas' });
+    chart = echarts.init(ref, undefined, { renderer: 'canvas' });
     if (!chart) return;
     chart.setOption(buildOption(data()));
     const ro = new ResizeObserver(() => chart?.resize());
@@ -257,8 +257,7 @@ export const SectorSentimentHeatmap: Component<SectorSentimentHeatmapProps> = (p
     }
   });
 
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+  onMount(() => {
     fetchData();
     const timer = setInterval(fetchData, 60 * 1000);
     onCleanup(() => {

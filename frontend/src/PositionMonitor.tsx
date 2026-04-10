@@ -6,6 +6,8 @@ import {
   getCoreRowModel,
   getSortedRowModel,
 } from '@tanstack/solid-table';
+import type * as EChartsType from 'echarts/core';
+import type { ECharts } from 'echarts';
 import { state } from '../../stores';
 import { useMarketWS } from '../../hooks/useWebSocket';
 import { fetchPositions } from '../../hooks/useApi';
@@ -226,8 +228,8 @@ export const PositionMonitor: Component = () => {
   // ── ECharts refs ─────────────────────────────────────────
   let pieContainer: HTMLDivElement | undefined;
   let weightContainer: HTMLDivElement | undefined;
-  let pieChart: echarts.ECharts | undefined;
-  let weightChart: echarts.ECharts | undefined;
+  let pieChart: ECharts | undefined;
+  let weightChart: ECharts | undefined;
 
   // ── Pie chart (industry distribution) ───────────────────
   function buildPieOption() {
@@ -350,11 +352,11 @@ export const PositionMonitor: Component = () => {
             itemStyle: {
               color:
                 r.weight >= HIGH_POSITION_PCT
-                  ? new ec.graphic.LinearGradient(0, 0, 1, 0, [
+                  ? new echarts.graphic.LinearGradient(0, 0, 1, 0, [
                       { offset: 0, color: '#F59E0B' },
                       { offset: 1, color: '#EF4444' },
                     ])
-                  : new ec.graphic.LinearGradient(0, 0, 1, 0, [
+                  : new echarts.graphic.LinearGradient(0, 0, 1, 0, [
                       { offset: 0, color: '#3B82F6' },
                       { offset: 1, color: '#6366F1' },
                     ]),
@@ -409,7 +411,7 @@ export const PositionMonitor: Component = () => {
     initRetryCount = 0;
 
     if (!pieChart) {
-      pieChart = ec.init(pieContainer, 'dark');
+      pieChart = echarts.init(pieContainer, 'dark');
       // Click on pie sector → show detail
       pieChart.on('click', (params: unknown) => {
         const p = params as { name: string };
@@ -419,7 +421,7 @@ export const PositionMonitor: Component = () => {
       });
     }
     if (!weightChart) {
-      weightChart = ec.init(weightContainer, 'dark');
+      weightChart = echarts.init(weightContainer, 'dark');
     }
 
     const pieOpt = buildPieOption();
@@ -439,8 +441,8 @@ export const PositionMonitor: Component = () => {
 
   // ── Lifecycle ─────────────────────────────────────────────
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
-    try {
+    const _ec = await import('@/lib/echarts');
+    const echarts = _ec.default;    try {
       const res = await fetchPositions();
       if (res.code === '0' && res.data?.positions) {
         for (const pos of res.data.positions) {

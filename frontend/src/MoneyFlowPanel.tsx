@@ -4,6 +4,7 @@
  * 净流入(红) / 净流出(绿)
  */
 import { Component, createSignal, onMount, onCleanup, createEffect, For } from 'solid-js';
+import echarts from '@/lib/echarts';
 import { apiFetch } from '../../hooks/useApi';
 import { getWsInstance } from '../../hooks/useWebSocket';
 import type { WsMessage } from '../../types/ws';
@@ -260,7 +261,7 @@ export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
 
   const initChart = () => {
     if (!chartRef) return;
-    chart = ec.init(chartRef, undefined, { renderer: 'canvas' });
+    chart = echarts.init(chartRef, undefined, { renderer: 'canvas' });
     if (!chart) return;
     chart.setOption(buildOption(data()));
 
@@ -270,8 +271,7 @@ export const MoneyFlowPanel: Component<MoneyFlowPanelProps> = (props) => {
     resizeObserver.observe(chartRef);
   };
 
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+  onMount(() => {
     initChart();
     fetchData();
     refreshTimer = setInterval(fetchData, 60 * 1000);

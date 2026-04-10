@@ -4,6 +4,8 @@
  * 使用 ECharts 实现
  */
 import { Component, createSignal, onMount, onCleanup, createEffect, For } from 'solid-js';
+import type * as EChartsType from 'echarts/core';
+import type { ECharts } from 'echarts';
 
 export interface DepthLevel {
   price: number;
@@ -55,7 +57,7 @@ async function fetchDepth(tsCode: string): Promise<DepthData> {
 
 export const DepthChart: Component<DepthChartProps> = (props) => {
   let containerRef: HTMLDivElement | undefined;
-  let chart: echarts.ECharts | undefined;
+  let chart: ECharts | undefined;
 
   const [depthData, setDepthData] = createSignal<DepthData>(mockDepthData());
   const [loading, setLoading] = createSignal(false);
@@ -148,7 +150,7 @@ export const DepthChart: Component<DepthChartProps> = (props) => {
           lineStyle: { color: '#EF4444', width: 2 },
           itemStyle: { color: '#EF4444' },
           areaStyle: {
-            color: new ec.graphic.LinearGradient(0, 0, 0, 1, [
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: 'rgba(239,68,68,0.3)' },
               { offset: 1, color: 'rgba(239,68,68,0.02)' },
             ]),
@@ -165,7 +167,7 @@ export const DepthChart: Component<DepthChartProps> = (props) => {
           lineStyle: { color: '#22C55E', width: 2 },
           itemStyle: { color: '#22C55E' },
           areaStyle: {
-            color: new ec.graphic.LinearGradient(0, 0, 0, 1, [
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: 'rgba(34,197,94,0.3)' },
               { offset: 1, color: 'rgba(34,197,94,0.02)' },
             ]),
@@ -241,10 +243,10 @@ export const DepthChart: Component<DepthChartProps> = (props) => {
   }
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
-    if (!containerRef) return;
+    const _ec = await import('@/lib/echarts');
+    const echarts = _ec.default;    if (!containerRef) return;
 
-    chart = ec.init(containerRef, undefined, { renderer: 'canvas' });
+    chart = echarts.init(containerRef, undefined, { renderer: 'canvas' });
 
     const resizeObserver = new ResizeObserver(() => {
       chart?.resize();

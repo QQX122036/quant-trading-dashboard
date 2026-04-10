@@ -3,6 +3,7 @@
  * ECharts heatmap: 正相关(蓝) / 负相关(红) / 中性(白)
  */
 import { Component, createSignal, onMount, onCleanup, createEffect } from 'solid-js';
+import echarts from '@/lib/echarts';
 import { marketState } from '../../../stores/marketStore';
 
 interface CorrelationData {
@@ -238,10 +239,9 @@ export const CorrelationMatrix: Component<CorrelationMatrixProps> = (props) => {
   };
 
   // ── 生命周期 ────────────────────────────────────────────────
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+  onMount(() => {
     if (!chartRef) return;
-    chart = ec.init(chartRef, 'dark', { renderer: 'canvas' });
+    chart = echarts.init(chartRef, 'dark', { renderer: 'canvas' });
 
     const ro = new ResizeObserver(() => chart?.resize());
     ro.observe(chartRef);

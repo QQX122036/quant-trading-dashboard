@@ -6,6 +6,8 @@
  * - 支持评分分布直方图、CSV导出、多维度排序
  */
 import { Component, createSignal, onMount, createMemo, Show, For } from 'solid-js';
+import type * as EChartsType from 'echarts/core';
+import type { ECharts } from 'echarts';
 import { apiFetch, fetchAlphaTop20 } from '../hooks/useApi';
 
 // ── Types ─────────────────────────────────────────────────
@@ -39,7 +41,7 @@ function getRatingColor(rating: string): string {
 
 const AlphaSignals: Component = () => {
   let chartRef: HTMLDivElement | undefined;
-  let chart: echarts.ECharts | undefined;
+  let chart: ECharts | undefined;
 
   const [data, setData] = createSignal<AlphaStock[]>([]);
   const [loading, setLoading] = createSignal(true);
@@ -153,20 +155,20 @@ const AlphaSignals: Component = () => {
   }
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
-    loadData();
+    const _ec = await import('@/lib/echarts');
+    const echarts = _ec.default;    loadData();
     initChart();
     initHistogram();
   });
 
   // ── ECharts 直方图 ───────────────────────────────────────
   let histRef: HTMLDivElement | undefined;
-  let histChart: echarts.ECharts | undefined;
+  let histChart: ECharts | undefined;
 
   function initHistogram() {
     if (!histRef) return;
     if (histChart) histChart.dispose();
-    histChart = ec.init(histRef, 'dark');
+    histChart = echarts.init(histRef, 'dark');
   }
 
   function renderHistogram() {
@@ -216,7 +218,7 @@ const AlphaSignals: Component = () => {
             data: hist.values,
             barMaxWidth: 40,
             itemStyle: {
-              color: new ec.graphic.LinearGradient(0, 0, 0, 1, [
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
                 { offset: 0, color: '#3b82f6' },
                 { offset: 1, color: '#1e3a5f' },
               ]),
@@ -235,7 +237,7 @@ const AlphaSignals: Component = () => {
   function initChart() {
     if (!chartRef) return;
     if (chart) chart.dispose();
-    chart = ec.init(chartRef, 'dark');
+    chart = echarts.init(chartRef, 'dark');
     const ro = new ResizeObserver(() => chart?.resize());
     ro.observe(chartRef);
     renderChart();
@@ -310,7 +312,7 @@ const AlphaSignals: Component = () => {
             barMaxWidth: 24,
             barMinHeight: 12,
             itemStyle: {
-              color: new ec.graphic.LinearGradient(0, 0, 1, 0, [
+              color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
                 { offset: 0, color: '#3b82f6' },
                 { offset: 1, color: '#60a5fa' },
               ]),
@@ -318,7 +320,7 @@ const AlphaSignals: Component = () => {
             },
             emphasis: {
               itemStyle: {
-                color: new ec.graphic.LinearGradient(0, 0, 1, 0, [
+                color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
                   { offset: 0, color: '#2563eb' },
                   { offset: 1, color: '#3b82f6' },
                 ]),

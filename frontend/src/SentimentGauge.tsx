@@ -4,6 +4,7 @@
  * ECharts 仪表盘 + 数值卡片
  */
 import { Component, createSignal, onMount, onCleanup, createMemo } from 'solid-js';
+import echarts from '@/lib/echarts';
 import { apiFetch } from '../../hooks/useApi';
 
 interface SentimentData {
@@ -100,10 +101,9 @@ function FearGreedGauge(props: { value: number }) {
     ]);
   });
 
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+  onMount(() => {
     if (!ref) return;
-    chart = ec.init(ref, undefined, { renderer: 'canvas' });
+    chart = echarts.init(ref, undefined, { renderer: 'canvas' });
     if (!chart) return;
     chart.setOption(option());
     const ro = new ResizeObserver(() => chart?.resize());
@@ -232,8 +232,7 @@ export const SentimentGauge: Component<SentimentGaugeProps> = (props) => {
     }
   };
 
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+  onMount(() => {
     fetchData();
     const timer = setInterval(fetchData, 60 * 1000);
     onCleanup(() => {

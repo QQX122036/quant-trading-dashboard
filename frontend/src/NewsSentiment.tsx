@@ -7,6 +7,8 @@
  * - WebSocket 实时推送 news.sentiment
  */
 import { Component, createSignal, createMemo, onMount, onCleanup, For, Show } from 'solid-js';
+import type * as EChartsType from 'echarts/core';
+import type { ECharts } from 'echarts';
 import {
   fetchNewsSentiment,
   fetchAnnouncements,
@@ -20,7 +22,7 @@ const CARD = 'bg-[#1f2937]/80 rounded-lg border border-white/10';
 
 function SentimentGaugeChart(props: { index: number }) {
   let ref!: HTMLDivElement;
-  let chart: echarts.ECharts | undefined;
+  let chart: ECharts | undefined;
 
   const option = createMemo((): echarts.EChartsCoreOption => {
     const v = Math.round(props.index);
@@ -70,8 +72,8 @@ function SentimentGaugeChart(props: { index: number }) {
   });
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
-    chart = ec.init(ref, undefined, { renderer: 'canvas' });
+    const _ec = await import('@/lib/echarts');
+    const echarts = _ec.default;    chart = echarts.init(ref, undefined, { renderer: 'canvas' });
     chart.setOption(option());
     const ro = new ResizeObserver(() => chart?.resize());
     ro.observe(ref);
@@ -336,8 +338,8 @@ export const NewsSentiment: Component = () => {
   }
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
-    loadData();
+    const _ec = await import('@/lib/echarts');
+    const echarts = _ec.default;    loadData();
     loadAnnouncements();
     setupWS();
   });

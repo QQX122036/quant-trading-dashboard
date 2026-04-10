@@ -5,6 +5,8 @@
  * - 当日成交统计: 成交明细表格
  */
 import { Component, createSignal, onMount, onCleanup, createMemo, For, Show } from 'solid-js';
+import type * as EChartsType from 'echarts/core';
+import type { ECharts } from 'echarts';
 import {
   fetchAccounts,
   fetchTrades,
@@ -23,7 +25,7 @@ interface AccountRecord {
 
 const Dashboard: Component = () => {
   let lineRef: HTMLDivElement | undefined;
-  let lineChart: echarts.ECharts | undefined;
+  let lineChart: ECharts | undefined;
 
   // ── State ─────────────────────────────────────────────────
   const [accountHistory, setAccountHistory] = createSignal<AccountRecord[]>([]);
@@ -88,8 +90,8 @@ const Dashboard: Component = () => {
 
   // ── Data loading ───────────────────────────────────────────
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
-    await Promise.allSettled([loadEquityCurve(), loadTrades(), loadPositions()]);
+    const _ec = await import('@/lib/echarts');
+    const echarts = _ec.default;    await Promise.allSettled([loadEquityCurve(), loadTrades(), loadPositions()]);
     setLoading(false);
     setTimeout(initChart, 50);
   });
@@ -152,7 +154,7 @@ const Dashboard: Component = () => {
   function initChart() {
     if (!lineRef) return;
     if (lineChart) lineChart.dispose();
-    lineChart = ec.init(lineRef, 'dark');
+    lineChart = echarts.init(lineRef, 'dark');
     const ro = new ResizeObserver(() => lineChart?.resize());
     ro.observe(lineRef);
     renderLineChart();
@@ -259,7 +261,7 @@ const Dashboard: Component = () => {
               lineStyle: { color: '#3b82f6', width: 2 },
               itemStyle: { color: '#3b82f6', borderWidth: 2, borderColor: '#1e3a5f' },
               areaStyle: {
-                color: new ec.graphic.LinearGradient(0, 0, 0, 1, [
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
                   { offset: 0, color: 'rgba(59,130,246,0.25)' },
                   { offset: 1, color: 'rgba(59,130,246,0.02)' },
                 ]),
@@ -332,7 +334,7 @@ const Dashboard: Component = () => {
             lineStyle: { color: '#3b82f6', width: 2 },
             itemStyle: { color: '#3b82f6', borderWidth: 2, borderColor: '#1e3a5f' },
             areaStyle: {
-              color: new ec.graphic.LinearGradient(0, 0, 0, 1, [
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
                 { offset: 0, color: 'rgba(59,130,246,0.25)' },
                 { offset: 1, color: 'rgba(59,130,246,0.02)' },
               ]),

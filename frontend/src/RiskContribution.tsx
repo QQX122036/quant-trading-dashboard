@@ -3,6 +3,7 @@
  * 各持仓对组合 VaR 的边际贡献分析与可视化
  */
 import { Component, createSignal, onMount, onCleanup, createEffect, Show } from 'solid-js';
+import echarts from '@/lib/echarts';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -273,10 +274,9 @@ export const RiskContribution: Component = () => {
 
   // ── 生命周期 ──────────────────────────────────────────────────────────────
 
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+  onMount(() => {
     if (chartRef) {
-      chart = ec.init(chartRef, undefined, { renderer: 'canvas' });
+      chart = echarts.init(chartRef, undefined, { renderer: 'canvas' });
     }
     loadData();
 

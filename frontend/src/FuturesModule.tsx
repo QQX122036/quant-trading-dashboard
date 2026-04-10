@@ -3,6 +3,7 @@
  * 主力/次主力合约、升贴水分析、跨期价差图
  */
 import { Component, createSignal, createMemo, onMount, For, Show } from 'solid-js';
+import echarts from '@/lib/echarts';
 
 interface FuturesContract {
   symbol: string;
@@ -185,10 +186,9 @@ export const FuturesModule: Component = () => {
   const premiumColor = (v: number) => (v >= 0 ? 'text-red-400' : 'text-green-400');
   const premiumPrefix = (v: number) => (v >= 0 ? '+' : '');
 
-  onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
+  onMount(() => {
     if (!spreadChartRef) return;
-    spreadChart = ec.init(spreadChartRef, 'dark');
+    spreadChart = echarts.init(spreadChartRef, 'dark');
 
     const { dates, spread } = generateSpreadData(selectedSymbol());
     const option: echarts.EChartsCoreOption = {
@@ -221,7 +221,7 @@ export const FuturesModule: Component = () => {
           lineStyle: { color: '#3B82F6', width: 2 },
           itemStyle: { color: '#3B82F6' },
           areaStyle: {
-            color: new ec.graphic.LinearGradient(0, 0, 0, 1, [
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: 'rgba(59,130,246,0.3)' },
               { offset: 1, color: 'rgba(59,130,246,0)' },
             ]),

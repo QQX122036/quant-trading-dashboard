@@ -6,6 +6,8 @@
  * - 对接 GET /api/news/sentiment
  */
 import { Component, createSignal, createMemo, onMount, onCleanup, For, Show } from 'solid-js';
+import type * as EChartsType from 'echarts/core';
+import type { ECharts } from 'echarts';
 import { apiFetch } from '../hooks/useApi';
 import { formatDate } from '../utils/format';
 
@@ -51,7 +53,7 @@ const CARD = 'bg-[#1f2937]/80 rounded-lg border border-white/10';
 // ── Sentiment Bar Chart ─────────────────────────────────────
 function SentimentBarChart(props: { data: DailySentiment[] }) {
   let ref!: HTMLDivElement;
-  let chart: echarts.ECharts | undefined;
+  let chart: ECharts | undefined;
 
   const buildOption = (): echarts.EChartsCoreOption => {
     const data = props.data;
@@ -149,9 +151,9 @@ function SentimentBarChart(props: { data: DailySentiment[] }) {
   };
 
   onMount(async () => {
-    const ec = (await import('@/lib/echarts')).default;
-    if (!ref) return;
-    chart = ec.init(ref, 'dark', { renderer: 'canvas' });
+    const _ec = await import('@/lib/echarts');
+    const echarts = _ec.default;    if (!ref) return;
+    chart = echarts.init(ref, 'dark', { renderer: 'canvas' });
     if (!chart) return;
     chart.setOption(buildOption());
     const ro = new ResizeObserver(() => chart?.resize());
