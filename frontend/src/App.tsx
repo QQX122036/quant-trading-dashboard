@@ -7,10 +7,11 @@
  */
 import { Router, Route } from '@solidjs/router';
 import { MainLayout } from './components/layout/MainLayout';
-import { Suspense, Component, ParentProps } from 'solid-js';
+import { Suspense, Component, ParentProps, onMount } from 'solid-js';
 import { I18nProvider } from './i18n';
 import { PageErrorBoundary } from './components/common/ErrorBoundary';
 import { KeyboardShortcuts } from './components/KeyboardShortcuts';
+import { useWebVitals } from './hooks/useWebVitals';
 
 // ── Page Components — 全量直接静态导入（删除懒加载） ─────────────────────────
 import { MarketOverview } from './components/pages/MarketOverview';
@@ -56,9 +57,17 @@ const PageWrapper = (Component: Component<any>, Fallback?: Component) => () => (
   </PageErrorBoundary>
 );
 
+// ── Web Vitals Init ──────────────────────────────────────────────────────────
+const WebVitalsInit: Component = () => {
+  useWebVitals();
+  return null;
+};
+
 // ── App ──────────────────────────────────────────────────────────────────────
-const App = () => {
+const App: Component = () => {
   return (
+    <>
+      <WebVitalsInit />
     <I18nProvider>
       <Router>
         {/* 所有路由直接访问，无鉴权 */}
@@ -102,6 +111,7 @@ const App = () => {
 
       <KeyboardShortcuts />
     </I18nProvider>
+    </>
   );
 };
 
