@@ -1,44 +1,47 @@
 /**
  * App.tsx — 量化交易看板主入口
  *
- * 修改说明:
+ * 修改说明 (2026-04-10):
  * 1. 移除 RouteGuard 鉴权组件，所有路由直接访问
- * 2. 移除 lazy() 懒加载，改为直接静态导入
+ * 2. 所有非首页组件使用 lazy() 动态导入，实现路由级代码分割
+ * 3. 首页 DashboardIndex 保持直接导入（首屏体验）
  */
 import { Router, Route } from '@solidjs/router';
 import { MainLayout } from './components/layout/MainLayout';
-import { Suspense, Component, ParentProps, onMount } from 'solid-js';
+import { Suspense, Component, ParentProps, lazy } from 'solid-js';
 import { I18nProvider } from './i18n';
 import { PageErrorBoundary } from './components/common/ErrorBoundary';
 import { KeyboardShortcuts } from './components/KeyboardShortcuts';
 import { useWebVitals } from './hooks/useWebVitals';
 
-// ── Page Components — 全量直接静态导入（删除懒加载） ─────────────────────────
-import { MarketOverview } from './components/pages/MarketOverview';
-import { StockDashboard } from './components/pages/StockDashboard';
-import { DashboardHome } from './components/dashboard/DashboardHome';
-import { DashboardIndex } from './components/pages/DashboardIndex';
-import { BacktestAnalysis } from './components/pages/BacktestAnalysis';
-import { TradeLog } from './components/pages/TradeLog';
-import { PositionManagement } from './components/pages/PositionManagement';
-import { DataManager } from './components/pages/DataManager';
-import { StrategyManager } from './components/pages/StrategyManager';
-import { FactorDashboard } from './components/pages/FactorDashboard';
-import { MultiFactorChart } from './components/pages/MultiFactorChart';
-import { MultiStrategyChart } from './components/pages/MultiStrategyChart';
-import PortfolioAnalysis from './components/pages/PortfolioAnalysis';
-import { SentimentPage } from './components/pages/SentimentPage';
-import { NewsSentiment } from './components/news/NewsSentiment';
-import { AIAdvisor } from './components/news/AIAdvisor';
-import { DerivativesPage } from './components/pages/Derivatives/DerivativesPage';
-import { BacktestReport } from './components/reports/BacktestReport';
-import { StockReport } from './components/reports/StockReport';
-import RiskAlert from './components/pages/RiskAlert';
-import { TestPage } from './components/pages/TestPage';
-import Dashboard from './pages/Dashboard';
-import Sentiment from './pages/Sentiment';
-import AlphaSignals from './pages/AlphaSignals';
-import Help from './pages/Help';
+// ── Page Components — 首页直接导入，其他懒加载 ──────────────────────────────
+import { DashboardIndex } from './components/pages/DashboardIndex'; // 首屏关键，直接导入
+
+// 懒加载：非首页页面（路由级代码分割）
+const MarketOverview = lazy(() => import('./components/pages/MarketOverview'));
+const StockDashboard = lazy(() => import('./components/pages/StockDashboard'));
+const DashboardHome = lazy(() => import('./components/dashboard/DashboardHome'));
+const BacktestAnalysis = lazy(() => import('./components/pages/BacktestAnalysis'));
+const TradeLog = lazy(() => import('./components/pages/TradeLog'));
+const PositionManagement = lazy(() => import('./components/pages/PositionManagement'));
+const DataManager = lazy(() => import('./components/pages/DataManager'));
+const StrategyManager = lazy(() => import('./components/pages/StrategyManager'));
+const FactorDashboard = lazy(() => import('./components/pages/FactorDashboard'));
+const MultiFactorChart = lazy(() => import('./components/pages/MultiFactorChart'));
+const MultiStrategyChart = lazy(() => import('./components/pages/MultiStrategyChart'));
+const PortfolioAnalysis = lazy(() => import('./components/pages/PortfolioAnalysis'));
+const SentimentPage = lazy(() => import('./components/pages/SentimentPage'));
+const NewsSentiment = lazy(() => import('./components/news/NewsSentiment'));
+const AIAdvisor = lazy(() => import('./components/news/AIAdvisor'));
+const DerivativesPage = lazy(() => import('./components/pages/Derivatives/DerivativesPage'));
+const BacktestReport = lazy(() => import('./components/reports/BacktestReport'));
+const StockReport = lazy(() => import('./components/reports/StockReport'));
+const RiskAlert = lazy(() => import('./components/pages/RiskAlert'));
+const TestPage = lazy(() => import('./components/pages/TestPage'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Sentiment = lazy(() => import('./pages/Sentiment'));
+const AlphaSignals = lazy(() => import('./pages/AlphaSignals'));
+const Help = lazy(() => import('./pages/Help'));
 
 // ── Loaders ──────────────────────────────────────────────────────────────────
 const PageLoader = () => (
@@ -48,10 +51,19 @@ const PageLoader = () => (
   </div>
 );
 
-// ── Page Wrapper ─────────────────────────────────────────────────────────────
-const PageWrapper = (Component: Component<any>, Fallback?: Component) => () => (
+// ── Page Wrapper (for lazy components) ─────────────────────────────────────
+const PageWrapper = (Component: Component<any>) => () => (
   <PageErrorBoundary>
-    <Suspense fallback={Fallback ? <Fallback /> : <PageLoader />}>
+    <Suspense fallback={<PageLoader />}>
+      <Component />
+    </Suspense>
+  </PageErrorBoundary>
+);
+
+// ── Page Wrapper for non-lazy (DashboardIndex) ─────────────────────────────
+const PageWrapperSync = (Component: Component<any>) => () => (
+  <PageErrorBoundary>
+    <Suspense fallback={<PageLoader />}>
       <Component />
     </Suspense>
   </PageErrorBoundary>
