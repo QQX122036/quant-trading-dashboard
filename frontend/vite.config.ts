@@ -10,6 +10,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, resolve(__dirname), '');
+  const BUILD_VERSION = Date.now().toString(36); // force chunk hash bust on every build
   const DEV_HOST = env.VITE_DEV_HOST || '192.168.2.105';
   const DEV_PORT = Number(env.VITE_DEV_PORT) || 5173;
   const BACKEND_URL = `http://${DEV_HOST}:8501`;
@@ -59,9 +60,9 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           // Hash filenames for long-term caching
-          entryFileNames: 'assets/[name]-[hash].js',
-          chunkFileNames: 'assets/[name]-[hash].js',
-          assetFileNames: 'assets/[name]-[hash].[ext]',
+          entryFileNames: `assets/[name]-[hash]?v=${BUILD_VERSION}.js`,
+          chunkFileNames: `assets/[name]-[hash]?v=${BUILD_VERSION}.js`,
+          assetFileNames: `assets/[name]-[hash]?v=${BUILD_VERSION}.[ext]`,
           manualChunks(id) {
             if (!id.includes('node_modules')) return;
             // echarts — ~346KB gzip, separate chunk for streaming charts
