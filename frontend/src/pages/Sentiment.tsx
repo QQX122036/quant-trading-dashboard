@@ -51,7 +51,7 @@ const CARD = 'bg-[#1f2937]/80 rounded-lg border border-white/10';
 // ── Sentiment Bar Chart ─────────────────────────────────────
 function SentimentBarChart(props: { data: DailySentiment[] }) {
   let ref!: HTMLDivElement;
-  let chart: echarts.ECharts | undefined;
+  let chart: ReturnType<typeof echarts.init> | undefined;
 
   const buildOption = (): echarts.EChartsCoreOption => {
     const data = props.data;

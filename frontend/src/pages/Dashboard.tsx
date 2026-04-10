@@ -5,6 +5,7 @@
  * - 当日成交统计: 成交明细表格
  */
 import { Component, createSignal, onMount, onCleanup, createMemo, For, Show } from 'solid-js';
+import * as ec from 'echarts';
 import {
   fetchAccounts,
   fetchTrades,

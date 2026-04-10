@@ -6,6 +6,7 @@
  * - 支持评分分布直方图、CSV导出、多维度排序
  */
 import { Component, createSignal, onMount, createMemo, Show, For } from 'solid-js';
+import * as ec from 'echarts';
 import { apiFetch, fetchAlphaTop20 } from '../hooks/useApi';
 
 // ── Types ─────────────────────────────────────────────────

@@ -20,6 +20,8 @@ export default [
       },
       globals: {
         ...globals.browser,
+        echarts: 'readonly',
+        ec: 'readonly',
       },
     },
     plugins: {
@@ -32,7 +34,11 @@ export default [
       ...solid.configs.recommended.rules,
       ...prettier.configs.recommended.rules,
       'prettier/prettier': ['error', { singleQuote: true, semi: true, printWidth: 100 }],
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
+      '@typescript-eslint/ban-ts-comment': 'warn',
+      'no-empty': 'warn',
+      '@typescript-eslint/no-unused-expressions': 'warn',
+      'solid/prefer-for': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
       'solid/reactivity': 'warn',
       'solid/no-unknown-events': 'off',
