@@ -3,12 +3,7 @@
  * 职责：十字光标样式配置、多图表同步、十字光标位置管理
  */
 import { Component, createSignal, onCleanup, createEffect } from 'solid-js';
-import {
-  IChartApi,
-  ISeriesApi,
-  Time,
-  CrosshairMode,
-} from 'lightweight-charts';
+import { IChartApi, ISeriesApi, Time, CrosshairMode } from 'lightweight-charts';
 
 export interface CrosshairOptions {
   /** 水平线颜色 */
@@ -45,7 +40,11 @@ export class CrosshairManager {
   private options: Required<CrosshairOptions>;
   private unsubscribers: (() => void)[] = [];
 
-  constructor(chart: IChartApi, candleSeries: ISeriesApi<'Candlestick'> | undefined, options: CrosshairOptions = {}) {
+  constructor(
+    chart: IChartApi,
+    candleSeries: ISeriesApi<'Candlestick'> | undefined,
+    options: CrosshairOptions = {}
+  ) {
     this.chart = chart;
     this.candleSeries = candleSeries;
     this.options = { ...DEFAULT_OPTIONS, ...options };

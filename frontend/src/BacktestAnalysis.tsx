@@ -22,7 +22,8 @@ export const BacktestAnalysis: Component = () => {
   // Load backtest tasks on mount
   onMount(async () => {
     const _ec = await import('@/lib/echarts');
-    const echarts = _ec.default;    apiActions.fetchBacktestTasks();
+    const echarts = _ec.default;
+    apiActions.fetchBacktestTasks();
   });
 
   onCleanup(() => {
@@ -346,7 +347,8 @@ export const BacktestAnalysis: Component = () => {
 
   onMount(async () => {
     const _ec = await import('@/lib/echarts');
-    const echarts = _ec.default;    equityChart = echarts.init(equityRef!, 'dark');
+    const echarts = _ec.default;
+    equityChart = echarts.init(equityRef!, 'dark');
     drawdownChart = echarts.init(drawdownRef!, 'dark');
     monthlyChart = echarts.init(monthlyRef!, 'dark');
 

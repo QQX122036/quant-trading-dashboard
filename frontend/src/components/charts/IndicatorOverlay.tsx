@@ -3,20 +3,14 @@
  * 职责：技术指标（MA5/10/20、BOLL、VOLUME等）在K线图上的叠加绘制
  */
 import { Component, createEffect, onCleanup } from 'solid-js';
-import {
-  IChartApi,
-  ISeriesApi,
-  LineData,
-  HistogramData,
-  Time,
-} from 'lightweight-charts';
+import { IChartApi, ISeriesApi, LineData, HistogramData, Time } from 'lightweight-charts';
 import type { DailyBar } from '../../hooks/useApi';
 
 export interface IndicatorConfig {
   type: 'MA' | 'BOLL' | 'VOL';
-  periods?: number[];       // e.g. [5, 10, 20] for MA
-  bollPeriod?: number;       // default 20
-  bollStdDev?: number;      // default 2
+  periods?: number[]; // e.g. [5, 10, 20] for MA
+  bollPeriod?: number; // default 20
+  bollStdDev?: number; // default 2
   color?: string;
 }
 
@@ -197,7 +191,9 @@ export class IndicatorOverlayManager {
     this.maSeriesMap.forEach((s) => {
       try {
         this.chart.removeSeries(s);
-      } catch { /* already removed */ }
+      } catch {
+        /* already removed */
+      }
     });
     this.maSeriesMap.clear();
     this.disableBOLL();
@@ -240,4 +236,4 @@ export const IndicatorOverlay: Component<IndicatorOverlayProps> = (props) => {
   });
 
   return null; // invisible
-}
+};

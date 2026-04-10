@@ -80,49 +80,49 @@ const App: Component = () => {
   return (
     <>
       <WebVitalsInit />
-    <I18nProvider>
-      <Router>
-        {/* 所有路由直接访问，无鉴权 */}
-        <Route
-          path="/"
-          component={(props: ParentProps) => (
-            <>
-              <a href="#main-content" class="skip-link">
-                跳转到主要内容
-              </a>
-              <MainLayout id="main-content">{props.children}</MainLayout>
-            </>
-          )}
-        >
-          <Route path="/" component={PageWrapper(DashboardIndex)} />
-          <Route path="/market" component={PageWrapper(MarketOverview)} />
-          <Route path="/dashboard" component={PageWrapper(StockDashboard)} />
-          <Route path="/dashboard/home" component={PageWrapper(DashboardHome)} />
-          <Route path="/backtest" component={PageWrapper(BacktestAnalysis)} />
-          <Route path="/trades" component={PageWrapper(TradeLog)} />
-          <Route path="/positions" component={PageWrapper(PositionManagement)} />
-          <Route path="/data" component={PageWrapper(DataManager)} />
-          <Route path="/strategies" component={PageWrapper(StrategyManager)} />
-          <Route path="/factors" component={PageWrapper(FactorDashboard)} />
-          <Route path="/multifactor" component={PageWrapper(MultiFactorChart)} />
-          <Route path="/multistrategy" component={PageWrapper(MultiStrategyChart)} />
-          <Route path="/portfolio" component={PageWrapper(PortfolioAnalysis)} />
-          <Route path="/sentiment" component={PageWrapper(SentimentPage)} />
-          <Route path="/news" component={PageWrapper(NewsSentiment)} />
-          <Route path="/advisor" component={PageWrapper(AIAdvisor)} />
-          <Route path="/derivatives" component={PageWrapper(DerivativesPage)} />
-          <Route path="/backtest/report" component={PageWrapper(BacktestReport)} />
-          <Route path="/stock/report" component={PageWrapper(StockReport)} />
-          <Route path="/risk" component={PageWrapper(RiskAlert)} />
-          <Route path="/test" component={PageWrapper(TestPage)} />
-          <Route path="/sentiment-analysis" component={PageWrapper(Sentiment)} />
-          <Route path="/alpha-signals" component={PageWrapper(AlphaSignals)} />
-          <Route path="/help" component={PageWrapper(Help)} />
-        </Route>
-      </Router>
+      <I18nProvider>
+        <Router>
+          {/* 所有路由直接访问，无鉴权 */}
+          <Route
+            path="/"
+            component={(props: ParentProps) => (
+              <>
+                <a href="#main-content" class="skip-link">
+                  跳转到主要内容
+                </a>
+                <MainLayout id="main-content">{props.children}</MainLayout>
+              </>
+            )}
+          >
+            <Route path="/" component={PageWrapper(DashboardIndex)} />
+            <Route path="/market" component={PageWrapper(MarketOverview)} />
+            <Route path="/dashboard" component={PageWrapper(StockDashboard)} />
+            <Route path="/dashboard/home" component={PageWrapper(DashboardHome)} />
+            <Route path="/backtest" component={PageWrapper(BacktestAnalysis)} />
+            <Route path="/trades" component={PageWrapper(TradeLog)} />
+            <Route path="/positions" component={PageWrapper(PositionManagement)} />
+            <Route path="/data" component={PageWrapper(DataManager)} />
+            <Route path="/strategies" component={PageWrapper(StrategyManager)} />
+            <Route path="/factors" component={PageWrapper(FactorDashboard)} />
+            <Route path="/multifactor" component={PageWrapper(MultiFactorChart)} />
+            <Route path="/multistrategy" component={PageWrapper(MultiStrategyChart)} />
+            <Route path="/portfolio" component={PageWrapper(PortfolioAnalysis)} />
+            <Route path="/sentiment" component={PageWrapper(SentimentPage)} />
+            <Route path="/news" component={PageWrapper(NewsSentiment)} />
+            <Route path="/advisor" component={PageWrapper(AIAdvisor)} />
+            <Route path="/derivatives" component={PageWrapper(DerivativesPage)} />
+            <Route path="/backtest/report" component={PageWrapper(BacktestReport)} />
+            <Route path="/stock/report" component={PageWrapper(StockReport)} />
+            <Route path="/risk" component={PageWrapper(RiskAlert)} />
+            <Route path="/test" component={PageWrapper(TestPage)} />
+            <Route path="/sentiment-analysis" component={PageWrapper(Sentiment)} />
+            <Route path="/alpha-signals" component={PageWrapper(AlphaSignals)} />
+            <Route path="/help" component={PageWrapper(Help)} />
+          </Route>
+        </Router>
 
-      <KeyboardShortcuts />
-    </I18nProvider>
+        <KeyboardShortcuts />
+      </I18nProvider>
     </>
   );
 };

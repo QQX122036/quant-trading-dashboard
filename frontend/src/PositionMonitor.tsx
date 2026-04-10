@@ -442,7 +442,8 @@ export const PositionMonitor: Component = () => {
   // ── Lifecycle ─────────────────────────────────────────────
   onMount(async () => {
     const _ec = await import('@/lib/echarts');
-    const echarts = _ec.default;    try {
+    const echarts = _ec.default;
+    try {
       const res = await fetchPositions();
       if (res.code === '0' && res.data?.positions) {
         for (const pos of res.data.positions) {

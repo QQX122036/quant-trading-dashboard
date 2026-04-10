@@ -113,9 +113,11 @@ export const CurrentPriceLine: Component<{
     if (priceLineSeries && props.chart) {
       try {
         props.chart.removeSeries(priceLineSeries);
-      } catch { /* already removed */ }
+      } catch {
+        /* already removed */
+      }
     }
   });
 
   return null;
-}
+};

@@ -91,7 +91,8 @@ const Dashboard: Component = () => {
   // ── Data loading ───────────────────────────────────────────
   onMount(async () => {
     const _ec = await import('@/lib/echarts');
-    const echarts = _ec.default;    await Promise.allSettled([loadEquityCurve(), loadTrades(), loadPositions()]);
+    const echarts = _ec.default;
+    await Promise.allSettled([loadEquityCurve(), loadTrades(), loadPositions()]);
     setLoading(false);
     setTimeout(initChart, 50);
   });

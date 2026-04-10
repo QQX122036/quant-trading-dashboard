@@ -3,13 +3,7 @@
  * 职责：独立成交量子图、MAVOL均线、颜色区分涨跌量
  */
 import { Component, createEffect, onCleanup } from 'solid-js';
-import {
-  IChartApi,
-  ISeriesApi,
-  HistogramData,
-  LineData,
-  Time,
-} from 'lightweight-charts';
+import { IChartApi, ISeriesApi, HistogramData, LineData, Time } from 'lightweight-charts';
 import type { DailyBar } from '../../hooks/useApi';
 
 export interface VolumePanelProps {
@@ -21,7 +15,7 @@ export interface VolumePanelProps {
   heightRatio?: number;
 }
 
-const UP_COLOR = 'rgba(239, 68, 68, 0.6)';   // 红涨
+const UP_COLOR = 'rgba(239, 68, 68, 0.6)'; // 红涨
 const DOWN_COLOR = 'rgba(34, 197, 94, 0.6)'; // 绿跌
 const MAVOL5_COLOR = '#3B82F6';
 const MAVOL10_COLOR = '#F59E0B';
@@ -97,8 +91,22 @@ export const VolumePanel: Component<VolumePanelProps> = (props) => {
     if (mavol5Series || mavol10Series) {
       const closes = bars.map((b) => b.close);
       const times = bars.map((b) => barTime(b));
-      if (mavol5Series) mavol5Series.setData(calcMAVOL(bars.map((b) => b.volume), times, 5));
-      if (mavol10Series) mavol10Series.setData(calcMAVOL(bars.map((b) => b.volume), times, 10));
+      if (mavol5Series)
+        mavol5Series.setData(
+          calcMAVOL(
+            bars.map((b) => b.volume),
+            times,
+            5
+          )
+        );
+      if (mavol10Series)
+        mavol10Series.setData(
+          calcMAVOL(
+            bars.map((b) => b.volume),
+            times,
+            10
+          )
+        );
     }
   }
 
@@ -117,22 +125,28 @@ export const VolumePanel: Component<VolumePanelProps> = (props) => {
     if (volumeSeries && props.chart) {
       try {
         props.chart.removeSeries(volumeSeries);
-      } catch { /* already removed */ }
+      } catch {
+        /* already removed */
+      }
       volumeSeries = undefined;
     }
     if (mavol5Series && props.chart) {
       try {
         props.chart.removeSeries(mavol5Series);
-      } catch { /* already removed */ }
+      } catch {
+        /* already removed */
+      }
       mavol5Series = undefined;
     }
     if (mavol10Series && props.chart) {
       try {
         props.chart.removeSeries(mavol10Series);
-      } catch { /* already removed */ }
+      } catch {
+        /* already removed */
+      }
       mavol10Series = undefined;
     }
   });
 
   return null; // invisible, manages series only
-}
+};

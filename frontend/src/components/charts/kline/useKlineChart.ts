@@ -38,11 +38,7 @@ export function barToCandle(bar: DailyBar): CandlestickData<Time> {
   };
 }
 
-export function calcMA(
-  closes: number[],
-  times: Time[],
-  period: number
-): LineData<Time>[] {
+export function calcMA(closes: number[], times: Time[], period: number): LineData<Time>[] {
   const result: LineData<Time>[] = [];
   for (let i = period - 1; i < closes.length; i++) {
     const slice = closes.slice(i - period + 1, i + 1);
@@ -468,8 +464,12 @@ export function useKlineChart(
   });
 
   return {
-    get chart() { return chart; },
-    get candleSeries() { return candleSeries; },
+    get chart() {
+      return chart;
+    },
+    get candleSeries() {
+      return candleSeries;
+    },
     bars,
     setBars,
     loading,

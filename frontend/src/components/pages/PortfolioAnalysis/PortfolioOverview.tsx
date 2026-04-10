@@ -676,29 +676,33 @@ export const PortfolioOverview: Component = () => {
       ]);
       // Map API response fields to PositionData interface
       const rawPositions = (posRes.data?.positions ?? []) as unknown[];
-      const mappedPositions: PositionData[] = (rawPositions as Array<Record<string, unknown>>).map((p) => ({
-        vt_positionid: String(p.position_id ?? ''),
-        symbol: String(p.ts_code ?? ''),
-        exchange: (p.ts_code as string)?.endsWith('.SSE') ? 'SSE' as const : 'SZE' as const,
-        direction: (p.direction === '空' ? '空' : '多') as '多' | '空',
-        volume: Number(p.volume ?? 0),
-        yd_position: Number(p.available_volume ?? p.volume ?? 0),
-        frozen: Number(p.frozen_volume ?? 0),
-        price: Number(p.price ?? 0),
-        pnl: Number(p.pnl ?? 0),
-        gateway_name: String(p.gateway_name ?? 'SIM'),
-      }));
+      const mappedPositions: PositionData[] = (rawPositions as Array<Record<string, unknown>>).map(
+        (p) => ({
+          vt_positionid: String(p.position_id ?? ''),
+          symbol: String(p.ts_code ?? ''),
+          exchange: (p.ts_code as string)?.endsWith('.SSE') ? ('SSE' as const) : ('SZE' as const),
+          direction: (p.direction === '空' ? '空' : '多') as '多' | '空',
+          volume: Number(p.volume ?? 0),
+          yd_position: Number(p.available_volume ?? p.volume ?? 0),
+          frozen: Number(p.frozen_volume ?? 0),
+          price: Number(p.price ?? 0),
+          pnl: Number(p.pnl ?? 0),
+          gateway_name: String(p.gateway_name ?? 'SIM'),
+        })
+      );
       setPositions(mappedPositions);
       // Map API response fields to AccountData interface
       const rawAccounts = (accRes.data?.accounts ?? []) as unknown[];
-      const mappedAccounts: AccountData[] = (rawAccounts as Array<Record<string, unknown>>).map((a) => ({
-        vt_accountid: String(a.account_id ?? ''),
-        accountid: String(a.account_id ?? ''),
-        balance: Number(a.balance ?? 0),
-        frozen: Number(a.frozen ?? 0),
-        available: Number(a.available ?? (Number(a.balance ?? 0) - Number(a.frozen ?? 0))),
-        gateway_name: String(a.gateway_name ?? 'SIM'),
-      }));
+      const mappedAccounts: AccountData[] = (rawAccounts as Array<Record<string, unknown>>).map(
+        (a) => ({
+          vt_accountid: String(a.account_id ?? ''),
+          accountid: String(a.account_id ?? ''),
+          balance: Number(a.balance ?? 0),
+          frozen: Number(a.frozen ?? 0),
+          available: Number(a.available ?? Number(a.balance ?? 0) - Number(a.frozen ?? 0)),
+          gateway_name: String(a.gateway_name ?? 'SIM'),
+        })
+      );
       setAccounts(mappedAccounts);
     } catch (e: any) {
       if (e?.name !== 'AbortError') {

@@ -163,7 +163,9 @@ export const SectorMoneyFlow: Component<SectorMoneyFlowProps> = (props) => {
                         class={`py-2.5 px-3 text-right font-mono ${changeColor(sector.change_pct ?? 0)}`}
                       >
                         {sector.change_pct != null
-                          ? (sector.change_pct >= 0 ? '+' : '') + (sector.change_pct ?? 0).toFixed(2) + '%'
+                          ? (sector.change_pct >= 0 ? '+' : '') +
+                            (sector.change_pct ?? 0).toFixed(2) +
+                            '%'
                           : '—'}
                       </td>
                       <td class="py-2.5 px-3 text-right text-gray-400 font-mono">

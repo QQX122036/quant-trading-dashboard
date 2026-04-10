@@ -152,7 +152,8 @@ function SentimentBarChart(props: { data: DailySentiment[] }) {
 
   onMount(async () => {
     const _ec = await import('@/lib/echarts');
-    const echarts = _ec.default;    if (!ref) return;
+    const echarts = _ec.default;
+    if (!ref) return;
     chart = echarts.init(ref, 'dark', { renderer: 'canvas' });
     if (!chart) return;
     chart.setOption(buildOption());

@@ -360,7 +360,8 @@ export const BacktestReport: Component<BacktestReportProps> = (props) => {
 
   onMount(async () => {
     const _ec = await import('@/lib/echarts');
-    const echarts = _ec.default;    equityChart = echarts.init(equityRef!, 'dark');
+    const echarts = _ec.default;
+    equityChart = echarts.init(equityRef!, 'dark');
     drawdownChart = echarts.init(drawdownRef!, 'dark');
     monthlyChart = echarts.init(monthlyRef!, 'dark');
 

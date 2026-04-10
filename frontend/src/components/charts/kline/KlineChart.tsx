@@ -50,14 +50,11 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
   let containerRef: HTMLDivElement | undefined;
   const [timeframe, setTimeframe] = createSignal<'1D' | '1W' | '1M'>('1D');
 
-  const kline = useKlineChart(
-    () => containerRef,
-    {
-      initialBars: props.bars,
-      onCrosshairMove: props.onCrosshairMove,
-      externalCrosshairTime: props.externalCrosshairTime,
-    }
-  );
+  const kline = useKlineChart(() => containerRef, {
+    initialBars: props.bars,
+    onCrosshairMove: props.onCrosshairMove,
+    externalCrosshairTime: props.externalCrosshairTime,
+  });
 
   async function loadData() {
     const sym = props.symbol || '600519';

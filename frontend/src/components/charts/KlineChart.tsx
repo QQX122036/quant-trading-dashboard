@@ -93,23 +93,45 @@ function calcSignals(bars: DailyBar[]): Signal[] {
     return (dateStr.includes('T') ? dateStr.split('T')[0] : dateStr) as unknown as Time;
   });
 
-  const ma5 = closes.map((_, i) => (i < 4 ? NaN : closes.slice(i - 4, i + 1).reduce((a, b) => a + b, 0) / 5));
-  const ma10 = closes.map((_, i) => (i < 9 ? NaN : closes.slice(i - 9, i + 1).reduce((a, b) => a + b, 0) / 10));
+  const ma5 = closes.map((_, i) =>
+    i < 4 ? NaN : closes.slice(i - 4, i + 1).reduce((a, b) => a + b, 0) / 5
+  );
+  const ma10 = closes.map((_, i) =>
+    i < 9 ? NaN : closes.slice(i - 9, i + 1).reduce((a, b) => a + b, 0) / 10
+  );
 
   for (let i = 1; i < bars.length; i++) {
     const prev = i - 1;
     if (!isNaN(ma5[prev]) && !isNaN(ma10[prev]) && !isNaN(ma5[i]) && !isNaN(ma10[i])) {
       if (ma5[prev] <= ma10[prev] && ma5[i] > ma10[i]) {
-        signals.push({ time: times[i], position: 'belowBar', shape: 'arrowUp', color: '#EF4444', text: '★买入' });
+        signals.push({
+          time: times[i],
+          position: 'belowBar',
+          shape: 'arrowUp',
+          color: '#EF4444',
+          text: '★买入',
+        });
       }
       if (ma5[prev] >= ma10[prev] && ma5[i] < ma10[i]) {
-        signals.push({ time: times[i], position: 'aboveBar', shape: 'arrowDown', color: '#22C55E', text: '☆卖出' });
+        signals.push({
+          time: times[i],
+          position: 'aboveBar',
+          shape: 'arrowDown',
+          color: '#22C55E',
+          text: '☆卖出',
+        });
       }
     }
     const volRatio = bars[i].volume / Math.max(bars[i - 1].volume, 1);
     const priceChange = (bars[i].close - bars[i - 1].close) / bars[i - 1].close;
     if (volRatio > 2 && priceChange > 0.02) {
-      signals.push({ time: times[i], position: 'aboveBar', shape: 'circle', color: '#F59E0B', text: '▲放量突破' });
+      signals.push({
+        time: times[i],
+        position: 'aboveBar',
+        shape: 'circle',
+        color: '#F59E0B',
+        text: '▲放量突破',
+      });
     }
   }
   return signals;
@@ -258,8 +280,18 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
         },
         crosshair: {
           mode: CrosshairMode.Normal,
-          vertLine: { width: 1, color: 'rgba(255, 255, 255, 0.3)', style: 2, labelBackgroundColor: '#3B82F6' },
-          horzLine: { width: 1, color: 'rgba(255, 255, 255, 0.3)', style: 2, labelBackgroundColor: '#3B82F6' },
+          vertLine: {
+            width: 1,
+            color: 'rgba(255, 255, 255, 0.3)',
+            style: 2,
+            labelBackgroundColor: '#3B82F6',
+          },
+          horzLine: {
+            width: 1,
+            color: 'rgba(255, 255, 255, 0.3)',
+            style: 2,
+            labelBackgroundColor: '#3B82F6',
+          },
         },
         rightPriceScale: { borderColor: 'rgba(255, 255, 255, 0.1)' },
         timeScale: {
@@ -290,9 +322,24 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
         wickDownColor: DOWN_COLOR,
       });
 
-      ma5Series = chart.addLineSeries({ color: '#3B82F6', lineWidth: 1, title: 'MA5', priceLineVisible: false });
-      ma10Series = chart.addLineSeries({ color: '#F59E0B', lineWidth: 1, title: 'MA10', priceLineVisible: false });
-      ma20Series = chart.addLineSeries({ color: '#8B5CF6', lineWidth: 1, title: 'MA20', priceLineVisible: false });
+      ma5Series = chart.addLineSeries({
+        color: '#3B82F6',
+        lineWidth: 1,
+        title: 'MA5',
+        priceLineVisible: false,
+      });
+      ma10Series = chart.addLineSeries({
+        color: '#F59E0B',
+        lineWidth: 1,
+        title: 'MA10',
+        priceLineVisible: false,
+      });
+      ma20Series = chart.addLineSeries({
+        color: '#8B5CF6',
+        lineWidth: 1,
+        title: 'MA20',
+        priceLineVisible: false,
+      });
 
       // Initialize Crosshair manager
       crosshairManager = new CrosshairManager(chart, candleSeries);
@@ -306,14 +353,27 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
       // ── Custom indicator series management ─────────────────────────────
       const customSeriesMap = new Map<
         string,
-        { main: ISeriesApi<'Line'>; dif?: ISeriesApi<'Line'>; dea?: ISeriesApi<'Line'>; hist?: ISeriesApi<'Histogram'> }
+        {
+          main: ISeriesApi<'Line'>;
+          dif?: ISeriesApi<'Line'>;
+          dea?: ISeriesApi<'Line'>;
+          hist?: ISeriesApi<'Histogram'>;
+        }
       >();
 
-      function getChartBars() { return bars(); }
+      function getChartBars() {
+        return bars();
+      }
 
       function handleCustomIndicatorAdd(e: Event) {
         if (!chart) return;
-        const ind = (e as CustomEvent).detail as { id: string; type: string; params: Record<string, number>; color: string; seriesData: any[] };
+        const ind = (e as CustomEvent).detail as {
+          id: string;
+          type: string;
+          params: Record<string, number>;
+          color: string;
+          seriesData: any[];
+        };
         const chartBars = getChartBars();
         if (chartBars.length === 0) return;
 
@@ -331,21 +391,54 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
 
         if (ind.type === 'MACD') {
           const { dif, dea, histogram } = calculateMACD(closes);
-          const difSeries = chart.addLineSeries({ color: ind.color, lineWidth: 1, priceLineVisible: false, title: `DIF(${ind.id.slice(-4)})` });
-          const deaSeries = chart.addLineSeries({ color: 'rgba(255,255,255,0.5)', lineWidth: 1, priceLineVisible: false, title: `DEA(${ind.id.slice(-4)})` });
-          const histSeries = chart.addHistogramSeries({ priceLineVisible: false, title: `MACD(${ind.id.slice(-4)})` });
-          const difData: LineData<Time>[] = times.map((t, i) => ({ time: t, value: dif[i] })).filter((d) => !isNaN(d.value));
-          const deaData: LineData<Time>[] = times.map((t, i) => ({ time: t, value: dea[i] })).filter((d) => !isNaN(d.value));
-          const histData = times.map((t, i) => {
-            if (isNaN(histogram[i])) return null;
-            return { time: t, value: histogram[i], color: histogram[i] >= 0 ? 'rgba(239,68,68,0.7)' : 'rgba(34,197,94,0.7)' };
-          }).filter(Boolean);
+          const difSeries = chart.addLineSeries({
+            color: ind.color,
+            lineWidth: 1,
+            priceLineVisible: false,
+            title: `DIF(${ind.id.slice(-4)})`,
+          });
+          const deaSeries = chart.addLineSeries({
+            color: 'rgba(255,255,255,0.5)',
+            lineWidth: 1,
+            priceLineVisible: false,
+            title: `DEA(${ind.id.slice(-4)})`,
+          });
+          const histSeries = chart.addHistogramSeries({
+            priceLineVisible: false,
+            title: `MACD(${ind.id.slice(-4)})`,
+          });
+          const difData: LineData<Time>[] = times
+            .map((t, i) => ({ time: t, value: dif[i] }))
+            .filter((d) => !isNaN(d.value));
+          const deaData: LineData<Time>[] = times
+            .map((t, i) => ({ time: t, value: dea[i] }))
+            .filter((d) => !isNaN(d.value));
+          const histData = times
+            .map((t, i) => {
+              if (isNaN(histogram[i])) return null;
+              return {
+                time: t,
+                value: histogram[i],
+                color: histogram[i] >= 0 ? 'rgba(239,68,68,0.7)' : 'rgba(34,197,94,0.7)',
+              };
+            })
+            .filter(Boolean);
           difSeries.setData(difData);
           deaSeries.setData(deaData);
           histSeries.setData(histData as any);
-          customSeriesMap.set(ind.id, { main: difSeries, dif: difSeries, dea: deaSeries, hist: histSeries });
+          customSeriesMap.set(ind.id, {
+            main: difSeries,
+            dif: difSeries,
+            dea: deaSeries,
+            hist: histSeries,
+          });
         } else {
-          const mainSeries = chart.addLineSeries({ color: ind.color, lineWidth: 1, priceLineVisible: false, title: `${ind.type}(${ind.id.slice(-4)})` });
+          const mainSeries = chart.addLineSeries({
+            color: ind.color,
+            lineWidth: 1,
+            priceLineVisible: false,
+            title: `${ind.type}(${ind.id.slice(-4)})`,
+          });
           mainSeries.setData(ind.seriesData);
           customSeriesMap.set(ind.id, { main: mainSeries });
         }
@@ -374,7 +467,10 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
       // ResizeObserver
       const resizeObserver = new ResizeObserver(() => {
         if (chart && containerRef) {
-          chart.applyOptions({ width: containerRef.clientWidth, height: containerRef.clientHeight });
+          chart.applyOptions({
+            width: containerRef.clientWidth,
+            height: containerRef.clientHeight,
+          });
           updateVisibleRange();
         }
       });
@@ -417,7 +513,11 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
         window.removeEventListener('custom-indicator-remove', handleCustomIndicatorRemove);
         crosshairManager?.destroy();
         if (chart) {
-          try { chart.remove(); } catch (e) { console.debug('[KlineChart] Chart already disposed'); }
+          try {
+            chart.remove();
+          } catch (e) {
+            console.debug('[KlineChart] Chart already disposed');
+          }
         }
       });
     } catch (err) {
@@ -481,26 +581,77 @@ export const KlineChart: Component<KlineChartProps> = (props) => {
 
         {/* Zoom buttons */}
         <div class="flex gap-1">
-          <button class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors" onClick={zoomOut} title="缩小">
+          <button
+            class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
+            onClick={zoomOut}
+            title="缩小"
+          >
             ➖ 缩小
           </button>
-          <button class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors" onClick={zoomIn} title="放大">
+          <button
+            class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
+            onClick={zoomIn}
+            title="放大"
+          >
             ➕ 放大
           </button>
         </div>
 
         {/* Pan buttons */}
         <div class="flex gap-1">
-          <button class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors" onClick={() => { chart?.timeScale().scrollToPosition(0, true); updateVisibleRange(); }} title="滚动到开头 (Home)">
+          <button
+            class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
+            onClick={() => {
+              chart?.timeScale().scrollToPosition(0, true);
+              updateVisibleRange();
+            }}
+            title="滚动到开头 (Home)"
+          >
             ⏮
           </button>
-          <button class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors" onClick={() => { if (!chart) return; chart.timeScale().scrollToPosition(Math.max(0, chart.timeScale().scrollPosition() - Math.max(1, Math.floor(totalCount() / 20))), true); updateVisibleRange(); }} title="向左平移 (←)">
+          <button
+            class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
+            onClick={() => {
+              if (!chart) return;
+              chart
+                .timeScale()
+                .scrollToPosition(
+                  Math.max(
+                    0,
+                    chart.timeScale().scrollPosition() - Math.max(1, Math.floor(totalCount() / 20))
+                  ),
+                  true
+                );
+              updateVisibleRange();
+            }}
+            title="向左平移 (←)"
+          >
             ◀
           </button>
-          <button class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors" onClick={() => { if (!chart) return; chart.timeScale().scrollToPosition(chart.timeScale().scrollPosition() + Math.max(1, Math.floor(totalCount() / 20)), true); updateVisibleRange(); }} title="向右平移 (→)">
+          <button
+            class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
+            onClick={() => {
+              if (!chart) return;
+              chart
+                .timeScale()
+                .scrollToPosition(
+                  chart.timeScale().scrollPosition() + Math.max(1, Math.floor(totalCount() / 20)),
+                  true
+                );
+              updateVisibleRange();
+            }}
+            title="向右平移 (→)"
+          >
             ▶
           </button>
-          <button class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors" onClick={() => { chart?.timeScale().scrollToRealTime(); updateVisibleRange(); }} title="滚动到结尾 (End)">
+          <button
+            class="px-2 py-1 text-xs rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors"
+            onClick={() => {
+              chart?.timeScale().scrollToRealTime();
+              updateVisibleRange();
+            }}
+            title="滚动到结尾 (End)"
+          >
             ⏭
           </button>
         </div>

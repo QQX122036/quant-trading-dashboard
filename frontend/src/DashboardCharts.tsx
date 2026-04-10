@@ -16,7 +16,8 @@ export const DashboardCharts: Component = () => {
 
   onMount(async () => {
     const _ec = await import('@/lib/echarts');
-    const echarts = _ec.default;    if (lineRef) {
+    const echarts = _ec.default;
+    if (lineRef) {
       lineChart = echarts.init(lineRef, 'dark');
       renderLineChart();
     }

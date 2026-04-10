@@ -156,7 +156,8 @@ const AlphaSignals: Component = () => {
 
   onMount(async () => {
     const _ec = await import('@/lib/echarts');
-    const echarts = _ec.default;    loadData();
+    const echarts = _ec.default;
+    loadData();
     initChart();
     initHistogram();
   });

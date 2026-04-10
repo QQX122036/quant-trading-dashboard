@@ -138,7 +138,8 @@ export const YieldChart: Component<YieldChartProps> = (props) => {
 
   onMount(async () => {
     const _ec = await import('@/lib/echarts');
-    const echarts = _ec.default;    if (!containerRef) return;
+    const echarts = _ec.default;
+    if (!containerRef) return;
     chart = echarts.init(containerRef, 'dark');
     chart.setOption(getOption());
 

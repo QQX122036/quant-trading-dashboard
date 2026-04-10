@@ -73,7 +73,8 @@ function SentimentGaugeChart(props: { index: number }) {
 
   onMount(async () => {
     const _ec = await import('@/lib/echarts');
-    const echarts = _ec.default;    chart = echarts.init(ref, undefined, { renderer: 'canvas' });
+    const echarts = _ec.default;
+    chart = echarts.init(ref, undefined, { renderer: 'canvas' });
     chart.setOption(option());
     const ro = new ResizeObserver(() => chart?.resize());
     ro.observe(ref);
@@ -339,7 +340,8 @@ export const NewsSentiment: Component = () => {
 
   onMount(async () => {
     const _ec = await import('@/lib/echarts');
-    const echarts = _ec.default;    loadData();
+    const echarts = _ec.default;
+    loadData();
     loadAnnouncements();
     setupWS();
   });
