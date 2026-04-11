@@ -73,12 +73,6 @@ export const BacktestConfig: Component<BacktestConfigProps> = (props) => {
       },
     };
     props.onRun?.(config);
-    apiActions.runBacktest({
-      strategy: config.strategy,
-      symbols: config.symbols,
-      start_date: config.start_date,
-      end_date: config.end_date,
-    });
   };
 
   return (

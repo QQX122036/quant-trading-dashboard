@@ -64,6 +64,7 @@ export const OptionsChain: Component = () => {
   };
 
   const [selectedExpiry, setSelectedExpiry] = createSignal(expiryDates.monthly[0]);
+  const [selectedStrategy, setSelectedStrategy] = createSignal('');
 
   const formatVolume = (v: number) => (v >= 10000 ? `${(v / 10000).toFixed(1)}万` : String(v));
   const formatOI = (v: number) => (v >= 10000 ? `${(v / 10000).toFixed(1)}万` : String(v));
@@ -225,7 +226,10 @@ export const OptionsChain: Component = () => {
         <span class="text-xs text-gray-400 mr-2">快速策略:</span>
         <For each={['牛市价差', '熊市价差', '跨式组合', '宽跨式', '领口策略']}>
           {(strategy) => (
-            <button class="px-2 py-1 text-xs rounded bg-white/10 hover:bg-white/20 text-gray-300 transition-colors">
+            <button
+              class={`px-2 py-1 text-xs rounded transition-colors ${selectedStrategy() === strategy ? 'bg-blue-500/30 text-blue-300 border border-blue-500/50' : 'bg-white/10 hover:bg-white/20 text-gray-300'}`}
+              onClick={() => setSelectedStrategy(strategy)}
+            >
               {strategy}
             </button>
           )}

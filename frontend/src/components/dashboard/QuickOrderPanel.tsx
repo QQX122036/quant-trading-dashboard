@@ -4,7 +4,7 @@
  * - 一键市价单按钮
  * - 对接 POST /api/order/send
  */
-import { Component, createSignal, Show } from 'solid-js';
+import { Component, createSignal, createEffect, Show } from 'solid-js';
 import { state } from '../../stores';
 import { submitOrder } from '../../hooks/useApi';
 import { fetchPositions } from '../../hooks/useApi';
@@ -23,7 +23,7 @@ export const QuickOrderPanel: Component<{ symbol: string }> = (props) => {
   const [result, setResult] = createSignal<{ success: boolean; message: string } | null>(null);
 
   // 当 symbol 变化时更新 code
-  createSignal(() => {
+  createEffect(() => {
     const sym = props.symbol;
     setCode(sym.split('.')[0] || '');
     setExchange(sym.includes('.SZ') ? 'SZE' : 'SSE');
