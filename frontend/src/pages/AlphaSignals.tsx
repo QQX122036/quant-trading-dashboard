@@ -5,7 +5,7 @@
  * - 支持刷新按钮
  * - 支持评分分布直方图、CSV导出、多维度排序
  */
-import { Component, createSignal, onMount, createMemo, Show, For } from 'solid-js';
+import { Component, createSignal, onMount, onCleanup, createMemo, Show, For } from 'solid-js';
 import ec from '@/lib/echarts';
 import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { fetchAlphaTop20 } from '../hooks/useApi';
@@ -239,6 +239,7 @@ const AlphaSignals: Component = () => {
     chart = ec.init(chartRef, 'dark');
     const ro = new ResizeObserver(() => chart?.resize());
     ro.observe(chartRef);
+    onCleanup(() => ro.disconnect());
     renderChart();
   }
 

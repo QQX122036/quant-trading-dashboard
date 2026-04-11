@@ -1,4 +1,4 @@
-import { onMount, createEffect, Component } from 'solid-js';
+import { onMount, onCleanup, createEffect, Component } from 'solid-js';
 import { createChart, IChartApi, ISeriesApi, HistogramData, Time } from 'lightweight-charts';
 import type { DailyBar } from '../../types/vnpy';
 
@@ -41,6 +41,11 @@ export const VolumeChart: Component<Props> = (props) => {
       if (chart && containerRef) chart.applyOptions({ width: containerRef.clientWidth });
     });
     resizeObserver.observe(containerRef);
+
+    onCleanup(() => {
+      resizeObserver.disconnect();
+      chart?.remove();
+    });
   });
 
   createEffect(() => {

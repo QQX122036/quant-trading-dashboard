@@ -234,7 +234,7 @@ export const GreeksPanel: Component = () => {
           },
         },
       ],
-    } as unknown as EChartsCoreOption);
+    } as EChartsCoreOption);
 
     const ro = new ResizeObserver(() => thetaChart?.resize());
     ro.observe(thetaChartRef);

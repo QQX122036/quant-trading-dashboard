@@ -1,0 +1,116 @@
+[
+  {
+    "route": "/market",
+    "name": "Market Overview",
+    "status": "💥",
+    "error": "page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/market\", waiting until \"networkidle\"\u001b[22m\n"
+  },
+  {
+    "route": "/dashboard",
+    "name": "Dashboard",
+    "status": "💥",
+    "error": "page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/dashboard\", waiting until \"networkidle\"\u001b[22m\n"
+  },
+  {
+    "route": "/positions",
+    "name": "Positions",
+    "status": "❌",
+    "rootContent": 9682,
+    "consoleErrors": [
+      "WebSocket connection to 'ws://localhost:5173/ws' failed: Connection closed before receiving a handshake response",
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "WebSocket connection to 'ws://localhost:5173/ws' failed: Connection closed before receiving a handshake response",
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "pageErrors": [],
+    "networkErrors": [],
+    "bodyPreview": "📊\nVeighNa Web\n系统\n功能\n帮助\n01:51:26\n🌐\nEN\n重连中...\n持仓管理\n全部平仓\n导出CSV\n↻\n刷新中...\n0 账户\n账号\t网关\t总权益\t可用资金\t冻结资金\t当日盈亏"
+  },
+  {
+    "route": "/backtest",
+    "name": "Backtest",
+    "status": "❌",
+    "rootContent": 9983,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "pageErrors": [],
+    "networkErrors": [],
+    "bodyPreview": "📊\nVeighNa Web\n系统\n功能\n帮助\n01:53:49\n🌐\nEN\n未连接\n回测分析\n标的代码\n添加\n000001.SH\n000300.SH\n600519.SH\n000858.SH\n策略选择"
+  },
+  {
+    "route": "/trades",
+    "name": "Trades",
+    "status": "💥",
+    "error": "page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/trades\", waiting until \"networkidle\"\u001b[22m\n"
+  },
+  {
+    "route": "/factors",
+    "name": "Factors",
+    "status": "💥",
+    "error": "page.goto: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://localhost:5173/factors\", waiting until \"networkidle\"\u001b[22m\n"
+  },
+  {
+    "route": "/sentiment",
+    "name": "Sentiment",
+    "status": "❌",
+    "rootContent": 9426,
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "pageErrors": [],
+    "networkErrors": [
+      "GET http://localhost:5173/api/data/sector-money-flow -> net::ERR_ABORTED",
+      "GET http://localhost:5173/api/data/sector-money-flow -> net::ERR_ABORTED",
+      "GET http://localhost:5173/api/data/sentiment -> net::ERR_ABORTED",
+      "GET http://localhost:5173/api/data/sentiment-trend?ts_code=000001.SH&days=30 -> net::ERR_ABORTED",
+      "GET http://localhost:5173/api/data/sentiment-compare?ts_code=000001.SH&days=30 -> net::ERR_ABORTED"
+    ],
+    "bodyPreview": "📊\nVeighNa Web\n系统\n功能\n帮助\n02:57:54\n🌐\nEN\n未连接\n📊 市场情绪监控\n同花顺/东方财富级情绪分析\n指数:\n市场情绪\n2026/4/11\n⚠️ [object Obj"
+  },
+  {
+    "route": "/news",
+    "name": "News",
+    "status": "✅",
+    "rootContent": 6521,
+    "consoleErrors": [],
+    "pageErrors": [],
+    "networkErrors": [],
+    "bodyPreview": "📊\nVeighNa Web\n系统\n功能\n帮助\n03:14:10\n🌐\nEN\n未连接\n📰 舆情监控\n新闻舆情\n公告快讯\n查询\n舆情指数量化\n看涨\n0.0%\n看跌\n0.0%\n中性\n0.0%\n综合判断\n"
+  },
+  {
+    "route": "/advisor",
+    "name": "AI Advisor",
+    "status": "✅",
+    "rootContent": 4314,
+    "consoleErrors": [],
+    "pageErrors": [],
+    "networkErrors": [],
+    "bodyPreview": "📊\nVeighNa Web\n系统\n功能\n帮助\n03:14:13\n🌐\nEN\n未连接\n🤖 智能投顾\n在线\n快捷问题:\n我的持仓亏了多少？\n贵州茅台最近有什么风险？\n现在的市场情绪如何？\n帮我分析上证"
+  },
+  {
+    "route": "/strategies",
+    "name": "Strategies",
+    "status": "✅",
+    "rootContent": 9227,
+    "consoleErrors": [],
+    "pageErrors": [],
+    "networkErrors": [],
+    "bodyPreview": "📊\nVeighNa Web\n系统\n功能\n帮助\n03:14:16\n🌐\nEN\n未连接\n策略管理\n刷新\n策略名称\t类型\t状态\t运行时长\t累计盈亏\t操作\ntest\talpha\t\n已停止\t-\t-\t\n启动\n编"
+  },
+  {
+    "route": "/data",
+    "name": "Data Manager",
+    "status": "✅",
+    "rootContent": 3635,
+    "consoleErrors": [],
+    "pageErrors": [],
+    "networkErrors": [],
+    "bodyPreview": "📊\nVeighNa Web\n系统\n功能\n帮助\n03:14:19\n🌐\nEN\n未连接\n📁\n数据管理\n📤 导入\n📥 导出\n📊 采集进度\n目标数据表\n日K数据 (daily_bar)\n持仓数据 ("
+  }
+]

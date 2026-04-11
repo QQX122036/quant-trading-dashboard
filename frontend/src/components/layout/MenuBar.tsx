@@ -1,4 +1,4 @@
-import { Component, createSignal, createEffect, Show, For } from 'solid-js';
+import { Component, createSignal, createEffect, onCleanup, Show, For } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import { state, actions } from '../../stores';
 import { authActions } from '../../stores/authStore';
@@ -31,6 +31,7 @@ export const MenuBar: Component = () => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
+    onCleanup(() => window.removeEventListener('resize', checkMobile));
   });
 
   const menus: MenuItem[] = [

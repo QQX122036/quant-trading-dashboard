@@ -210,7 +210,7 @@ export const MultiStrategyChart: Component = () => {
           itemStyle: { color: '#8B5CF6' },
         },
       ],
-    } as unknown as EChartsCoreOption;
+    } as EChartsCoreOption;
   };
 
   // ── Factor Contribution Pie Chart ─────────────────────────

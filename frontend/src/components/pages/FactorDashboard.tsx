@@ -129,7 +129,7 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
           itemStyle: { color: '#8B5CF6' },
         },
       ],
-    } as unknown as EChartsCoreOption;
+    } as EChartsCoreOption;
   };
 
   // ── IR Bar Chart ───────────────────────────────────────────
@@ -202,7 +202,7 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
           },
         },
       ],
-    } as unknown as EChartsCoreOption;
+    } as EChartsCoreOption;
   };
 
   // ── Correlation Heatmap ────────────────────────────────────
@@ -284,7 +284,7 @@ export const FactorDashboard: Component<FactorDashboardProps> = (props) => {
           emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' } },
         },
       ],
-    } as unknown as EChartsCoreOption;
+    } as EChartsCoreOption;
   };
 
   const loadData = async () => {

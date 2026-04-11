@@ -340,7 +340,7 @@ export const BacktestAnalysis: Component = () => {
           emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.5)' } },
         },
       ],
-    } as unknown as EChartsCoreOption;
+    } as EChartsCoreOption;
   };
 
   onMount(async () => {

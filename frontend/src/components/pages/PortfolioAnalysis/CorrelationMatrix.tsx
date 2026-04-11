@@ -236,7 +236,7 @@ export const CorrelationMatrix: Component<CorrelationMatrixProps> = (props) => {
           },
         },
       ],
-    } as unknown as EChartsCoreOption;
+    } as EChartsCoreOption;
   };
 
   // ── 生命周期 ────────────────────────────────────────────────
