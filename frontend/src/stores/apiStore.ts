@@ -274,32 +274,6 @@ export const apiActions = {
       const res = await api.runBacktest(req);
       const taskId = res.data?.task_id;
       setApiState('backtestTaskId', taskId ?? null);
-
-      const poll = async () => {
-        try {
-          const progRes = await api.getBacktestProgress(taskId ?? '');
-          if (!progRes.data) {
-            setApiState('backtestRunning', false);
-            return;
-          }
-          const prog = progRes.data;
-          setApiState('backtestProgress', prog);
-          if (prog.status === 'pending' || prog.status === 'running') {
-            setTimeout(poll, 1000);
-          } else if (prog.status === 'completed') {
-            const resultRes = await api.getBacktestResult(taskId ?? '');
-            if (resultRes.data) setApiState('backtestResult', resultRes.data);
-            setApiState('backtestRunning', false);
-          } else {
-            setApiState('backtestError', prog.message || '回测失败');
-            setApiState('backtestRunning', false);
-          }
-        } catch (e: unknown) {
-          setApiState('backtestError', getErrorMsg(e));
-          setApiState('backtestRunning', false);
-        }
-      };
-      setTimeout(poll, 500);
       return taskId ?? null;
     } catch (e: unknown) {
       setApiState('backtestError', getErrorMsg(e));

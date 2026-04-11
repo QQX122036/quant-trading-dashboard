@@ -401,7 +401,12 @@ export const BacktestAnalysis: Component = () => {
     setViewMode('result');
   };
 
-  const perf = () => apiState.backtestResult;
+  const perf = () => {
+    const raw = apiState.backtestResult;
+    if (!raw) return null;
+    const s = raw.summary || {};
+    return { ...s, ...raw } as any;
+  };
 
   const perfCards = () => {
     const p = perf();
@@ -499,6 +504,7 @@ export const BacktestAnalysis: Component = () => {
                   console.error('[BacktestAnalysis] Error starting backtest:', e);
                 }
               }}
+              onViewResult={() => setViewMode('result')}
             />
           </div>
           {/* Spacer when no config */}

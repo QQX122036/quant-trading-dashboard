@@ -3,7 +3,8 @@
  * 策略选择、参数滑块、日期范围、初始资金配置
  */
 import { Component, createSignal, For, Show, onMount, onCleanup } from 'solid-js';
-import { apiState, apiActions } from '../../stores/apiStore';
+import { apiState, apiActions, setApiState } from '../../stores/apiStore';
+import { getBacktestResult } from '../../hooks/useApi';
 
 const STRATEGIES = [
   { id: 'momentum', name: '动量策略', description: '追涨杀跌，基于近期收益率惯性' },
@@ -14,6 +15,7 @@ const STRATEGIES = [
 
 interface BacktestConfigProps {
   onRun?: (config: BacktestConfigData) => void;
+  onViewResult?: () => void;
 }
 
 export interface BacktestConfigData {
@@ -293,10 +295,24 @@ export const BacktestConfig: Component<BacktestConfigProps> = (props) => {
         <div class="space-y-2 max-h-48 overflow-y-auto">
           <For each={apiState.backtestTasks.slice(0, 10)}>
             {(task) => (
-              <div class="flex justify-between items-center bg-[#0A0E17] rounded px-3 py-2 text-xs">
+              <div
+                class="flex justify-between items-center bg-[#0A0E17] rounded px-3 py-2 text-xs cursor-pointer hover:bg-white/5 transition-colors"
+                onClick={async () => {
+                  if (task.status !== 'completed') return;
+                  try {
+                    const res = await getBacktestResult(task.task_id);
+                    if (res.data) {
+                      setApiState('backtestResult', res.data as any);
+                      if (props.onViewResult) props.onViewResult();
+                    }
+                  } catch (e) {
+                    console.error('[BacktestConfig] 加载历史结果失败:', e);
+                  }
+                }}
+              >
                 <div>
-                  <span class="text-gray-300 font-mono">{task.task_id?.slice(0, 8)}...</span>
-                  <span class="ml-2 text-gray-500">{task.strategy}</span>
+                  <span class="text-gray-300 font-mono">{task.task_id?.slice(0, 12)}...</span>
+                  <span class="ml-2 text-gray-500">{task.message || task.status}</span>
                 </div>
                 <span
                   class={`px-2 py-0.5 rounded text-xs ${task.status === 'completed' ? 'bg-green-500/20 text-green-400' : task.status === 'failed' ? 'bg-red-500/20 text-red-400' : task.status === 'running' ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-500/20 text-gray-400'}`}

@@ -661,7 +661,7 @@ export interface BacktestRunReq {
 }
 
 export interface BacktestTasksResponse {
-  tasks: Array<{ task_id: string; strategy: string; status: string; created_at: string }>;
+  tasks: Array<{ task_id: string; strategy: string; status: string; created_at: string; message?: string; progress?: number }>;
 }
 
 export async function fetchBacktestTasks(): Promise<ApiResponse<BacktestTasksResponse>> {
@@ -669,11 +669,12 @@ export async function fetchBacktestTasks(): Promise<ApiResponse<BacktestTasksRes
 }
 
 export async function runBacktest(req: BacktestRunReq): Promise<ApiResponse<{ task_id: string }>> {
-  // 后端 BacktestSubmitRequest 格式：ts_code(单只), start_date, end_date
   const backendReq = {
     ts_code: req.symbols.length > 0 ? req.symbols[0] : undefined,
     start_date: req.start_date,
     end_date: req.end_date,
+    strategy_type: req.strategy || 'factor',
+    initial_capital: 1000000,
   };
   return apiFetch<{ task_id: string }>('/api/backtest', {
     method: 'POST',
