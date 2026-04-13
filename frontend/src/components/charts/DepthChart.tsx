@@ -4,7 +4,7 @@
  * 使用 ECharts 实现
  */
 import ec from '@/lib/echarts';
-import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
+import type { EChartsType } from '@/lib/echarts';
 import { Component, createSignal, onMount, onCleanup, createEffect, For } from 'solid-js';
 
 export interface DepthLevel {

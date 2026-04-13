@@ -72,7 +72,9 @@ export class CrosshairManager {
   }
 
   subscribe(callbacks: CrosshairSubscribeCallbacks) {
-    const handler = (param: Parameters<Parameters<typeof this.chart.subscribeCrosshairMove>[0]>[0]) => {
+    const handler = (
+      param: Parameters<Parameters<typeof this.chart.subscribeCrosshairMove>[0]>[0]
+    ) => {
       const t = param.time as Time | undefined;
       let price: number | undefined;
       let index = -1;

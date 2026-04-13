@@ -4,7 +4,7 @@
  */
 import { Component, createSignal, Show, onMount, onCleanup, createEffect } from 'solid-js';
 import { logger } from '../../lib/logger';
-import { exportEchartsToPdf, type ExportPdfOptions } from '../../utils/pdfExport';
+import { exportEchartsToPdf } from '../../utils/pdfExport';
 import ec from '@/lib/echarts';
 import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 

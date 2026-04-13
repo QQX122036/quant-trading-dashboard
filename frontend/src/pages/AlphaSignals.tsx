@@ -7,7 +7,7 @@
  */
 import { Component, createSignal, onMount, onCleanup, createMemo, Show, For } from 'solid-js';
 import ec from '@/lib/echarts';
-import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
+import type { EChartsType } from '@/lib/echarts';
 import { fetchAlphaTop20 } from '../hooks/useApi';
 
 // ── Types ─────────────────────────────────────────────────

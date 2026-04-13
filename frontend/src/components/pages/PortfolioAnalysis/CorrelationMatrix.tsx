@@ -3,7 +3,7 @@
  * ECharts heatmap: 正相关(蓝) / 负相关(红) / 中性(白)
  */
 import { Component, createSignal, onMount, onCleanup, createEffect } from 'solid-js';
-import { marketState } from '../../../stores/marketStore';
+
 import { apiFetch } from '../../../hooks/useApi';
 import ec from '@/lib/echarts';
 import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
@@ -85,7 +85,9 @@ export const CorrelationMatrix: Component<CorrelationMatrixProps> = (props) => {
     setError(null);
 
     try {
-      const res = await apiFetch<{ tickers?: string[]; stocks?: string[]; matrix?: number[][] }>('/api/risk/correlation');
+      const res = await apiFetch<{ tickers?: string[]; stocks?: string[]; matrix?: number[][] }>(
+        '/api/risk/correlation'
+      );
       const json = res.data;
       if (json && json.tickers && json.tickers.length > 0) {
         setData(json as unknown as CorrelationData);

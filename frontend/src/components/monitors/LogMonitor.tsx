@@ -2,16 +2,7 @@
  * LogMonitor.tsx — 日志监控
  * 使用 TanStack Table 展示日志列表，支持级别过滤、关键词搜索、WebSocket实时追加、自动滚动
  */
-import {
-  Component,
-  createSignal,
-  createMemo,
-  For,
-  Show,
-  onMount,
-  onCleanup,
-  createEffect,
-} from 'solid-js';
+import { Component, createSignal, createMemo, For, Show, createEffect } from 'solid-js';
 import {
   createSolidTable,
   createColumnHelper,

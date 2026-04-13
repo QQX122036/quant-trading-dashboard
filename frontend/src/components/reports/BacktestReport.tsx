@@ -126,9 +126,7 @@ function buildEquityOption(
   } as EChartsCoreOption;
 }
 
-function buildDrawdownOption(
-  curve: Array<{ date: string; equity: number }>
-): EChartsCoreOption {
+function buildDrawdownOption(curve: Array<{ date: string; equity: number }>): EChartsCoreOption {
   if (!curve.length) return { backgroundColor: 'transparent', series: [] };
   let peak = curve[0]?.equity || 0;
   const drawdowns: number[] = [];
@@ -225,9 +223,7 @@ function buildDrawdownOption(
   } as EChartsCoreOption;
 }
 
-function buildMonthlyOption(
-  curve: Array<{ date: string; equity: number }>
-): EChartsCoreOption {
+function buildMonthlyOption(curve: Array<{ date: string; equity: number }>): EChartsCoreOption {
   if (curve.length < 30) return { backgroundColor: 'transparent', series: [] };
 
   const monthlyMap = new Map<string, { first: number; last: number }>();

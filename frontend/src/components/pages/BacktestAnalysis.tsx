@@ -470,7 +470,11 @@ export const BacktestAnalysis: Component = () => {
         color: (p?.benchmark_return ?? 0) >= 0 ? 'text-[#F59E0B]' : 'text-[#22C55E]',
       },
       { label: '盈亏比', value: String(p?.profit_loss_ratio ?? 0), color: 'text-cyan-400' },
-      { label: '最大回撤持续', value: `${p?.max_drawdown_duration ?? 0}天`, color: 'text-orange-400' },
+      {
+        label: '最大回撤持续',
+        value: `${p?.max_drawdown_duration ?? 0}天`,
+        color: 'text-orange-400',
+      },
       {
         label: '期末资金',
         value: (p?.end_capital ?? 0).toLocaleString('en-US', { maximumFractionDigits: 0 }),
@@ -627,7 +631,11 @@ export const BacktestAnalysis: Component = () => {
                   <div>
                     <div class="text-xs text-gray-400">策略参数</div>
                     <div class="text-xs mt-0.5 font-mono text-gray-300">
-                      {perf()?.strategy_params ? Object.entries(perf().strategy_params).map(([k, v]) => `${k}=${v}`).join(', ') : '--'}
+                      {perf()?.strategy_params
+                        ? Object.entries(perf().strategy_params)
+                            .map(([k, v]) => `${k}=${v}`)
+                            .join(', ')
+                        : '--'}
                     </div>
                   </div>
                   <div>

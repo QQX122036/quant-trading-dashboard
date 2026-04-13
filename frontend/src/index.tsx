@@ -6,4 +6,11 @@ import { I18nProvider } from './i18n';
 
 const root = document.getElementById('root');
 
-render(() => <I18nProvider><App /></I18nProvider>, root!);
+render(
+  () => (
+    <I18nProvider>
+      <App />
+    </I18nProvider>
+  ),
+  root!
+);

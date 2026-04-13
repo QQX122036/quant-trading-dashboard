@@ -2,7 +2,7 @@
  * FuturesModule.tsx — 期货模块
  * 主力/次主力合约、升贴水分析、跨期价差图
  */
-import { Component, createSignal, createMemo, onMount, For, Show } from 'solid-js';
+import { Component, createSignal, createMemo, onMount, For } from 'solid-js';
 import ec from '@/lib/echarts';
 import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 

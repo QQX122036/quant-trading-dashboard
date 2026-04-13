@@ -1,4 +1,4 @@
-import { Component, JSX, For } from 'solid-js';
+import { Component, For } from 'solid-js';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';

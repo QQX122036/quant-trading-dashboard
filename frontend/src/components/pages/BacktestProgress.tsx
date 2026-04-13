@@ -5,7 +5,7 @@
 import { Component, createSignal, onCleanup, Show, createEffect } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import ec from '@/lib/echarts';
-import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
+import type { EChartsType } from '@/lib/echarts';
 import { getBacktestProgress, getBacktestResult } from '../../hooks/useApi';
 
 interface BacktestProgressProps {

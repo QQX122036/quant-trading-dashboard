@@ -11,8 +11,7 @@ import { A } from '@solidjs/router';
 import { apiState, apiActions } from '../../stores/apiStore';
 import { state } from '../../stores';
 import { fetchDailyBar } from '../../hooks/useApi';
-import { formatPrice, formatPercent, formatAmount } from '../../utils/format';
-import { pnlColor } from '../../utils/color';
+import { formatPrice } from '../../utils/format';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface IndexData {

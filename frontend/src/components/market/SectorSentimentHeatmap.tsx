@@ -3,7 +3,7 @@
  * ECharts 热力图展示各行业板块情绪分布
  * 颜色映射：绿色(负面) → 黄色(中性) → 红色(正面)
  */
-import { Component, createSignal, onMount, onCleanup, For, Show, createMemo } from 'solid-js';
+import { Component, createSignal, onMount, onCleanup, Show, createMemo } from 'solid-js';
 import { apiFetch } from '../../hooks/useApi';
 import ec from '@/lib/echarts';
 import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';

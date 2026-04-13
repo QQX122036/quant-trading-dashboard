@@ -1,5 +1,5 @@
 import ec from '@/lib/echarts';
-import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
+import type { EChartsType } from '@/lib/echarts';
 import { Component, createSignal, createMemo, onMount, onCleanup, For } from 'solid-js';
 import {
   createSolidTable,

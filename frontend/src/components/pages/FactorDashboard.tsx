@@ -2,7 +2,7 @@
  * FactorDashboard.tsx — 因子有效性看板
  * IC时间序列折线图、IR柱状图、相关性热力图
  */
-import { Component, createSignal, onMount, onCleanup, For, Show } from 'solid-js';
+import { Component, createSignal, onMount, onCleanup, Show } from 'solid-js';
 import ec from '@/lib/echarts';
 import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import {

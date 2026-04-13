@@ -671,20 +671,35 @@ export interface BacktestRunReq {
 }
 
 export interface BacktestTasksResponse {
-  tasks: Array<{ task_id: string; strategy: string; status: string; created_at: string; message?: string; progress?: number }>;
+  tasks: Array<{
+    task_id: string;
+    strategy: string;
+    status: string;
+    created_at: string;
+    message?: string;
+    progress?: number;
+  }>;
 }
 
 export async function fetchBacktestTasks(): Promise<ApiResponse<BacktestTasksResponse>> {
   return apiFetch<BacktestTasksResponse>('/api/backtest/tasks');
 }
 
-export async function fetchBacktestStrategies(): Promise<ApiResponse<{
-  strategies: Record<string, {
-    name: string;
-    description: string;
-    params: Record<string, { label: string; min: number; max: number; default: number; step: number }>;
-  }>;
-}>> {
+export async function fetchBacktestStrategies(): Promise<
+  ApiResponse<{
+    strategies: Record<
+      string,
+      {
+        name: string;
+        description: string;
+        params: Record<
+          string,
+          { label: string; min: number; max: number; default: number; step: number }
+        >;
+      }
+    >;
+  }>
+> {
   return apiFetch('/api/backtest/strategies');
 }
 

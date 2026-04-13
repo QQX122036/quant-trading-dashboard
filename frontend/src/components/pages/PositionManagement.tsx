@@ -85,9 +85,7 @@ export const PositionManagement: Component = () => {
         <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div class="bg-[#1a2332] border border-white/20 rounded-lg p-6 max-w-sm w-full mx-4">
             <h3 class="text-lg font-bold text-yellow-400 mb-3">确认全部平仓？</h3>
-            <p class="text-gray-300 text-sm mb-4">
-              此操作将以市价卖出所有持仓，请确认。
-            </p>
+            <p class="text-gray-300 text-sm mb-4">此操作将以市价卖出所有持仓，请确认。</p>
             <div class="flex gap-3 justify-end">
               <button
                 class="px-4 py-2 text-sm rounded bg-white/10 hover:bg-white/20 transition-colors"

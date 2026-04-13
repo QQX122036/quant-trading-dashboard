@@ -23,9 +23,9 @@ import { fetchPositions, fetchAccounts, fetchEquityCurve } from '../../../hooks/
 import { fetchDailyBar } from '../../../hooks/useApi';
 import type { PositionData, AccountData } from '../../../types/vnpy';
 import type { EquityCurvePoint } from '../../../hooks/useApi';
-import { formatPercent, formatPnl, formatAmount } from '@/utils/format';
+
 import ec from '@/lib/echarts';
-import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
+import type { EChartsType } from '@/lib/echarts';
 
 // ── Chart refs ─────────────────────────────────────────────
 type EChartsInstance = EChartsType;
