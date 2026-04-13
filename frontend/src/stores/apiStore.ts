@@ -170,15 +170,25 @@ export const apiActions = {
   },
 
   async cancelOrder(vt_orderid: string, symbol: string, exchange: string) {
-    const res = await api.cancelOrder(vt_orderid, symbol, exchange);
-    if (res.code === '0') setTimeout(() => apiActions.fetchOrders(), 200);
-    return res;
+    try {
+      const res = await api.cancelOrder(vt_orderid, symbol, exchange);
+      if (res.code === '0') setTimeout(() => apiActions.fetchOrders(), 200);
+      return res;
+    } catch (e: unknown) {
+      console.warn('[apiStore] cancelOrder failed:', getErrorMsg(e));
+      return { code: '-1', message: getErrorMsg(e) };
+    }
   },
 
   async submitOrder(req: SendOrderReq) {
-    const res = await api.submitOrder(req);
-    if (res.code === '0') setTimeout(() => apiActions.fetchOrders(req.gateway), 200);
-    return res;
+    try {
+      const res = await api.submitOrder(req);
+      if (res.code === '0') setTimeout(() => apiActions.fetchOrders(req.gateway), 200);
+      return res;
+    } catch (e: unknown) {
+      console.warn('[apiStore] submitOrder failed:', getErrorMsg(e));
+      return { code: '-1', message: getErrorMsg(e) };
+    }
   },
 
   async fetchTrades(gateway?: string) {
@@ -260,8 +270,8 @@ export const apiActions = {
     try {
       const res = await api.fetchBacktestTasks();
       setApiState('backtestTasks', res.data?.tasks || []);
-    } catch (_e: unknown) {
-      // silent fail for task list
+    } catch (e: unknown) {
+      console.warn('[apiStore] fetchBacktestTasks failed:', getErrorMsg(e));
     }
   },
 

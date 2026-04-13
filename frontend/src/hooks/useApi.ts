@@ -628,9 +628,11 @@ export interface BacktestResult {
   task_id?: string;
   summary?: BacktestSummary;
   equity_curve?: unknown[];
-  // flat fields (some backends return flat structure)
+  daily_stats?: unknown[];
   ts_code?: string;
   strategy_type?: string;
+  strategy_name?: string;
+  strategy_params?: Record<string, number>;
   start_date?: string;
   end_date?: string;
   initial_capital?: number;
@@ -639,11 +641,17 @@ export interface BacktestResult {
   total_return?: number;
   sharpe_ratio?: number;
   max_drawdown?: number;
+  max_drawdown_duration?: number;
   win_rate?: number;
   annual_return?: number;
+  benchmark_return?: number;
   excess_return?: number;
   calmar_ratio?: number;
   profit_loss_ratio?: number;
+  factor_weights?: Array<{ name: string; weight: number; color?: string }>;
+  ic_series?: Array<{ date: string; ic: number; ic_rank?: number }>;
+  factor_contributions?: Array<{ name: string; value: number; color?: string }>;
+  period_results?: unknown[];
 }
 
 export interface BacktestRunReq {
@@ -651,6 +659,8 @@ export interface BacktestRunReq {
   symbols: string[];
   start_date: string;
   end_date: string;
+  initial_capital?: number;
+  params?: Record<string, number>;
   factor_weights?: {
     valuation?: number;
     momentum?: number;
@@ -668,17 +678,45 @@ export async function fetchBacktestTasks(): Promise<ApiResponse<BacktestTasksRes
   return apiFetch<BacktestTasksResponse>('/api/backtest/tasks');
 }
 
+export async function fetchBacktestStrategies(): Promise<ApiResponse<{
+  strategies: Record<string, {
+    name: string;
+    description: string;
+    params: Record<string, { label: string; min: number; max: number; default: number; step: number }>;
+  }>;
+}>> {
+  return apiFetch('/api/backtest/strategies');
+}
+
 export async function runBacktest(req: BacktestRunReq): Promise<ApiResponse<{ task_id: string }>> {
-  const backendReq = {
+  const backendReq: Record<string, unknown> = {
     ts_code: req.symbols.length > 0 ? req.symbols[0] : undefined,
     start_date: req.start_date,
     end_date: req.end_date,
-    strategy_type: req.strategy || 'factor',
-    initial_capital: 1000000,
+    strategy_type: req.strategy || 'momentum',
+    initial_capital: req.initial_capital || 1000000,
   };
+  if (req.params && Object.keys(req.params).length > 0) {
+    backendReq.strategy_params = req.params;
+  }
   return apiFetch<{ task_id: string }>('/api/backtest', {
     method: 'POST',
     body: JSON.stringify(backendReq),
+  });
+}
+
+export async function runMultiFactorBacktest(req: {
+  start_date: string;
+  end_date: string;
+  factors?: string[];
+  factor_weights?: Record<string, number>;
+  top_n?: number;
+  rebalance_days?: number;
+  initial_capital?: number;
+}): Promise<ApiResponse<{ task_id: string }>> {
+  return apiFetch<{ task_id: string }>('/api/backtest/multi-factor', {
+    method: 'POST',
+    body: JSON.stringify(req),
   });
 }
 

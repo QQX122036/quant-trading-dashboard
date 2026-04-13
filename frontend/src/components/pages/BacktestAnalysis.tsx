@@ -439,8 +439,8 @@ export const BacktestAnalysis: Component = () => {
       return [
         { label: '超额收益', value: '--', color: 'text-gray-400' },
         { label: '卡玛比率', value: '--', color: 'text-gray-400' },
-        { label: '总交易次数', value: '--', color: 'text-gray-400' },
         { label: '胜率', value: '--', color: 'text-gray-400' },
+        { label: '总交易次数', value: '--', color: 'text-gray-400' },
       ];
     return [
       {
@@ -449,8 +449,33 @@ export const BacktestAnalysis: Component = () => {
         color: (p?.excess_return ?? 0) >= 0 ? 'text-[#EF4444]' : 'text-[#22C55E]',
       },
       { label: '卡玛比率', value: String(p?.calmar_ratio ?? 0), color: 'text-blue-400' },
+      { label: '胜率', value: `${p?.win_rate ?? 0}%`, color: 'text-purple-400' },
       { label: '总交易次数', value: String(p?.total_trades ?? 0), color: 'text-gray-300' },
-      { label: '盈亏比', value: String(p?.profit_loss_ratio ?? 0), color: 'text-gray-300' },
+    ];
+  };
+
+  const thirdCards = () => {
+    const p = perf();
+    if (!p)
+      return [
+        { label: '基准收益', value: '--', color: 'text-gray-400' },
+        { label: '盈亏比', value: '--', color: 'text-gray-400' },
+        { label: '最大回撤持续', value: '--', color: 'text-gray-400' },
+        { label: '期末资金', value: '--', color: 'text-gray-400' },
+      ];
+    return [
+      {
+        label: '基准收益',
+        value: `${(p?.benchmark_return ?? 0) >= 0 ? '+' : ''}${p?.benchmark_return ?? 0}%`,
+        color: (p?.benchmark_return ?? 0) >= 0 ? 'text-[#F59E0B]' : 'text-[#22C55E]',
+      },
+      { label: '盈亏比', value: String(p?.profit_loss_ratio ?? 0), color: 'text-cyan-400' },
+      { label: '最大回撤持续', value: `${p?.max_drawdown_duration ?? 0}天`, color: 'text-orange-400' },
+      {
+        label: '期末资金',
+        value: (p?.end_capital ?? 0).toLocaleString('en-US', { maximumFractionDigits: 0 }),
+        color: 'text-gray-200',
+      },
     ];
   };
 
@@ -484,9 +509,10 @@ export const BacktestAnalysis: Component = () => {
                     symbols: config.symbols,
                     start_date: config.start_date,
                     end_date: config.end_date,
+                    initial_capital: config.initial_capital,
+                    params: config.params,
                   });
                   console.log('[BacktestAnalysis] API response:', res);
-                  // API 直接返回 task_id 字符串，而不是标准格式
                   const rawId = !res
                     ? null
                     : typeof res === 'string'
@@ -550,6 +576,18 @@ export const BacktestAnalysis: Component = () => {
               </For>
             </div>
 
+            {/* Third row Metrics */}
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 shrink-0">
+              <For each={thirdCards()}>
+                {(card) => (
+                  <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4">
+                    <div class="text-xs text-gray-400 mb-1">{card.label}</div>
+                    <div class={`text-lg font-bold tabular-nums ${card.color}`}>{card.value}</div>
+                  </div>
+                )}
+              </For>
+            </div>
+
             {/* Equity Curve */}
             <div class="flex-1 bg-[#111827]/80 rounded-lg border border-white/10 p-4 min-h-[240px] shrink-0">
               <h3 class="font-bold mb-2 text-sm text-gray-300">收益率曲线</h3>
@@ -577,14 +615,20 @@ export const BacktestAnalysis: Component = () => {
             <Show when={perf()}>
               <div class="bg-[#111827]/80 rounded-lg border border-white/10 p-4 shrink-0">
                 <h3 class="font-bold mb-3 text-sm">回测概要</h3>
-                <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm">
+                <div class="grid grid-cols-2 sm:grid-cols-6 gap-4 text-sm">
                   <div>
                     <div class="text-xs text-gray-400">标的</div>
                     <div class="font-mono mt-0.5">{perf()?.ts_code ?? ''}</div>
                   </div>
                   <div>
                     <div class="text-xs text-gray-400">策略</div>
-                    <div class="mt-0.5">{perf()?.strategy_type ?? ''}</div>
+                    <div class="mt-0.5">{perf()?.strategy_name || perf()?.strategy_type || ''}</div>
+                  </div>
+                  <div>
+                    <div class="text-xs text-gray-400">策略参数</div>
+                    <div class="text-xs mt-0.5 font-mono text-gray-300">
+                      {perf()?.strategy_params ? Object.entries(perf().strategy_params).map(([k, v]) => `${k}=${v}`).join(', ') : '--'}
+                    </div>
                   </div>
                   <div>
                     <div class="text-xs text-gray-400">期初资金</div>

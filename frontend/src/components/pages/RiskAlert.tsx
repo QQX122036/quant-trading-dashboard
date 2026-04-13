@@ -149,7 +149,7 @@ const RiskAlert: Component = () => {
       if (data?.success) setEmergencyData(data);
     } catch (e: any) {
       if (e.name !== 'AbortError') {
-        /* silent */
+        console.warn('[RiskAlert] emergency数据加载失败:', e.message);
       }
     } finally {
       setLoadingEmergency(false);
@@ -163,7 +163,7 @@ const RiskAlert: Component = () => {
       if (data?.success) setMarginData(data);
     } catch (e: any) {
       if (e.name !== 'AbortError') {
-        /* silent */
+        console.warn('[RiskAlert] margin数据加载失败:', e.message);
       }
     } finally {
       setLoadingMargin(false);
@@ -181,7 +181,7 @@ const RiskAlert: Component = () => {
       if (data?.success) setLiqData(data);
     } catch (e: any) {
       if (e.name !== 'AbortError') {
-        /* silent */
+        console.warn('[RiskAlert] liquidity数据加载失败:', e.message);
       }
     } finally {
       setLoadingLiq(false);
@@ -195,7 +195,7 @@ const RiskAlert: Component = () => {
       if (res?.code === 0) setAlertRules(res.data?.rules || []);
     } catch (e: any) {
       if (e.name !== 'AbortError') {
-        /* silent */
+        console.warn('[RiskAlert] alertRules加载失败:', e.message);
       }
     } finally {
       setLoadingRules(false);
@@ -258,7 +258,7 @@ const RiskAlert: Component = () => {
       if (res?.code === 0) await loadAlertRules();
     } catch (e: any) {
       if (e.name !== 'AbortError') {
-        /* silent */
+        console.warn('[RiskAlert] 创建预警规则失败:', e.message);
       }
     }
   };
@@ -269,7 +269,7 @@ const RiskAlert: Component = () => {
       await loadAlertRules();
     } catch (e: any) {
       if (e.name !== 'AbortError') {
-        /* silent */
+        console.warn('[RiskAlert] 删除预警规则失败:', e.message);
       }
     }
   };

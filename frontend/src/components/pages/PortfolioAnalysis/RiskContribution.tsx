@@ -5,6 +5,7 @@
 import ec from '@/lib/echarts';
 import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 import { Component, createSignal, onMount, onCleanup, createEffect, Show } from 'solid-js';
+import { apiFetch } from '../../../hooks/useApi';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -159,13 +160,10 @@ export const RiskContribution: Component = () => {
       // 尝试从 API 获取，失败则使用模拟数据
       let positions = MOCK_POSITIONS;
       try {
-        const res = await fetch('/api/risk/var');
-        if (res.ok) {
-          const json = await res.json();
-          if (json.positions) positions = json.positions;
-        }
-      } catch {
-        // 使用模拟数据
+        const res = await apiFetch<{ positions?: Position[] }>('/api/risk/var');
+        if (res.data?.positions) positions = res.data.positions;
+      } catch (e: unknown) {
+        console.warn('[RiskContribution] API failed, using mock data:', e);
       }
 
       const riskData = calcRiskContributions(positions);

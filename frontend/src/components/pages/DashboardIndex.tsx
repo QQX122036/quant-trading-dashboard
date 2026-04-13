@@ -143,7 +143,9 @@ export const DashboardIndex: Component = () => {
   async function loadHealth() {
     try {
       await apiActions.fetchHealth();
-    } catch {}
+    } catch (e: unknown) {
+      console.warn('[DashboardIndex] health check failed:', e);
+    }
   }
 
   onMount(async () => {

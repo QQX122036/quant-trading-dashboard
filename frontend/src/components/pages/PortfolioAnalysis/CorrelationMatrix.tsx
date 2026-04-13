@@ -4,6 +4,7 @@
  */
 import { Component, createSignal, onMount, onCleanup, createEffect } from 'solid-js';
 import { marketState } from '../../../stores/marketStore';
+import { apiFetch } from '../../../hooks/useApi';
 import ec from '@/lib/echarts';
 import type { EChartsType, EChartsCoreOption } from '@/lib/echarts';
 
@@ -84,18 +85,14 @@ export const CorrelationMatrix: Component<CorrelationMatrixProps> = (props) => {
     setError(null);
 
     try {
-      // 优先尝试 API
-      const resp = await fetch('/api/risk/correlation');
-      if (resp.ok) {
-        const json = await resp.json();
-        // API 返回空持仓时降级到模拟数据
-        if (json && json.tickers && json.tickers.length > 0) {
-          setData(json as CorrelationData);
-          return;
-        }
+      const res = await apiFetch<{ tickers?: string[]; stocks?: string[]; matrix?: number[][] }>('/api/risk/correlation');
+      const json = res.data;
+      if (json && json.tickers && json.tickers.length > 0) {
+        setData(json as unknown as CorrelationData);
+        return;
       }
-    } catch {
-      // API 不存在或失败，走模拟数据
+    } catch (e: unknown) {
+      console.warn('[CorrelationMatrix] API failed, using mock data:', e);
     }
 
     // 模拟数据路径

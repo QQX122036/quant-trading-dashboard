@@ -44,7 +44,9 @@ export const StockDashboard: Component = () => {
         stockNameCache[code] = name;
         return name;
       }
-    } catch {}
+    } catch (e: unknown) {
+      console.warn('[StockDashboard] fetchStockName failed for', code, e);
+    }
     return '未知股票';
   };
 
